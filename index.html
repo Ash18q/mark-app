@@ -1745,12 +1745,21 @@
             <label class="form-label" for="form-task-duration">Duration (mins)</label>
             <input type="number" class="form-input" id="form-task-duration" min="1" value="15" required>
           </div>
-          <div class="form-group" style="justify-content: flex-end; padding-bottom: 2px;">
-            <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; font-weight:600; color:var(--text-muted)">
-              <input type="checkbox" id="form-task-daily" style="accent-color:var(--primary); width:16px; height:16px;" checked>
-              Repeat Daily
-            </label>
+          <div class="form-group">
+            <label class="form-label" for="form-task-frequency">Frequency</label>
+            <select class="form-input" id="form-task-frequency" style="background-color: var(--bg);">
+              <option value="daily">Repeat Daily</option>
+              <option value="one-off">One-time Task</option>
+            </select>
           </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="form-task-rigidity">Timing Rigidity</label>
+          <select class="form-input" id="form-task-rigidity" style="background-color: var(--bg);">
+            <option value="flexible">Flexible (Can shift if early/late)</option>
+            <option value="fixed">Fixed Meeting / Locked Time (No auto shift)</option>
+          </select>
         </div>
         
         <!-- Rotating wheel scroll picker -->
@@ -2207,6 +2216,14 @@
       let count = null;
       let unitTime = null;
       let dependency = null;
+      
+      // Check rigidity (fixed vs flexible)
+      let rigidity = "flexible";
+      if (/\b(meeting|appointment|class|lecture|fixed|strict|locked)\b/i.test(cleanInput)) {
+        rigidity = "fixed";
+      } else if (/\b(namaz|prayer|tasbeeh|flexible|gym|workout|read|recite)\b/i.test(cleanInput)) {
+        rigidity = "flexible";
+      }
 
       // Check daily recurrence
       if (/\b(daily|every\s+day|repeating)\b/i.test(cleanInput)) {
@@ -2298,6 +2315,7 @@
         endTime,
         duration,
         isDaily,
+        rigidity,
         count,
         unitTime,
         dependency
@@ -2322,6 +2340,7 @@
         endTime: taskData.endTime,
         duration: taskData.duration,
         isDaily: taskData.isDaily,
+        rigidity: taskData.rigidity || 'flexible',
         status: 'Pending',
         actualCompletedTime: null,
         missedReason: null,
@@ -2353,13 +2372,14 @@
       // Find if we have subsequent tasks
       const currentTaskIndex = appState.tasks.findIndex(t => t.id === task.id);
       const subsequentTasks = appState.tasks.slice(currentTaskIndex + 1);
+      const subsequentFlexibleTasks = subsequentTasks.filter(t => t.rigidity !== 'fixed');
 
-      if (subsequentTasks.length === 0) return; // nothing downstream to shift
+      if (subsequentFlexibleTasks.length === 0) return; // nothing downstream to shift
 
       // Store proposal parameters
       shiftProposal = {
         diff,
-        subsequentIds: subsequentTasks.map(t => t.id)
+        subsequentIds: subsequentFlexibleTasks.map(t => t.id)
       };
 
       const directionStr = diff < 0 ? 'early' : 'late';
@@ -2375,6 +2395,9 @@
       if (confirmShift && shiftProposal) {
         appState.tasks.forEach(t => {
           if (shiftProposal.subsequentIds.includes(t.id)) {
+            // Skip fixed tasks
+            if (t.rigidity === 'fixed') return;
+            
             // Apply delta shift
             const currentStartMins = timeToMinutes(t.startTime);
             const currentEndMins = timeToMinutes(t.endTime);
@@ -2626,6 +2649,14 @@
           </button>
         ` : (task.status === 'Completed' ? `<span style="font-size: 0.8rem; color: var(--success); font-weight: 500;">✓ ${task.actualCompletedTime}</span>` : `<span style="font-size: 0.8rem; color: var(--danger); font-weight: 500;">Missed</span>`);
 
+        const rigidityBadge = task.rigidity === 'fixed' 
+          ? '<span class="status-badge" style="background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3);">🔒 Fixed</span>'
+          : '<span class="status-badge" style="background: rgba(99, 102, 241, 0.1); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.3);">⚡ Flexible</span>';
+        
+        const frequencyBadge = task.isDaily 
+          ? '<span style="font-size:0.65rem; color:var(--accent-cyan); background:rgba(6, 182, 212, 0.1); padding:2px 6px; border-radius:12px; font-weight:600;">Daily</span>' 
+          : '<span style="font-size:0.65rem; color:var(--text-muted); background:rgba(255, 255, 255, 0.05); padding:2px 6px; border-radius:12px; font-weight:600;">One-time</span>';
+
         itemRow.innerHTML = `
           <div class="item-time-col">${displayStart}</div>
           <div class="timeline-node"></div>
@@ -2634,7 +2665,8 @@
               <div class="item-title-row">
                 <span class="item-title">${sanitizeHTML(task.name)}</span>
                 <span class="status-badge ${statusClass}">${task.status}</span>
-                ${task.isDaily ? '<span style="font-size:0.65rem; color:var(--text-muted);">[Daily]</span>' : ''}
+                ${rigidityBadge}
+                ${frequencyBadge}
               </div>
               <div class="item-meta">
                 <span>
@@ -2700,7 +2732,11 @@
           </div>
           <div class="proposal-item">
             <span>Duration</span>
-            <span>${proposal.duration} min ${proposal.isDaily ? '(Daily)' : ''}</span>
+            <span>${proposal.duration} min (${proposal.isDaily ? 'Daily' : 'One-time'})</span>
+          </div>
+          <div class="proposal-item">
+            <span>Timing Type</span>
+            <span>${proposal.rigidity === 'fixed' ? '🔒 Fixed (locked)' : '⚡ Flexible (can shift)'}</span>
           </div>
           <div class="proposal-actions">
             <button class="btn-action cancel" id="proposal-cancel-btn">Cancel</button>
@@ -2764,7 +2800,8 @@
         document.getElementById('form-edit-id').value = '';
         document.getElementById('form-task-name').value = '';
         document.getElementById('form-task-duration').value = '15';
-        document.getElementById('form-task-daily').checked = true;
+        document.getElementById('form-task-frequency').value = 'daily';
+        document.getElementById('form-task-rigidity').value = 'flexible';
         document.getElementById('modal-task-title').textContent = 'Schedule New Task';
         
         // Reset picker time to current
@@ -2782,7 +2819,8 @@
       saveBtn.addEventListener('click', () => {
         const name = document.getElementById('form-task-name').value.trim();
         const duration = parseInt(document.getElementById('form-task-duration').value) || 15;
-        const isDaily = document.getElementById('form-task-daily').checked;
+        const isDaily = document.getElementById('form-task-frequency').value === 'daily';
+        const rigidity = document.getElementById('form-task-rigidity').value;
         const startTime = getWheelTime();
 
         if (!name) {
@@ -2798,7 +2836,8 @@
           startTime,
           endTime,
           duration,
-          isDaily
+          isDaily,
+          rigidity
         });
 
         closeModal('task-modal-overlay');
