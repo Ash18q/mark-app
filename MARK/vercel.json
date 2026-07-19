@@ -1,6 +1,0 @@
-{
-    "buildCommand": "cd MARK && npm install && npm run build",
-    "outputDirectory": "MARK/dist",
-    "installCommand": "cd MARK && npm install",
-    "framework": "vite"
-}
