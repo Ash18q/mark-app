@@ -60,14 +60,36 @@ function platformColor(p = '') {
   return PLATFORM_COLORS[p.toLowerCase()] || PLATFORM_COLORS.default
 }
 
+// ─── Platform auto-detection helper ─────────────────────────────────────────
+function detectPlatform(url) {
+  try {
+    const host = new URL(url).hostname.toLowerCase()
+    if (host.includes('youtube.com') || host.includes('youtu.be')) return 'YouTube'
+    if (host.includes('instagram.com')) return 'Instagram'
+    if (host.includes('threads.net')) return 'Threads'
+    if (host.includes('x.com') || host.includes('twitter.com')) return 'Twitter/X'
+    if (host.includes('facebook.com')) return 'Facebook'
+    if (host.includes('linkedin.com')) return 'LinkedIn'
+    if (host.includes('github.com')) return 'GitHub'
+    if (host.includes('reddit.com')) return 'Reddit'
+    if (host.includes('discord.com') || host.includes('discord.gg')) return 'Discord'
+  } catch { /* invalid url */ }
+  return ''
+}
+
 // ─── Smart Platform Input (select + custom fallback) ─────────────────────────
-function PlatformInput({ id = 'platform-input', value, onChange, className = '' }) {
-  const isCustom = value !== '' && !DEFAULT_PLATFORMS.includes(value)
+function PlatformInput({ id = 'platform-input', value, onChange, className = '', suggestions = DEFAULT_PLATFORMS }) {
+  const isCustom = value !== '' && !suggestions.includes(value)
   const [customMode, setCustomMode] = useState(isCustom)
   const [customText, setCustomText] = useState(isCustom ? value : '')
 
-  const selectCls = className
-  const textCls = className
+  // sync when value changes externally (e.g. auto-detect)
+  useEffect(() => {
+    if (value && suggestions.includes(value)) {
+      setCustomMode(false)
+      setCustomText('')
+    }
+  }, [value, suggestions])
 
   function handleSelectChange(e) {
     const selected = e.target.value
@@ -96,10 +118,10 @@ function PlatformInput({ id = 'platform-input', value, onChange, className = '' 
         value={selectValue}
         onChange={handleSelectChange}
         required={!customMode}
-        className={selectCls}
+        className={className}
       >
         <option value="" disabled>Select a platform…</option>
-        {DEFAULT_PLATFORMS.map((p) => (
+        {suggestions.map((p) => (
           <option key={p} value={p}>{p}</option>
         ))}
         <option value="__custom__">✏️ Custom / Other</option>
@@ -115,7 +137,7 @@ function PlatformInput({ id = 'platform-input', value, onChange, className = '' 
           autoComplete="off"
           required
           autoFocus
-          className={textCls}
+          className={className}
         />
       )}
     </div>
@@ -123,36 +145,75 @@ function PlatformInput({ id = 'platform-input', value, onChange, className = '' 
 }
 
 // ─── Tag Autocomplete Input ───────────────────────────────────────────────────
-function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '', placeholder = 'e.g. tutorial, recipe, notes' }) {
+function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '', placeholder = 'e.g. tutorial, recipe, notes', inputRef }) {
   const [open, setOpen] = useState(false)
+  const [showAll, setShowAll] = useState(false)
   const ref = useRef(null)
-  const filtered = suggestions.filter(
-    (s) => s.toLowerCase().includes(value.toLowerCase()) && s !== value
-  )
+
+  // Normal filter: match typed text, exclude exact match
+  // showAll mode (chevron click): show everything so user can pick any tag
+  const filtered = showAll
+    ? suggestions
+    : suggestions.filter((s) => s.toLowerCase().includes(value.toLowerCase()) && s !== value)
+
   useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false)
+        setShowAll(false)
+      }
+    }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  function handleChevronClick(e) {
+    e.preventDefault()
+    if (open && showAll) {
+      // already open in showAll mode → close
+      setOpen(false)
+      setShowAll(false)
+    } else {
+      setShowAll(true)
+      setOpen(true)
+    }
+  }
+
   return (
     <div ref={ref} className="relative">
       <input
+        ref={inputRef}
         id={id}
         type="text"
         value={value}
-        onChange={(e) => { onChange(e.target.value); setOpen(true) }}
+        onChange={(e) => { onChange(e.target.value); setShowAll(false); setOpen(true) }}
         onFocus={() => setOpen(true)}
         placeholder={placeholder}
-        className={className}
+        className={`${className} pr-10`}
         autoComplete="off"
         required
       />
+      {/* Chevron arrow — clickable, shows all suggestions */}
+      <button
+        type="button"
+        tabIndex={-1}
+        onMouseDown={handleChevronClick}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+        aria-label="Show tag suggestions"
+      >
+        <svg
+          className={`w-4 h-4 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
       {open && filtered.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden max-h-40 overflow-y-auto">
+        <ul className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden max-h-64 overflow-y-auto">
           {filtered.map((tag) => (
             <li
               key={tag}
-              onMouseDown={() => { onChange(tag); setOpen(false) }}
+              onMouseDown={() => { onChange(tag); setOpen(false); setShowAll(false) }}
               className="px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors"
             >
               <span className="w-2 h-2 rounded-full bg-indigo-400 flex-shrink-0" />
@@ -208,7 +269,7 @@ function EditModal({ link, tags, onClose, onSave }) {
       aria-modal="true"
       aria-labelledby="edit-modal-title"
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-[fadeIn_0.15s_ease]">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-[fadeIn_0.15s_ease]">
         {/* Modal Header */}
         <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-4 flex items-center justify-between">
           <div>
@@ -407,12 +468,33 @@ function AddLinkTab({ initialUrl, links }) {
   const { addLink, tags } = useAuth()
   const [url, setUrl] = useState(initialUrl)
   const [tag, setTag] = useState('')
-  const [platform, setPlatform] = useState('')
+  const [platform, setPlatform] = useState(() => detectPlatform(initialUrl))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const tagInputRef = useRef(null)
 
-  useEffect(() => { setUrl(initialUrl) }, [initialUrl])
+  // Dynamic platform suggestions: defaults + any user-saved custom platforms
+  const platformSuggestions = useMemo(() => {
+    const defaults = ['YouTube', 'Instagram', 'Threads', 'Facebook', 'Twitter/X', 'LinkedIn', 'GitHub', 'Reddit', 'Discord']
+    const existing = [...new Set(links.map(l => l.platform).filter(Boolean))]
+    return [...new Set([...defaults, ...existing])]
+  }, [links])
+
+  // Sync url + auto-detect platform when initialUrl changes
+  useEffect(() => {
+    setUrl(initialUrl)
+    const detected = detectPlatform(initialUrl)
+    if (detected) setPlatform(detected)
+  }, [initialUrl])
+
+  // Auto-focus tag input in Quick-Save popup mode
+  const isPopupMode = Boolean(initialUrl)
+  useEffect(() => {
+    if (isPopupMode && tagInputRef.current) {
+      tagInputRef.current.focus()
+    }
+  }, [isPopupMode])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -421,9 +503,16 @@ function AddLinkTab({ initialUrl, links }) {
     setLoading(true)
     try {
       await addLink({ url: url.trim(), tag: tag.trim(), platform: platform.trim() })
-      setUrl(''); setTag(''); setPlatform('')
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 2500)
+      if (isPopupMode) {
+        // Try to close the window (works in Android share sheet / PWA)
+        try { window.close() } catch { /* ignore */ }
+        // Fallback: go to library
+        window.location.href = '/'
+      } else {
+        setUrl(''); setTag(''); setPlatform('')
+        setSuccess(true)
+        setTimeout(() => setSuccess(false), 2500)
+      }
     } catch (err) {
       setError(err.message || 'Failed to save link.')
     } finally {
@@ -433,10 +522,96 @@ function AddLinkTab({ initialUrl, links }) {
 
   const inputCls = 'w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent transition text-sm'
 
+  // ── Quick-Save Popup Mode (shared URL detected) ──────────────────────────────
+  if (isPopupMode) {
+    const detectedPlatform = detectPlatform(url)
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-[fadeIn_0.15s_ease]">
+          {/* Popup Header */}
+          <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-4">
+            <h2 className="text-white font-bold text-base flex items-center gap-2">
+              <LinkIcon /> Quick Save
+            </h2>
+            <p className="text-indigo-200 text-xs mt-0.5">Tag this link and save it to your library</p>
+          </div>
+
+          {/* Popup Body */}
+          <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
+            {/* URL — read-only */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">🌐 URL</label>
+              <div className="w-full px-3 py-2.5 rounded-xl border border-dashed border-gray-300 bg-gray-50 text-gray-500 text-xs truncate select-all cursor-text" title={url}>
+                {url}
+              </div>
+            </div>
+
+            {/* Auto-detected platform badge */}
+            {detectedPlatform && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">Detected:</span>
+                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${platformColor(detectedPlatform)}`}>
+                  📱 {detectedPlatform}
+                </span>
+              </div>
+            )}
+
+            {/* Tag input — auto-focused */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="qs-tag" className="text-sm font-semibold text-gray-700">🏷️ Tag <span className="text-red-400">*</span></label>
+              <TagInput
+                id="qs-tag"
+                value={tag}
+                onChange={setTag}
+                suggestions={tags}
+                className={inputCls}
+                placeholder="e.g. tutorial, remote jobs…"
+                inputRef={tagInputRef}
+              />
+            </div>
+
+            {/* Platform selector */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="qs-platform" className="text-sm font-semibold text-gray-700">📱 Platform</label>
+              <PlatformInput
+                id="qs-platform"
+                value={platform}
+                onChange={setPlatform}
+                className={inputCls}
+                suggestions={platformSuggestions}
+              />
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-2">
+                <span>⚠️</span> {error}
+              </div>
+            )}
+
+            {/* Save button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 active:scale-[0.98] text-white font-bold py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed text-base flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <><span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Saving…</>
+              ) : (
+                <>💾 Save &amp; Close</>
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Normal Mode ──────────────────────────────────────────────────────────────
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Left Column: Form */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden h-fit">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm h-fit">
         {/* Card Header */}
         <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-4">
           <h2 className="text-white font-bold text-base flex items-center gap-2">
@@ -454,7 +629,7 @@ function AddLinkTab({ initialUrl, links }) {
               id="link-url"
               type="url"
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={(e) => { setUrl(e.target.value); const d = detectPlatform(e.target.value); if (d) setPlatform(d) }}
               placeholder="https://example.com/article"
               className={inputCls}
               required
@@ -480,6 +655,7 @@ function AddLinkTab({ initialUrl, links }) {
                 value={platform}
                 onChange={setPlatform}
                 className={inputCls}
+                suggestions={platformSuggestions}
               />
             </div>
           </div>
