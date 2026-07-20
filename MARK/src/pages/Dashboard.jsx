@@ -833,9 +833,9 @@ function LibraryTab({ links, onDelete, onUpdate }) {
         if (vid) return `https://img.youtube.com/vi/${vid}/hqdefault.jpg`
       }
       // Instagram (p, reel, reels, tv)
-      if (host.includes('instagram.com')) {
-        const match = u.pathname.match(/\/(p|reel|reels|tv)\/([^/?#]+)/)
-        if (match) return `https://www.instagram.com/p/${match[2]}/media/?size=m`
+      if (host.includes('instagram.com') || host.includes('instagr.am')) {
+        const match = u.pathname.match(/\/(p|reel|reels|tv)\/([^/?#'"\s]+)/)
+        if (match) return `https://www.instagram.com/p/${match[2]}/media/?size=l`
       }
     } catch { /* ignore */ }
     return null
@@ -847,60 +847,89 @@ function LibraryTab({ links, onDelete, onUpdate }) {
   return (
     <div className="flex flex-col gap-4">
       {/* ── Filter Bar ── */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-3 flex flex-wrap items-center gap-3 shadow-sm">
-        <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Filter:</span>
+      <div className="bg-white border border-gray-200 rounded-2xl p-3.5 flex flex-col gap-3 shadow-sm">
+        {/* Filter Bar Header */}
+        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+            🔍 Filters
+          </span>
+          <span className="text-[11px] text-gray-400 font-semibold bg-gray-100 px-2.5 py-0.5 rounded-full">
+            {filtered.length} / {links.length} links
+          </span>
+        </div>
 
-        <label htmlFor="filter-tag" className="flex items-center gap-1 text-xs font-semibold text-gray-600 whitespace-nowrap">
-          🏷️ Tag:
-          <select id="filter-tag" value={filterTag} onChange={e => setFilterTag(e.target.value)} className={selectCls}>
-            <option value="All">All Tags</option>
-            {allTags.filter(t => t !== 'All').map(t => <option key={t}>{t}</option>)}
-          </select>
-        </label>
+        {/* Filter Inputs Grid (2 columns on mobile, flex on desktop) */}
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-end gap-2.5">
+          {/* Tag Filter */}
+          <div className="flex flex-col gap-1 flex-1 min-w-[130px]">
+            <label htmlFor="filter-tag" className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+              🏷️ Tag
+            </label>
+            <select
+              id="filter-tag"
+              value={filterTag}
+              onChange={e => setFilterTag(e.target.value)}
+              className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm"
+            >
+              <option value="All">All Tags</option>
+              {allTags.filter(t => t !== 'All').map(t => <option key={t}>{t}</option>)}
+            </select>
+          </div>
 
-        <label htmlFor="filter-platform" className="flex items-center gap-1 text-xs font-semibold text-gray-600 whitespace-nowrap">
-          📱 Platform:
-          <select id="filter-platform" value={filterPlatform} onChange={e => setFilterPlatform(e.target.value)} className={selectCls}>
-            <option value="All">All Platforms</option>
-            {allPlatforms.filter(p => p !== 'All').map(p => <option key={p}>{p}</option>)}
-          </select>
-        </label>
+          {/* Platform Filter */}
+          <div className="flex flex-col gap-1 flex-1 min-w-[130px]">
+            <label htmlFor="filter-platform" className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+              📱 Platform
+            </label>
+            <select
+              id="filter-platform"
+              value={filterPlatform}
+              onChange={e => setFilterPlatform(e.target.value)}
+              className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm"
+            >
+              <option value="All">All Platforms</option>
+              {allPlatforms.filter(p => p !== 'All').map(p => <option key={p}>{p}</option>)}
+            </select>
+          </div>
 
-        <label htmlFor="filter-date-range" className="flex items-center gap-1 text-xs font-semibold text-gray-600 whitespace-nowrap">
-          📅 Date Range:
-          <select
-            id="filter-date-range"
-            value={dateRange}
-            onChange={e => { setDateRange(e.target.value); setCustomFrom(''); setCustomTo('') }}
-            className={selectCls}
-          >
-            <option value="all">All Dates</option>
-            <option value="today">Today</option>
-            <option value="yesterday">Yesterday</option>
-            <option value="7days">Last 7 Days</option>
-            <option value="thisMonth">This Month</option>
-            <option value="3months">Last 3 Months</option>
-            <option value="6months">Last 6 Months</option>
-            <option value="thisYear">This Year</option>
-            <option value="custom">Custom</option>
-          </select>
-        </label>
+          {/* Date Range Filter */}
+          <div className="flex flex-col gap-1 flex-1 min-w-[130px]">
+            <label htmlFor="filter-date-range" className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+              📅 Date Range
+            </label>
+            <select
+              id="filter-date-range"
+              value={dateRange}
+              onChange={e => { setDateRange(e.target.value); setCustomFrom(''); setCustomTo('') }}
+              className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm"
+            >
+              <option value="all">All Dates</option>
+              <option value="today">Today</option>
+              <option value="yesterday">Yesterday</option>
+              <option value="7days">Last 7 Days</option>
+              <option value="thisMonth">This Month</option>
+              <option value="3months">Last 3 Months</option>
+              <option value="6months">Last 6 Months</option>
+              <option value="thisYear">This Year</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
 
-        <label htmlFor="sort-date-btn" className="flex items-center gap-1 text-xs font-semibold text-gray-600 whitespace-nowrap">
-          ↕️ Sort:
-          <button
-            id="sort-date-btn"
-            onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
-            title="Toggle sort direction"
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 hover:bg-gray-100 transition cursor-pointer flex items-center gap-1.5 font-medium"
-          >
-            Date {sortDir === 'desc' ? '↓' : '↑'}
-          </button>
-        </label>
-
-        <span className="ml-auto text-xs text-gray-400 font-semibold bg-gray-100 px-2.5 py-1 rounded-full">
-          {filtered.length} / {links.length} links
-        </span>
+          {/* Sort Button */}
+          <div className="flex flex-col gap-1 min-w-[100px] flex-1 sm:flex-initial">
+            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+              ↕️ Order
+            </span>
+            <button
+              id="sort-date-btn"
+              onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
+              title="Toggle sort direction"
+              className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 hover:bg-gray-100 transition cursor-pointer flex items-center justify-center gap-1 font-semibold shadow-sm h-[34px]"
+            >
+              Date {sortDir === 'desc' ? '↓' : '↑'}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ── Custom Date Inputs ── */}
@@ -928,114 +957,120 @@ function LibraryTab({ links, onDelete, onUpdate }) {
         </div>
       )}
 
-      {/* ── Table ── */}
-      <div className="bg-white border border-gray-300 rounded-2xl shadow-sm overflow-hidden">
-        {filtered.length === 0 ? (
-          <div className="py-20 text-center text-gray-400">
-            <div className="text-5xl mb-3">📭</div>
-            <p className="text-sm font-medium">No links found.</p>
-            <p className="text-xs text-gray-300 mt-1">Add your first link in the "Add New Link" tab!</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse min-w-[660px]">
-              <thead>
-                <tr className="bg-gradient-to-r from-indigo-700 to-blue-700 text-white">
-                  <th className="px-3 py-3 text-center font-semibold text-xs uppercase tracking-wider border border-indigo-600 w-10">#</th>
-                  <th className="px-2 py-3 text-center font-semibold text-xs uppercase tracking-wider border border-indigo-600 w-14">Thumb</th>
-                  <th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider border border-indigo-600">URL</th>
-                  <th className="px-4 py-3 text-center font-semibold text-xs uppercase tracking-wider border border-indigo-600">Tag</th>
-                  <th className="px-4 py-3 text-center font-semibold text-xs uppercase tracking-wider border border-indigo-600">Platform</th>
-                  <th className="px-4 py-3 text-center font-semibold text-xs uppercase tracking-wider border border-indigo-600">Date</th>
-                  <th className="px-3 py-3 text-center font-semibold text-xs uppercase tracking-wider border border-indigo-600 w-20">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((link, idx) => (
-                  <tr key={link.id}
-                    className={`border-b border-gray-200 hover:bg-indigo-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                    <td className="px-3 py-2.5 text-center text-gray-400 font-mono text-xs border border-gray-200">
-                      {idx + 1}
-                    </td>
-                    {/* Thumbnail */}
-                    <td className="px-2 py-2 text-center border border-gray-200 w-14">
-                      {(() => {
-                        const thumb = getThumbnail(link.url)
-                        return thumb ? (
-                          <a href={link.url} target="_blank" rel="noopener noreferrer" className="block w-10 h-10 mx-auto">
-                            <img
-                              src={thumb}
-                              alt=""
-                              referrerPolicy="no-referrer"
-                              className="w-10 h-10 rounded-lg object-cover mx-auto"
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                if (e.target.nextElementSibling) {
-                                  e.target.nextElementSibling.style.display = 'flex';
-                                }
-                              }}
-                            />
-                            <span
-                              className="w-10 h-10 rounded-lg bg-gray-100 items-center justify-center text-lg mx-auto hidden hover:bg-gray-200 transition"
-                              style={{ display: 'none' }}
-                            >🔗</span>
-                          </a>
-                        ) : (
-                          <a href={link.url} target="_blank" rel="noopener noreferrer"
-                            className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-lg mx-auto hover:bg-gray-200 transition"
-                          >🔗</a>
-                        )
-                      })()}
-                    </td>
-                    <td className="px-4 py-2.5 border border-gray-200 max-w-[200px]">
-                      <a href={link.url} target="_blank" rel="noopener noreferrer" title={link.url}
-                        className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium block truncate">
-                        {getDisplayUrl(link.url)}
-                      </a>
-                    </td>
-                    <td className="px-4 py-2.5 text-center border border-gray-200">
-                      <span className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200">
-                        {link.tag || '—'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2.5 text-center border border-gray-200">
-                      <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${platformColor(link.platform)}`}>
-                        {link.platform || '—'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2.5 text-center text-gray-500 text-xs font-mono border border-gray-200 whitespace-nowrap">
+      {/* ── Card Grid (Mobile-First) ── */}
+      {filtered.length === 0 ? (
+        <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center text-gray-400 shadow-sm">
+          <div className="text-5xl mb-3">📭</div>
+          <p className="text-sm font-medium">No links found.</p>
+          <p className="text-xs text-gray-300 mt-1">Add your first link in the "Add New Link" tab!</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {filtered.map((link) => {
+            const thumb = getThumbnail(link.url)
+            return (
+              <div
+                key={link.id}
+                className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden flex flex-col group hover:shadow-lg transition-all"
+              >
+                {/* Top: Thumbnail (160px) + Action Buttons */}
+                <div className="relative w-full h-[160px] bg-gray-100 overflow-hidden">
+                  {thumb ? (
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                      <img
+                        src={thumb}
+                        alt=""
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          if (!e.target.dataset.triedFallback && thumb.includes('instagram.com')) {
+                            e.target.dataset.triedFallback = 'true';
+                            const match = link.url.match(/\/(p|reel|reels|tv)\/([^/?#'"\s]+)/);
+                            if (match) {
+                              e.target.src = `https://www.instagram.com/p/${match[2]}/media/?size=m`;
+                              return;
+                            }
+                          }
+                          e.target.style.display = 'none';
+                          if (e.target.nextElementSibling) {
+                            e.target.nextElementSibling.style.display = 'flex';
+                          }
+                        }}
+                      />
+                      <span
+                        className="w-full h-full bg-gray-100 items-center justify-center text-4xl hidden text-gray-400"
+                        style={{ display: 'none' }}
+                      >🔗</span>
+                    </a>
+                  ) : (
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full h-full bg-gray-100 flex items-center justify-center text-4xl text-gray-400 hover:bg-gray-200 transition"
+                    >
+                      🔗
+                    </a>
+                  )}
+
+                  {/* Top-Right Action Buttons */}
+                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
+                    <button
+                      onClick={() => setEditingLink(link)}
+                      className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-indigo-600 flex items-center justify-center shadow-md backdrop-blur-sm transition cursor-pointer"
+                      title="Edit link"
+                      aria-label="Edit link"
+                    >
+                      <PencilIcon />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(link.id)}
+                      disabled={deletingId === link.id}
+                      className="w-8 h-8 rounded-full bg-red-500/90 hover:bg-red-600 text-white flex items-center justify-center shadow-md backdrop-blur-sm transition cursor-pointer disabled:opacity-50"
+                      title="Delete link"
+                      aria-label="Delete link"
+                    >
+                      {deletingId === link.id ? (
+                        <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <TrashIcon />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Middle: Badges (Tag + Platform) */}
+                <div className="p-4 flex flex-col gap-3 flex-1 justify-between">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200">
+                      🏷️ {link.tag || 'No tag'}
+                    </span>
+                    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${platformColor(link.platform)}`}>
+                      📱 {link.platform || 'Other'}
+                    </span>
+                  </div>
+
+                  {/* Bottom: URL domain (Left) + Date (Right) */}
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100 text-xs text-gray-500">
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={link.url}
+                      className="hover:text-indigo-600 font-medium truncate max-w-[60%] flex items-center gap-1"
+                    >
+                      <span>🌐</span> {getDisplayUrl(link.url)}
+                    </a>
+                    <span className="text-[11px] text-gray-400 font-mono whitespace-nowrap ml-auto">
                       {formatDate(link.created_at)}
-                    </td>
-                    <td className="px-3 py-2.5 text-center border border-gray-200">
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          onClick={() => setEditingLink(link)}
-                          className="p-1.5 rounded-lg text-indigo-400 hover:text-indigo-700 hover:bg-indigo-50 transition-colors"
-                          aria-label="Edit link"
-                          title="Edit"
-                        >
-                          <PencilIcon />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(link.id)}
-                          disabled={deletingId === link.id}
-                          className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
-                          aria-label="Delete link"
-                          title="Delete"
-                        >
-                          {deletingId === link.id
-                            ? <span className="inline-block w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
-                            : <TrashIcon />}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* ── Edit Modal ── */}
       {editingLink && (

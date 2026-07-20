@@ -125,6 +125,20 @@ export function AuthProvider({ children }) {
 
   // ─── Session listener ────────────────────────────────────────────────────────
   useEffect(() => {
+    // ⚡ Fast synchronous check of cached session from localStorage to eliminate open delay
+    try {
+      const storageKeys = Object.keys(localStorage)
+      const tokenKey = storageKeys.find((k) => k.includes('-auth-token'))
+      if (tokenKey) {
+        const cached = JSON.parse(localStorage.getItem(tokenKey) || '{}')
+        if (cached?.user) {
+          setUser(cached.user)
+          fetchLinks(cached.user.id)
+          setLoading(false)
+        }
+      }
+    } catch { /* fallback to getSession */ }
+
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) console.error('[MARK] getSession error:', error)
       const u = session?.user ?? null
@@ -140,6 +154,7 @@ export function AuthProvider({ children }) {
       setUser(u)
       if (u) fetchLinks(u.id)
       else { setLinks([]); setTags([]) }
+      setLoading(false)
     })
 
     return () => listener.subscription.unsubscribe()
