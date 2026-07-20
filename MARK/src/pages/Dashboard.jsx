@@ -718,36 +718,386 @@ function AddLinkTab({ initialUrl, links }) {
   )
 }
 
-// ─── Date range utility (pure vanilla JS) ─────────────────────────────────────
-function getDateBounds(range) {
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+// ─── Reusable Multi-Select Dropdown ─────────────────────────────────────────
+function MultiSelectDropdown({ id, options, selected, onChange, placeholder = 'All' }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
 
-  switch (range) {
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const toggleOption = (opt) => {
+    if (selected.includes(opt)) {
+      onChange(selected.filter(item => item !== opt))
+    } else {
+      onChange([...selected, opt])
+    }
+  }
+
+  const toggleAll = () => {
+    if (selected.length === options.length) {
+      onChange([])
+    } else {
+      onChange([...options])
+    }
+  }
+
+  const displayText = () => {
+    if (selected.length === 0 || selected.length === options.length) return placeholder
+    if (selected.length === 1) return selected[0]
+    return `${selected.length} Selected`
+  }
+
+  return (
+    <div ref={ref} className="relative w-full">
+      <button
+        id={id}
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 font-medium flex items-center justify-between shadow-sm hover:bg-gray-100 transition cursor-pointer"
+      >
+        <span className="truncate">{displayText()}</span>
+        <span className="text-gray-400 text-[10px] ml-1">▼</span>
+      </button>
+
+      {open && (
+        <div className="absolute z-50 mt-1 w-full min-w-[170px] bg-white border border-gray-200 rounded-xl shadow-xl p-2 flex flex-col gap-1 max-h-56 overflow-y-auto">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-1.5 px-1 mb-1">
+            <button
+              type="button"
+              onClick={toggleAll}
+              className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+            >
+              {selected.length === options.length ? 'Clear All' : 'Select All'}
+            </button>
+            <span className="text-[10px] text-gray-400 font-mono">{selected.length}/{options.length}</span>
+          </div>
+          {options.map((opt) => {
+            const isChecked = selected.includes(opt)
+            return (
+              <label
+                key={opt}
+                className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-indigo-50 text-xs text-gray-700 cursor-pointer transition-colors"
+              >
+                <input
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={() => toggleOption(opt)}
+                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5"
+                />
+                <span className="truncate">{opt}</span>
+              </label>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── DateTime Range Picker Popover Component ──────────────────────────────────
+function DateTimeRangePickerPopover({
+  fromDate, fromTime, toDate, toTime,
+  onFromDateChange, onFromTimeChange, onToDateChange, onToTimeChange,
+  onPresetSelect, onReset
+}) {
+  const [open, setOpen] = useState(false)
+  const popoverRef = useRef(null)
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const formattedDisplay = () => {
+    if (!fromDate && !toDate) return 'Select Date & Time Range...'
+    const fDate = fromDate || 'Start'
+    const fTime = fromTime || '00:00'
+    const tDate = toDate || 'End'
+    const tTime = toTime || '23:59'
+    return `${fDate} ${fTime}  -  ${tDate} ${tTime}`
+  }
+
+  const presets = [
+    { label: 'Today', key: 'today' },
+    { label: 'Yesterday', key: 'yesterday' },
+    { label: 'Last three days', key: '3days' },
+    { label: 'Last week', key: '7days' },
+    { label: 'The last month', key: 'thisMonth' },
+    { label: 'The last three months', key: '3months' },
+    { label: 'Last six months', key: '6months' },
+    { label: 'The past year', key: 'thisYear' },
+  ]
+
+  // Mini calendar helper
+  const now = new Date()
+  const [calMonth, setCalMonth] = useState(now.getMonth())
+  const [calYear, setCalYear] = useState(now.getFullYear())
+
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate()
+  const firstDayIndex = new Date(calYear, calMonth, 1).getDay()
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+  const handleDateClick = (day) => {
+    const mStr = String(calMonth + 1).padStart(2, '0')
+    const dStr = String(day).padStart(2, '0')
+    const clickedDate = `${calYear}-${mStr}-${dStr}`
+
+    if (!fromDate || (fromDate && toDate)) {
+      onFromDateChange(clickedDate)
+      onFromTimeChange('00:00')
+      onToDateChange('')
+      onToTimeChange('23:59')
+    } else {
+      if (new Date(clickedDate) >= new Date(fromDate)) {
+        onToDateChange(clickedDate)
+        onToTimeChange('23:59')
+      } else {
+        onToDateChange(fromDate)
+        onToTimeChange('23:59')
+        onFromDateChange(clickedDate)
+        onFromTimeChange('00:00')
+      }
+    }
+  }
+
+  return (
+    <div ref={popoverRef} className="relative w-full sm:w-auto flex-1 min-w-[240px]">
+      {/* Trigger Input Box */}
+      <div
+        onClick={() => setOpen(!open)}
+        className="w-full border border-blue-400/80 hover:border-blue-500 rounded-xl px-3 py-1.5 bg-white text-gray-700 font-mono text-xs flex items-center justify-between shadow-sm cursor-pointer transition"
+      >
+        <div className="flex items-center gap-2 truncate">
+          <span className="text-gray-400">🕒</span>
+          <span className="truncate font-medium text-gray-800">{formattedDisplay()}</span>
+        </div>
+        {(fromDate || toDate) && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onReset(); setOpen(false) }}
+            className="text-gray-400 hover:text-red-500 ml-2 font-bold cursor-pointer"
+            title="Clear date filter"
+          >
+            ⊗
+          </button>
+        )}
+      </div>
+
+      {/* Popover Card */}
+      {open && (
+        <div className="absolute z-50 top-full left-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-full min-w-[300px] sm:min-w-[560px] max-w-[95vw]">
+          {/* Main Popover Grid */}
+          <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+            {/* Left Column: Preset List */}
+            <div className="w-full sm:w-44 bg-gray-50/70 p-3 flex flex-col gap-1 text-xs">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 px-2">Quick Select</span>
+              {presets.map((p) => (
+                <button
+                  key={p.key}
+                  type="button"
+                  onClick={() => { onPresetSelect(p.key); }}
+                  className="text-left px-2.5 py-1.5 rounded-lg text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 font-medium transition cursor-pointer"
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Right Column: Date/Time Inputs + Calendar */}
+            <div className="flex-1 p-3.5 flex flex-col gap-3">
+              {/* Top Row: Direct Typeable Date & Time Input Boxes */}
+              <div className="flex flex-wrap items-center gap-2 bg-gray-50 border border-gray-200 p-2 rounded-xl text-xs">
+                {/* From Date */}
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => onFromDateChange(e.target.value)}
+                  className="bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
+                />
+
+                {/* From Time Input (Typeable HH:mm) */}
+                <div className="flex items-center bg-white border border-gray-200 rounded-lg px-2 py-1 focus-within:ring-2 focus-within:ring-blue-500">
+                  <span className="text-[10px] font-bold text-gray-400 mr-1 uppercase">Time:</span>
+                  <input
+                    type="text"
+                    placeholder="00:00"
+                    value={fromTime}
+                    onChange={(e) => onFromTimeChange(e.target.value)}
+                    className="bg-transparent text-xs font-mono font-bold text-gray-700 focus:outline-none w-14 text-center cursor-text"
+                  />
+                </div>
+
+                <span className="text-gray-400 font-bold px-1">&gt;</span>
+
+                {/* To Date */}
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => onToDateChange(e.target.value)}
+                  className="bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
+                />
+
+                {/* To Time Input (Typeable HH:mm) */}
+                <div className="flex items-center bg-white border border-gray-200 rounded-lg px-2 py-1 focus-within:ring-2 focus-within:ring-blue-500">
+                  <span className="text-[10px] font-bold text-gray-400 mr-1 uppercase">Time:</span>
+                  <input
+                    type="text"
+                    placeholder="23:59"
+                    value={toTime}
+                    onChange={(e) => onToTimeChange(e.target.value)}
+                    className="bg-transparent text-xs font-mono font-bold text-gray-700 focus:outline-none w-14 text-center cursor-text"
+                  />
+                </div>
+              </div>
+
+              {/* Mini Interactive Calendar Grid */}
+              <div className="border border-gray-100 rounded-xl p-2.5 bg-white">
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) }
+                      else setCalMonth(m => m - 1)
+                    }}
+                    className="text-xs text-gray-500 hover:text-indigo-600 px-1 font-bold cursor-pointer"
+                  >
+                    « &lt;
+                  </button>
+                  <span className="text-xs font-bold text-gray-700">
+                    {monthNames[calMonth]} {calYear}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) }
+                      else setCalMonth(m => m + 1)
+                    }}
+                    className="text-xs text-gray-500 hover:text-indigo-600 px-1 font-bold cursor-pointer"
+                  >
+                    &gt; »
+                  </button>
+                </div>
+
+                {/* Calendar Days Header */}
+                <div className="grid grid-cols-7 text-center text-[10px] font-bold text-gray-400 mb-1">
+                  <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                </div>
+
+                {/* Days Grid */}
+                <div className="grid grid-cols-7 text-center gap-1 text-xs">
+                  {Array.from({ length: firstDayIndex }).map((_, i) => (
+                    <div key={`empty-${i}`} className="h-6" />
+                  ))}
+                  {Array.from({ length: daysInMonth }).map((_, i) => {
+                    const day = i + 1
+                    const mStr = String(calMonth + 1).padStart(2, '0')
+                    const dStr = String(day).padStart(2, '0')
+                    const dFormatted = `${calYear}-${mStr}-${dStr}`
+                    const isSelectedFrom = fromDate === dFormatted
+                    const isSelectedTo = toDate === dFormatted
+                    const isInRange = fromDate && toDate && dFormatted >= fromDate && dFormatted <= toDate
+
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => handleDateClick(day)}
+                        className={`h-7 w-7 rounded-full flex items-center justify-center mx-auto text-xs transition cursor-pointer ${
+                          isSelectedFrom || isSelectedTo
+                            ? 'bg-blue-600 text-white font-bold shadow-sm'
+                            : isInRange
+                            ? 'bg-blue-100 text-blue-700 font-medium'
+                            : 'hover:bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Popover Footer */}
+          <div className="bg-gray-50 border-t border-gray-100 p-2.5 flex items-center justify-between">
+            <span className="text-[11px] text-gray-400">Default time: 00:00 to 23:59</span>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-semibold px-4 py-1.5 rounded-lg shadow-sm cursor-pointer"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function getPresetDates(preset) {
+  const now = new Date()
+  const formatDateStr = (d) => {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+
+  const todayStr = formatDateStr(now)
+
+  switch (preset) {
     case 'today':
-      return { from: today, to: now }
+      return { fromDate: todayStr, fromTime: '00:00', toDate: todayStr, toTime: '23:59' }
     case 'yesterday': {
-      const s = new Date(today); s.setDate(today.getDate() - 1)
-      return { from: s, to: today }
+      const y = new Date(now)
+      y.setDate(y.getDate() - 1)
+      const yStr = formatDateStr(y)
+      return { fromDate: yStr, fromTime: '00:00', toDate: yStr, toTime: '23:59' }
+    }
+    case '3days': {
+      const s = new Date(now)
+      s.setDate(s.getDate() - 3)
+      return { fromDate: formatDateStr(s), fromTime: '00:00', toDate: todayStr, toTime: '23:59' }
     }
     case '7days': {
-      const s = new Date(today); s.setDate(today.getDate() - 7)
-      return { from: s, to: now }
+      const s = new Date(now)
+      s.setDate(s.getDate() - 7)
+      return { fromDate: formatDateStr(s), fromTime: '00:00', toDate: todayStr, toTime: '23:59' }
     }
-    case 'thisMonth':
-      return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now }
+    case 'thisMonth': {
+      const s = new Date(now.getFullYear(), now.getMonth(), 1)
+      return { fromDate: formatDateStr(s), fromTime: '00:00', toDate: todayStr, toTime: '23:59' }
+    }
     case '3months': {
-      const s = new Date(today); s.setMonth(today.getMonth() - 3)
-      return { from: s, to: now }
+      const s = new Date(now)
+      s.setMonth(s.getMonth() - 3)
+      return { fromDate: formatDateStr(s), fromTime: '00:00', toDate: todayStr, toTime: '23:59' }
     }
     case '6months': {
-      const s = new Date(today); s.setMonth(today.getMonth() - 6)
-      return { from: s, to: now }
+      const s = new Date(now)
+      s.setMonth(s.getMonth() - 6)
+      return { fromDate: formatDateStr(s), fromTime: '00:00', toDate: todayStr, toTime: '23:59' }
     }
-    case 'thisYear':
-      return { from: new Date(now.getFullYear(), 0, 1), to: now }
+    case 'thisYear': {
+      const s = new Date(now.getFullYear(), 0, 1)
+      return { fromDate: formatDateStr(s), fromTime: '00:00', toDate: todayStr, toTime: '23:59' }
+    }
     default:
-      return null
+      return { fromDate: '', fromTime: '00:00', toDate: '', toTime: '23:59' }
   }
 }
 
@@ -755,44 +1105,84 @@ function getDateBounds(range) {
 function LibraryTab({ links, onDelete, onUpdate }) {
   const { tags } = useAuth()
 
-  const [filterTag, setFilterTag] = useState('All')
-  const [filterPlatform, setFilterPlatform] = useState('All')
+  // Distinct lists
+  const availableTags = useMemo(() => [...new Set(links.map(l => l.tag).filter(Boolean))], [links])
+  const availablePlatforms = useMemo(() => [...new Set(links.map(l => l.platform).filter(Boolean))], [links])
+
+  // Pending filter states
+  const [pendingTags, setPendingTags] = useState([])
+  const [pendingPlatforms, setPendingPlatforms] = useState([])
+  const [pendingPreset, setPendingPreset] = useState('all')
+  const [pendingFromDate, setPendingFromDate] = useState('')
+  const [pendingFromTime, setPendingFromTime] = useState('00:00')
+  const [pendingToDate, setPendingToDate] = useState('')
+  const [pendingToTime, setPendingToTime] = useState('23:59')
   const [sortDir, setSortDir] = useState('desc')
-  const [dateRange, setDateRange] = useState('all')
-  const [customFrom, setCustomFrom] = useState('')
-  const [customTo, setCustomTo] = useState('')
+
+  // Applied filter states (updated ONLY on Confirm/Apply button click)
+  const [appliedTags, setAppliedTags] = useState([])
+  const [appliedPlatforms, setAppliedPlatforms] = useState([])
+  const [appliedFromDate, setAppliedFromDate] = useState('')
+  const [appliedFromTime, setAppliedFromTime] = useState('00:00')
+  const [appliedToDate, setAppliedToDate] = useState('')
+  const [appliedToTime, setAppliedToTime] = useState('23:59')
+
   const [deletingId, setDeletingId] = useState(null)
   const [editingLink, setEditingLink] = useState(null)
 
-  const allTags = useMemo(() => ['All', ...new Set(links.map(l => l.tag).filter(Boolean))], [links])
-  const allPlatforms = useMemo(() => ['All', ...new Set(links.map(l => l.platform).filter(Boolean))], [links])
+  function handleApply() {
+    setAppliedTags([...pendingTags])
+    setAppliedPlatforms([...pendingPlatforms])
+    setAppliedFromDate(pendingFromDate)
+    setAppliedFromTime(pendingFromTime)
+    setAppliedToDate(pendingToDate)
+    setAppliedToTime(pendingToTime)
+  }
+
+  function handleReset() {
+    setPendingTags([])
+    setPendingPlatforms([])
+    setPendingPreset('all')
+    setPendingFromDate('')
+    setPendingFromTime('00:00')
+    setPendingToDate('')
+    setPendingToTime('23:59')
+
+    setAppliedTags([])
+    setAppliedPlatforms([])
+    setAppliedFromDate('')
+    setAppliedFromTime('00:00')
+    setAppliedToDate('')
+    setAppliedToTime('23:59')
+  }
 
   const filtered = useMemo(() => {
-    let fromDate = null, toDate = null
-
-    if (dateRange === 'custom') {
-      if (customFrom) fromDate = new Date(customFrom)
-      if (customTo) toDate = new Date(new Date(customTo).getTime() + 86399999)
-    } else if (dateRange !== 'all') {
-      const b = getDateBounds(dateRange)
-      if (b) { fromDate = b.from; toDate = b.to }
-    }
-
     return links
-      .filter(l => filterTag === 'All' || l.tag === filterTag)
-      .filter(l => filterPlatform === 'All' || l.platform === filterPlatform)
       .filter(l => {
-        if (!fromDate && !toDate) return true
-        const d = new Date(l.created_at)
-        if (fromDate && d < fromDate) return false
-        if (toDate && d > toDate) return false
+        // Multi-tag filter
+        if (appliedTags.length > 0 && !appliedTags.includes(l.tag)) return false
+        // Multi-platform filter
+        if (appliedPlatforms.length > 0 && !appliedPlatforms.includes(l.platform)) return false
+
+        // Date + Time range filter
+        if (appliedFromDate || appliedToDate) {
+          const itemMs = new Date(l.created_at).getTime()
+          if (appliedFromDate) {
+            const fromMs = new Date(`${appliedFromDate}T${appliedFromTime || '00:00'}:00`).getTime()
+            if (!isNaN(fromMs) && itemMs < fromMs) return false
+          }
+          if (appliedToDate) {
+            const toMs = new Date(`${appliedToDate}T${appliedToTime || '23:59'}:59`).getTime()
+            if (!isNaN(toMs) && itemMs > toMs) return false
+          }
+        }
         return true
       })
       .sort((a, b) => {
         const d = new Date(a.created_at) - new Date(b.created_at)
         return sortDir === 'asc' ? d : -d
       })
-  }, [links, filterTag, filterPlatform, dateRange, customFrom, customTo, sortDir])
+  }, [links, appliedTags, appliedPlatforms, appliedFromDate, appliedFromTime, appliedToDate, appliedToTime, sortDir])
 
   async function handleDelete(id) {
     if (!window.confirm('Delete this link?')) return
@@ -815,11 +1205,12 @@ function LibraryTab({ links, onDelete, onUpdate }) {
     }
   }
 
-  // ── Thumbnail helper (synchronous for YouTube) ───────────────────────
+  // ── Thumbnail helper (synchronous for YouTube & Instagram) ───────────────
   const getThumbnail = (url) => {
     try {
       const u = new URL(url)
       const host = u.hostname.toLowerCase()
+
       // YouTube (watch, shorts, embed, youtu.be)
       if (host.includes('youtube.com') || host.includes('youtu.be')) {
         let vid = u.searchParams.get('v')
@@ -832,14 +1223,23 @@ function LibraryTab({ links, onDelete, onUpdate }) {
         }
         if (vid) return `https://img.youtube.com/vi/${vid}/hqdefault.jpg`
       }
+
+      // Instagram (p, reel, reels, tv, share/p, share/reel)
+      if (host.includes('instagram.com') || host.includes('instagr.am')) {
+        const match = url.match(/\/(p|reel|reels|tv|share\/p|share\/reel)\/([^/?#'"\s]+)/)
+        if (match && match[2]) {
+          const shortcode = match[2]
+          return `https://images.weserv.nl/?url=https://www.instagram.com/p/${shortcode}/media/?size=l`
+        }
+      }
     } catch { /* ignore */ }
     return null
   }
 
-  // State for dynamically fetched Instagram oEmbed thumbnails
+  // State for dynamically fetched Instagram thumbnails
   const [thumbnails, setThumbnails] = useState({})
 
-  // Fetch Instagram thumbnails using Vercel Serverless Function (/api/thumbnail)
+  // Fetch Instagram thumbnails using Vercel Serverless Function (/api/thumbnail) + images.weserv.nl proxy fallback
   useEffect(() => {
     links.forEach(async (link) => {
       const isInsta = (link.platform && link.platform.toLowerCase() === 'instagram') ||
@@ -847,22 +1247,32 @@ function LibraryTab({ links, onDelete, onUpdate }) {
       if (!isInsta) return
       if (thumbnails[link.id]) return // Already cached
 
+      // Extract shortcode for reliable proxy CDN fallback
+      const match = link.url.match(/\/(p|reel|reels|tv)\/([^/?#'"\s]+)/)
+      const shortcode = match ? match[2] : null
+
       try {
         const res = await fetch(`/api/thumbnail?url=${encodeURIComponent(link.url)}`)
         if (res.ok) {
           const data = await res.json()
           if (data.thumbnail) {
             setThumbnails(prev => ({ ...prev, [link.id]: data.thumbnail }))
+            return
           }
         }
-      } catch (err) {
-        console.error('[MARK] Thumbnail fetch error:', err)
+      } catch (err) { /* fallback below */ }
+
+      // Ultra-reliable fallback using images.weserv.nl proxying Instagram media endpoint
+      if (shortcode) {
+        setThumbnails(prev => ({
+          ...prev,
+          [link.id]: `https://images.weserv.nl/?url=https://www.instagram.com/p/${shortcode}/media/?size=l`
+        }))
+      } else {
+        setThumbnails(prev => ({ ...prev, [link.id]: 'FAILED' }))
       }
     })
   }, [links, thumbnails])
-
-  const todayStr = new Date().toISOString().split('T')[0]
-  const selectCls = 'text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer'
 
   return (
     <div className="flex flex-col gap-4">
@@ -878,70 +1288,44 @@ function LibraryTab({ links, onDelete, onUpdate }) {
           </span>
         </div>
 
-        {/* Filter Inputs Grid (2 columns on mobile, flex on desktop) */}
+        {/* Row 1: Multi-select Tags & Platforms & Sort Order */}
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-end gap-2.5">
-          {/* Tag Filter */}
+          {/* Multi-Select Tag Filter */}
           <div className="flex flex-col gap-1 flex-1 min-w-[130px]">
-            <label htmlFor="filter-tag" className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-              🏷️ Tag
+            <label htmlFor="filter-tag-btn" className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+              🏷️ Tags ({pendingTags.length > 0 ? pendingTags.length : 'All'})
             </label>
-            <select
-              id="filter-tag"
-              value={filterTag}
-              onChange={e => setFilterTag(e.target.value)}
-              className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm"
-            >
-              <option value="All">All Tags</option>
-              {allTags.filter(t => t !== 'All').map(t => <option key={t}>{t}</option>)}
-            </select>
+            <MultiSelectDropdown
+              id="filter-tag-btn"
+              options={availableTags}
+              selected={pendingTags}
+              onChange={setPendingTags}
+              placeholder="All Tags"
+            />
           </div>
 
-          {/* Platform Filter */}
+          {/* Multi-Select Platform Filter */}
           <div className="flex flex-col gap-1 flex-1 min-w-[130px]">
-            <label htmlFor="filter-platform" className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-              📱 Platform
+            <label htmlFor="filter-platform-btn" className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+              📱 Platforms ({pendingPlatforms.length > 0 ? pendingPlatforms.length : 'All'})
             </label>
-            <select
-              id="filter-platform"
-              value={filterPlatform}
-              onChange={e => setFilterPlatform(e.target.value)}
-              className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm"
-            >
-              <option value="All">All Platforms</option>
-              {allPlatforms.filter(p => p !== 'All').map(p => <option key={p}>{p}</option>)}
-            </select>
+            <MultiSelectDropdown
+              id="filter-platform-btn"
+              options={availablePlatforms}
+              selected={pendingPlatforms}
+              onChange={setPendingPlatforms}
+              placeholder="All Platforms"
+            />
           </div>
 
-          {/* Date Range Filter */}
-          <div className="flex flex-col gap-1 flex-1 min-w-[130px]">
-            <label htmlFor="filter-date-range" className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-              📅 Date Range
-            </label>
-            <select
-              id="filter-date-range"
-              value={dateRange}
-              onChange={e => { setDateRange(e.target.value); setCustomFrom(''); setCustomTo('') }}
-              className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm"
-            >
-              <option value="all">All Dates</option>
-              <option value="today">Today</option>
-              <option value="yesterday">Yesterday</option>
-              <option value="7days">Last 7 Days</option>
-              <option value="thisMonth">This Month</option>
-              <option value="3months">Last 3 Months</option>
-              <option value="6months">Last 6 Months</option>
-              <option value="thisYear">This Year</option>
-              <option value="custom">Custom</option>
-            </select>
-          </div>
-
-          {/* Sort Button */}
+          {/* Sort Order Button */}
           <div className="flex flex-col gap-1 min-w-[100px] flex-1 sm:flex-initial">
             <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
               ↕️ Order
             </span>
             <button
               id="sort-date-btn"
+              type="button"
               onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
               title="Toggle sort direction"
               className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 hover:bg-gray-100 transition cursor-pointer flex items-center justify-center gap-1 font-semibold shadow-sm h-[34px]"
@@ -950,32 +1334,58 @@ function LibraryTab({ links, onDelete, onUpdate }) {
             </button>
           </div>
         </div>
-      </div>
 
-      {/* ── Custom Date Inputs ── */}
-      {dateRange === 'custom' && (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-2xl px-4 py-3 flex flex-wrap items-center gap-3">
-          <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">📅 Custom Range:</span>
-          <div className="flex items-center gap-2">
-            <label htmlFor="custom-from" className="text-xs text-gray-600 font-medium whitespace-nowrap">From</label>
-            <input id="custom-from" type="date" value={customFrom} max={customTo || todayStr}
-              onChange={e => setCustomFrom(e.target.value)}
-              className="text-sm border border-indigo-300 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer" />
-          </div>
-          <div className="flex items-center gap-2">
-            <label htmlFor="custom-to" className="text-xs text-gray-600 font-medium whitespace-nowrap">To</label>
-            <input id="custom-to" type="date" value={customTo} min={customFrom || undefined} max={todayStr}
-              onChange={e => setCustomTo(e.target.value)}
-              className="text-sm border border-indigo-300 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer" />
-          </div>
-          {(customFrom || customTo) && (
-            <button onClick={() => { setCustomFrom(''); setCustomTo('') }}
-              className="text-xs text-indigo-500 hover:text-indigo-700 underline ml-auto">
-              Clear
+        {/* Row 2: Date & Time Range Picker Popover + Search & Reset Buttons (Matching User Screenshot 1 & 2) */}
+        <div className="flex flex-wrap items-center gap-3 pt-2.5 border-t border-gray-100">
+          <span className="text-xs font-bold text-gray-600 whitespace-nowrap">
+            Start and ending time
+          </span>
+
+          <DateTimeRangePickerPopover
+            fromDate={pendingFromDate}
+            fromTime={pendingFromTime}
+            toDate={pendingToDate}
+            toTime={pendingToTime}
+            onFromDateChange={setPendingFromDate}
+            onFromTimeChange={setPendingFromTime}
+            onToDateChange={setPendingToDate}
+            onToTimeChange={setPendingToTime}
+            onPresetSelect={(p) => {
+              setPendingPreset(p)
+              const dates = getPresetDates(p)
+              setPendingFromDate(dates.fromDate)
+              setPendingFromTime(dates.fromTime)
+              setPendingToDate(dates.toDate)
+              setPendingToTime(dates.toTime)
+            }}
+            onReset={() => {
+              setPendingFromDate('')
+              setPendingFromTime('00:00')
+              setPendingToDate('')
+              setPendingToTime('23:59')
+              setPendingPreset('all')
+            }}
+          />
+
+          {/* Search & Reset Buttons */}
+          <div className="flex items-center gap-2 ml-auto">
+            <button
+              type="button"
+              onClick={handleApply}
+              className="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white font-bold px-5 py-1.5 rounded-lg shadow-sm text-xs transition flex items-center gap-1.5 cursor-pointer h-[32px]"
+            >
+              Search
             </button>
-          )}
+            <button
+              type="button"
+              onClick={handleReset}
+              className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-600 font-semibold px-4 py-1.5 rounded-lg text-xs transition cursor-pointer h-[32px]"
+            >
+              Reset
+            </button>
+          </div>
         </div>
-      )}
+      </div>
 
       {/* ── Card Grid (Mobile-First) ── */}
       {filtered.length === 0 ? (
@@ -997,7 +1407,7 @@ function LibraryTab({ links, onDelete, onUpdate }) {
               >
                 {/* Top: Thumbnail (160px) + Action Buttons */}
                 <div className="relative w-full h-[160px] bg-gray-100 overflow-hidden">
-                  {thumb ? (
+                  {thumb && thumb !== 'FAILED' ? (
                     <a href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
                       <img
                         src={thumb}
@@ -1005,9 +1415,14 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
-                          e.target.style.display = 'none';
-                          if (e.target.nextElementSibling) {
-                            e.target.nextElementSibling.style.display = 'flex';
+                          const match = link.url.match(/\/(p|reel|reels|tv|share\/p|share\/reel)\/([^/?#'"\s]+)/)
+                          if (match && !e.target.src.includes('ddinstagram.com')) {
+                            e.target.src = `https://ddinstagram.com/o/p/${match[2]}.jpg`
+                          } else {
+                            e.target.style.display = 'none';
+                            if (e.target.nextElementSibling) {
+                              e.target.nextElementSibling.style.display = 'flex';
+                            }
                           }
                         }}
                       />
@@ -1017,9 +1432,9 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                       >🔗</span>
                     </a>
                   ) : isInstagram ? (
-                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="w-full h-full bg-indigo-50/60 animate-pulse flex flex-col items-center justify-center gap-1.5 text-indigo-400">
-                      <span className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
-                      <span className="text-[10px] font-semibold tracking-wide uppercase">Fetching banner…</span>
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="w-full h-full bg-pink-50 flex flex-col items-center justify-center gap-1.5 text-pink-500 hover:bg-pink-100 transition">
+                      <span className="text-3xl">📸</span>
+                      <span className="text-[10px] font-bold tracking-wider uppercase">Instagram Link</span>
                     </a>
                   ) : (
                     <a
