@@ -228,6 +228,7 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
 
 // ─── Edit Modal ───────────────────────────────────────────────────────────────
 function EditModal({ link, tags, onClose, onSave }) {
+  const [url, setUrl] = useState(link.url || '')
   const [tag, setTag] = useState(link.tag || '')
   const [platform, setPlatform] = useState(link.platform || '')
   const [loading, setLoading] = useState(false)
@@ -246,11 +247,12 @@ function EditModal({ link, tags, onClose, onSave }) {
   async function handleSave(e) {
     e.preventDefault()
     setError('')
+    if (!url.trim()) { setError('URL is required.'); return }
     if (!tag.trim()) { setError('Tag is required.'); return }
     if (!platform.trim()) { setError('Platform is required.'); return }
     setLoading(true)
     try {
-      await onSave(link.id, { tag, platform })
+      await onSave(link.id, { url, tag, platform })
       onClose()
     } catch (err) {
       setError(err.message || 'Update failed. Please try again.')
@@ -289,12 +291,18 @@ function EditModal({ link, tags, onClose, onSave }) {
 
         {/* Modal Body */}
         <form onSubmit={handleSave} className="p-5 flex flex-col gap-4">
-          {/* URL — read-only */}
+          {/* URL — editable */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-gray-700">🌐 URL (read-only)</label>
-            <div className="w-full px-4 py-3 rounded-xl border border-dashed border-gray-300 bg-gray-100 text-gray-500 text-sm truncate select-all cursor-text" title={link.url}>
-              {link.url}
-            </div>
+            <label htmlFor="edit-url" className="text-sm font-semibold text-gray-700">🌐 URL</label>
+            <input
+              id="edit-url"
+              type="url"
+              value={url}
+              onChange={(e) => { setUrl(e.target.value); const d = detectPlatform(e.target.value); if (d) setPlatform(d) }}
+              className={inputCls}
+              placeholder="https://example.com"
+              required
+            />
           </div>
 
           {/* Tag */}
@@ -482,10 +490,19 @@ function AddLinkTab({ initialUrl, links }) {
   }, [links])
 
   // Sync url + auto-detect platform when initialUrl changes
+  // Also re-reads window.location.href at effect time as extra safety net
   useEffect(() => {
-    setUrl(initialUrl)
-    const detected = detectPlatform(initialUrl)
-    if (detected) setPlatform(detected)
+    const effectiveUrl = initialUrl || (() => {
+      try {
+        const parsed = new URL(window.location.href)
+        return parsed.searchParams.get('url') || parsed.searchParams.get('text') || parsed.searchParams.get('link') || ''
+      } catch { return '' }
+    })()
+    if (effectiveUrl) {
+      setUrl(effectiveUrl)
+      const detected = detectPlatform(effectiveUrl)
+      if (detected) setPlatform(detected)
+    }
   }, [initialUrl])
 
   // Auto-focus tag input in Quick-Save popup mode
@@ -798,48 +815,88 @@ function LibraryTab({ links, onDelete, onUpdate }) {
     }
   }
 
+  // ── Thumbnail helper ───────────────────────────────────────────────
+  const getThumbnail = (url) => {
+    try {
+      const u = new URL(url)
+      const host = u.hostname.toLowerCase()
+      // YouTube (watch, shorts, embed, youtu.be)
+      if (host.includes('youtube.com') || host.includes('youtu.be')) {
+        let vid = u.searchParams.get('v')
+        if (!vid && host.includes('youtu.be')) {
+          vid = u.pathname.replace('/', '').split('/')[0]
+        }
+        if (!vid) {
+          const match = u.pathname.match(/\/(shorts|embed|v)\/([^/?#]+)/)
+          if (match) vid = match[2]
+        }
+        if (vid) return `https://img.youtube.com/vi/${vid}/hqdefault.jpg`
+      }
+      // Instagram (p, reel, reels, tv)
+      if (host.includes('instagram.com')) {
+        const match = u.pathname.match(/\/(p|reel|reels|tv)\/([^/?#]+)/)
+        if (match) return `https://www.instagram.com/p/${match[2]}/media/?size=m`
+      }
+    } catch { /* ignore */ }
+    return null
+  }
+
   const todayStr = new Date().toISOString().split('T')[0]
   const selectCls = 'text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer'
 
   return (
     <div className="flex flex-col gap-4">
       {/* ── Filter Bar ── */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-3 flex flex-wrap items-center gap-2 shadow-sm">
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide mr-1">Filter:</span>
+      <div className="bg-white border border-gray-200 rounded-2xl p-3 flex flex-wrap items-center gap-3 shadow-sm">
+        <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Filter:</span>
 
-        <select id="filter-tag" value={filterTag} onChange={e => setFilterTag(e.target.value)} className={selectCls}>
-          {allTags.map(t => <option key={t}>{t}</option>)}
-        </select>
+        <label htmlFor="filter-tag" className="flex items-center gap-1 text-xs font-semibold text-gray-600 whitespace-nowrap">
+          🏷️ Tag:
+          <select id="filter-tag" value={filterTag} onChange={e => setFilterTag(e.target.value)} className={selectCls}>
+            <option value="All">All Tags</option>
+            {allTags.filter(t => t !== 'All').map(t => <option key={t}>{t}</option>)}
+          </select>
+        </label>
 
-        <select id="filter-platform" value={filterPlatform} onChange={e => setFilterPlatform(e.target.value)} className={selectCls}>
-          {allPlatforms.map(p => <option key={p}>{p}</option>)}
-        </select>
+        <label htmlFor="filter-platform" className="flex items-center gap-1 text-xs font-semibold text-gray-600 whitespace-nowrap">
+          📱 Platform:
+          <select id="filter-platform" value={filterPlatform} onChange={e => setFilterPlatform(e.target.value)} className={selectCls}>
+            <option value="All">All Platforms</option>
+            {allPlatforms.filter(p => p !== 'All').map(p => <option key={p}>{p}</option>)}
+          </select>
+        </label>
 
-        <select
-          id="filter-date-range"
-          value={dateRange}
-          onChange={e => { setDateRange(e.target.value); setCustomFrom(''); setCustomTo('') }}
-          className={selectCls}
-        >
-          <option value="all">All Dates</option>
-          <option value="today">Today</option>
-          <option value="yesterday">Yesterday</option>
-          <option value="7days">Last 7 Days</option>
-          <option value="thisMonth">This Month</option>
-          <option value="3months">Last 3 Months</option>
-          <option value="6months">Last 6 Months</option>
-          <option value="thisYear">This Year</option>
-          <option value="custom">📅 Custom</option>
-        </select>
+        <label htmlFor="filter-date-range" className="flex items-center gap-1 text-xs font-semibold text-gray-600 whitespace-nowrap">
+          📅 Date Range:
+          <select
+            id="filter-date-range"
+            value={dateRange}
+            onChange={e => { setDateRange(e.target.value); setCustomFrom(''); setCustomTo('') }}
+            className={selectCls}
+          >
+            <option value="all">All Dates</option>
+            <option value="today">Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="7days">Last 7 Days</option>
+            <option value="thisMonth">This Month</option>
+            <option value="3months">Last 3 Months</option>
+            <option value="6months">Last 6 Months</option>
+            <option value="thisYear">This Year</option>
+            <option value="custom">Custom</option>
+          </select>
+        </label>
 
-        <button
-          id="sort-date-btn"
-          onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
-          title="Toggle sort direction"
-          className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 hover:bg-gray-100 transition cursor-pointer flex items-center gap-1.5"
-        >
-          Date {sortDir === 'desc' ? '↓' : '↑'}
-        </button>
+        <label htmlFor="sort-date-btn" className="flex items-center gap-1 text-xs font-semibold text-gray-600 whitespace-nowrap">
+          ↕️ Sort:
+          <button
+            id="sort-date-btn"
+            onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
+            title="Toggle sort direction"
+            className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 hover:bg-gray-100 transition cursor-pointer flex items-center gap-1.5 font-medium"
+          >
+            Date {sortDir === 'desc' ? '↓' : '↑'}
+          </button>
+        </label>
 
         <span className="ml-auto text-xs text-gray-400 font-semibold bg-gray-100 px-2.5 py-1 rounded-full">
           {filtered.length} / {links.length} links
@@ -885,6 +942,7 @@ function LibraryTab({ links, onDelete, onUpdate }) {
               <thead>
                 <tr className="bg-gradient-to-r from-indigo-700 to-blue-700 text-white">
                   <th className="px-3 py-3 text-center font-semibold text-xs uppercase tracking-wider border border-indigo-600 w-10">#</th>
+                  <th className="px-2 py-3 text-center font-semibold text-xs uppercase tracking-wider border border-indigo-600 w-14">Thumb</th>
                   <th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider border border-indigo-600">URL</th>
                   <th className="px-4 py-3 text-center font-semibold text-xs uppercase tracking-wider border border-indigo-600">Tag</th>
                   <th className="px-4 py-3 text-center font-semibold text-xs uppercase tracking-wider border border-indigo-600">Platform</th>
@@ -898,6 +956,36 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                     className={`border-b border-gray-200 hover:bg-indigo-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                     <td className="px-3 py-2.5 text-center text-gray-400 font-mono text-xs border border-gray-200">
                       {idx + 1}
+                    </td>
+                    {/* Thumbnail */}
+                    <td className="px-2 py-2 text-center border border-gray-200 w-14">
+                      {(() => {
+                        const thumb = getThumbnail(link.url)
+                        return thumb ? (
+                          <a href={link.url} target="_blank" rel="noopener noreferrer" className="block w-10 h-10 mx-auto">
+                            <img
+                              src={thumb}
+                              alt=""
+                              referrerPolicy="no-referrer"
+                              className="w-10 h-10 rounded-lg object-cover mx-auto"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                if (e.target.nextElementSibling) {
+                                  e.target.nextElementSibling.style.display = 'flex';
+                                }
+                              }}
+                            />
+                            <span
+                              className="w-10 h-10 rounded-lg bg-gray-100 items-center justify-center text-lg mx-auto hidden hover:bg-gray-200 transition"
+                              style={{ display: 'none' }}
+                            >🔗</span>
+                          </a>
+                        ) : (
+                          <a href={link.url} target="_blank" rel="noopener noreferrer"
+                            className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-lg mx-auto hover:bg-gray-200 transition"
+                          >🔗</a>
+                        )
+                      })()}
                     </td>
                     <td className="px-4 py-2.5 border border-gray-200 max-w-[200px]">
                       <a href={link.url} target="_blank" rel="noopener noreferrer" title={link.url}
@@ -969,18 +1057,30 @@ export default function Dashboard() {
   const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('add')
 
-  // Robust share intent URL detection — check all common parameter names
+  // ── Ultra-robust share intent URL detection ──────────────────────────────
+  // Android Web Share Target sends to /?share=true&url=<link>
+  // We check 3 layers to ensure we never miss it:
   const sharedUrl = (() => {
+    // Layer 1: React Router's searchParams (most reliable when on /dashboard)
     const sp = searchParams
     const fromReact = sp.get('url') || sp.get('text') || sp.get('link') || sp.get('href') || sp.get('q') || ''
     if (fromReact) return fromReact
-    // Fallback: parse window.location.search directly (handles edge cases)
+
+    // Layer 2: window.location.search direct parse (handles React Router edge cases)
     try {
       const params = new URLSearchParams(window.location.search)
-      return params.get('url') || params.get('text') || params.get('link') || params.get('href') || params.get('q') || ''
+      const fromSearch = params.get('url') || params.get('text') || params.get('link') || params.get('href') || params.get('q') || ''
+      if (fromSearch) return fromSearch
+    } catch { /* ignore */ }
+
+    // Layer 3: window.location.href full URL parse (strongest fallback)
+    try {
+      const parsed = new URL(window.location.href)
+      return parsed.searchParams.get('url') || parsed.searchParams.get('text') || parsed.searchParams.get('link') || parsed.searchParams.get('href') || parsed.searchParams.get('q') || ''
     } catch { return '' }
   })()
-  if (sharedUrl) console.log('[MARK] Shared URL detected:', sharedUrl)
+
+  console.log('[MARK] Path:', window.location.pathname, '| Params:', window.location.search, '| Extracted URL:', sharedUrl || '(none)')
   useEffect(() => { if (sharedUrl) setActiveTab('add') }, [sharedUrl])
 
   async function handleLogout() {

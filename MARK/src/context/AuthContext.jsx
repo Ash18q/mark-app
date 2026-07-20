@@ -80,11 +80,14 @@ export function AuthProvider({ children }) {
     setLinks((prev) => prev.filter((l) => l.id !== id))
   }, [])
 
-  // ─── Update a link (tag + platform only) ────────────────────────────────────
-  const updateLink = useCallback(async (id, { tag, platform }) => {
+  // ─── Update a link (url + tag + platform) ───────────────────────────────────
+  const updateLink = useCallback(async (id, { url, tag, platform }) => {
+    const updates = { tag: tag.trim(), platform: platform.trim() }
+    if (url !== undefined) updates.url = url.trim()
+
     const { data, error } = await supabase
       .from('links')
-      .update({ tag: tag.trim(), platform: platform.trim() })
+      .update(updates)
       .eq('id', id)
       .select()
       .single()
