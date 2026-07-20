@@ -1,8 +1,14 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { LoginPage, SignupPage } from './pages/Auth'
 import Dashboard from './pages/Dashboard'
 import ProtectedRoute from './ProtectedRoute'
+
+// Preserves query params (e.g. ?url=... from Web Share Target) during root redirect
+const RootRedirect = () => {
+  const location = useLocation()
+  return <Navigate to={`/dashboard${location.search}`} replace />
+}
 
 export default function App() {
   return (
@@ -23,8 +29,8 @@ export default function App() {
             }
           />
 
-          {/* Root — redirect based on auth (handled in ProtectedRoute) */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          {/* Root — redirect to dashboard, preserving any share intent query params */}
+          <Route path="/" element={<RootRedirect />} />
 
           {/* 404 fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
