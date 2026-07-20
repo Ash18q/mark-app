@@ -538,12 +538,18 @@ function AddLinkTab({ initialUrl, links }) {
 
           {/* Popup Body */}
           <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
-            {/* URL — read-only */}
+            {/* URL — editable so user can verify/fix if share intent garbled it */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">🌐 URL</label>
-              <div className="w-full px-3 py-2.5 rounded-xl border border-dashed border-gray-300 bg-gray-50 text-gray-500 text-xs truncate select-all cursor-text" title={url}>
-                {url}
-              </div>
+              <label htmlFor="qs-url" className="text-xs font-semibold text-gray-500 uppercase tracking-wide">🌐 URL</label>
+              <input
+                id="qs-url"
+                type="url"
+                value={url}
+                onChange={(e) => { setUrl(e.target.value); const d = detectPlatform(e.target.value); if (d) setPlatform(d) }}
+                className={`${inputCls} text-xs`}
+                placeholder="https://example.com"
+                required
+              />
             </div>
 
             {/* Auto-detected platform badge */}
@@ -963,7 +969,18 @@ export default function Dashboard() {
   const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('add')
 
-  const sharedUrl = searchParams.get('url') || searchParams.get('text') || ''
+  // Robust share intent URL detection — check all common parameter names
+  const sharedUrl = (() => {
+    const sp = searchParams
+    const fromReact = sp.get('url') || sp.get('text') || sp.get('link') || sp.get('href') || sp.get('q') || ''
+    if (fromReact) return fromReact
+    // Fallback: parse window.location.search directly (handles edge cases)
+    try {
+      const params = new URLSearchParams(window.location.search)
+      return params.get('url') || params.get('text') || params.get('link') || params.get('href') || params.get('q') || ''
+    } catch { return '' }
+  })()
+  if (sharedUrl) console.log('[MARK] Shared URL detected:', sharedUrl)
   useEffect(() => { if (sharedUrl) setActiveTab('add') }, [sharedUrl])
 
   async function handleLogout() {
