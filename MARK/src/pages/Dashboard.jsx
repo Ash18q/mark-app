@@ -839,7 +839,7 @@ function LibraryTab({ links, onDelete, onUpdate }) {
   // State for dynamically fetched Instagram oEmbed thumbnails
   const [thumbnails, setThumbnails] = useState({})
 
-  // Fetch Instagram oEmbed thumbnails for Instagram links
+  // Fetch Instagram thumbnails using Vercel Serverless Function (/api/thumbnail)
   useEffect(() => {
     links.forEach(async (link) => {
       const isInsta = (link.platform && link.platform.toLowerCase() === 'instagram') ||
@@ -848,26 +848,15 @@ function LibraryTab({ links, onDelete, onUpdate }) {
       if (thumbnails[link.id]) return // Already cached
 
       try {
-        // 1. Try Facebook Graph oEmbed API
-        let res = await fetch(`https://graph.facebook.com/v19.0/instagram_oembed?url=${encodeURIComponent(link.url)}`)
-        if (!res.ok) {
-          // 2. Fallback to CORS-friendly oEmbed provider
-          res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(link.url)}`)
-        }
+        const res = await fetch(`/api/thumbnail?url=${encodeURIComponent(link.url)}`)
         if (res.ok) {
           const data = await res.json()
-          const imgUrl = data.thumbnail_url || data.url
-          if (imgUrl) {
-            setThumbnails(prev => ({ ...prev, [link.id]: imgUrl }))
-            return
+          if (data.thumbnail) {
+            setThumbnails(prev => ({ ...prev, [link.id]: data.thumbnail }))
           }
         }
-      } catch { /* ignore */ }
-
-      // 3. Fallback: extract shortcode to proxy CDN
-      const match = link.url.match(/\/(p|reel|reels|tv)\/([^/?#'"\s]+)/)
-      if (match) {
-        setThumbnails(prev => ({ ...prev, [link.id]: `https://ddinstagram.com/o/p/${match[2]}.jpg` }))
+      } catch (err) {
+        console.error('[MARK] Thumbnail fetch error:', err)
       }
     })
   }, [links, thumbnails])
