@@ -815,7 +815,7 @@ function LibraryTab({ links, onDelete, onUpdate }) {
     }
   }
 
-  // ── Thumbnail helper ───────────────────────────────────────────────
+  // ── Thumbnail helper (synchronous for YouTube) ───────────────────────
   const getThumbnail = (url) => {
     try {
       const u = new URL(url)
@@ -832,14 +832,45 @@ function LibraryTab({ links, onDelete, onUpdate }) {
         }
         if (vid) return `https://img.youtube.com/vi/${vid}/hqdefault.jpg`
       }
-      // Instagram (p, reel, reels, tv)
-      if (host.includes('instagram.com') || host.includes('instagr.am')) {
-        const match = u.pathname.match(/\/(p|reel|reels|tv)\/([^/?#'"\s]+)/)
-        if (match) return `https://www.instagram.com/p/${match[2]}/media/?size=l`
-      }
     } catch { /* ignore */ }
     return null
   }
+
+  // State for dynamically fetched Instagram oEmbed thumbnails
+  const [thumbnails, setThumbnails] = useState({})
+
+  // Fetch Instagram oEmbed thumbnails for Instagram links
+  useEffect(() => {
+    links.forEach(async (link) => {
+      const isInsta = (link.platform && link.platform.toLowerCase() === 'instagram') ||
+                      (link.url && (link.url.includes('instagram.com') || link.url.includes('instagr.am')))
+      if (!isInsta) return
+      if (thumbnails[link.id]) return // Already cached
+
+      try {
+        // 1. Try Facebook Graph oEmbed API
+        let res = await fetch(`https://graph.facebook.com/v19.0/instagram_oembed?url=${encodeURIComponent(link.url)}`)
+        if (!res.ok) {
+          // 2. Fallback to CORS-friendly oEmbed provider
+          res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(link.url)}`)
+        }
+        if (res.ok) {
+          const data = await res.json()
+          const imgUrl = data.thumbnail_url || data.url
+          if (imgUrl) {
+            setThumbnails(prev => ({ ...prev, [link.id]: imgUrl }))
+            return
+          }
+        }
+      } catch { /* ignore */ }
+
+      // 3. Fallback: extract shortcode to proxy CDN
+      const match = link.url.match(/\/(p|reel|reels|tv)\/([^/?#'"\s]+)/)
+      if (match) {
+        setThumbnails(prev => ({ ...prev, [link.id]: `https://ddinstagram.com/o/p/${match[2]}.jpg` }))
+      }
+    })
+  }, [links, thumbnails])
 
   const todayStr = new Date().toISOString().split('T')[0]
   const selectCls = 'text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer'
@@ -967,7 +998,9 @@ function LibraryTab({ links, onDelete, onUpdate }) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {filtered.map((link) => {
-            const thumb = getThumbnail(link.url)
+            const isInstagram = (link.platform && link.platform.toLowerCase() === 'instagram') ||
+                                (link.url && (link.url.includes('instagram.com') || link.url.includes('instagr.am')))
+            const thumb = getThumbnail(link.url) || thumbnails[link.id]
             return (
               <div
                 key={link.id}
@@ -983,14 +1016,6 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
-                          if (!e.target.dataset.triedFallback && thumb.includes('instagram.com')) {
-                            e.target.dataset.triedFallback = 'true';
-                            const match = link.url.match(/\/(p|reel|reels|tv)\/([^/?#'"\s]+)/);
-                            if (match) {
-                              e.target.src = `https://www.instagram.com/p/${match[2]}/media/?size=m`;
-                              return;
-                            }
-                          }
                           e.target.style.display = 'none';
                           if (e.target.nextElementSibling) {
                             e.target.nextElementSibling.style.display = 'flex';
@@ -1001,6 +1026,11 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                         className="w-full h-full bg-gray-100 items-center justify-center text-4xl hidden text-gray-400"
                         style={{ display: 'none' }}
                       >🔗</span>
+                    </a>
+                  ) : isInstagram ? (
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="w-full h-full bg-indigo-50/60 animate-pulse flex flex-col items-center justify-center gap-1.5 text-indigo-400">
+                      <span className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-[10px] font-semibold tracking-wide uppercase">Fetching banner…</span>
                     </a>
                   ) : (
                     <a
