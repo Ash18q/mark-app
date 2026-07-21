@@ -1122,6 +1122,7 @@ function LibraryTab({ links, onDelete, onUpdate }) {
   const [pendingToDate, setPendingToDate] = useState('')
   const [pendingToTime, setPendingToTime] = useState('23:59')
   const [sortDir, setSortDir] = useState('desc')
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   // Applied filter states (updated ONLY on Confirm/Apply button click)
   const [appliedTags, setAppliedTags] = useState([])
@@ -1134,6 +1135,8 @@ function LibraryTab({ links, onDelete, onUpdate }) {
   const [deletingId, setDeletingId] = useState(null)
   const [editingLink, setEditingLink] = useState(null)
 
+  const hasActiveFilters = appliedTags.length > 0 || appliedPlatforms.length > 0 || Boolean(appliedFromDate) || Boolean(appliedToDate)
+
   function handleApply() {
     setAppliedTags([...pendingTags])
     setAppliedPlatforms([...pendingPlatforms])
@@ -1141,6 +1144,7 @@ function LibraryTab({ links, onDelete, onUpdate }) {
     setAppliedFromTime(pendingFromTime)
     setAppliedToDate(pendingToDate)
     setAppliedToTime(pendingToTime)
+    setIsFilterOpen(false) // Automatically collapse after applying
   }
 
   function handleReset() {
@@ -1280,114 +1284,143 @@ function LibraryTab({ links, onDelete, onUpdate }) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* ── Filter Bar ── */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-3.5 flex flex-col gap-3 shadow-sm">
-        {/* Filter Bar Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
-            🔍 Filters
-          </span>
-          <span className="text-[11px] text-gray-400 font-semibold bg-gray-100 px-2.5 py-0.5 rounded-full">
-            {filtered.length} / {links.length} links
-          </span>
-        </div>
-
-        {/* Row 1: Multi-select Tags & Platforms & Sort Order */}
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-end gap-2.5">
-          {/* Multi-Select Tag Filter */}
-          <div className="flex flex-col gap-1 flex-1 min-w-[130px]">
-            <label htmlFor="filter-tag-btn" className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-              🏷️ Tags ({pendingTags.length > 0 ? pendingTags.length : 'All'})
-            </label>
-            <MultiSelectDropdown
-              id="filter-tag-btn"
-              options={availableTags}
-              selected={pendingTags}
-              onChange={setPendingTags}
-              placeholder="All Tags"
-            />
+      {/* ── Collapsible Filter Bar ── */}
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm transition-all">
+        {/* Compact Toggle Header */}
+        <div
+          onClick={() => setIsFilterOpen(!isFilterOpen)}
+          className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-50/80 transition select-none"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm">🔍</span>
+            <span className="text-xs font-bold text-gray-700">Filter & Sort</span>
+            {hasActiveFilters && (
+              <span className="bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-2xs">
+                Active Filter
+              </span>
+            )}
           </div>
 
-          {/* Multi-Select Platform Filter */}
-          <div className="flex flex-col gap-1 flex-1 min-w-[130px]">
-            <label htmlFor="filter-platform-btn" className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-              📱 Platforms ({pendingPlatforms.length > 0 ? pendingPlatforms.length : 'All'})
-            </label>
-            <MultiSelectDropdown
-              id="filter-platform-btn"
-              options={availablePlatforms}
-              selected={pendingPlatforms}
-              onChange={setPendingPlatforms}
-              placeholder="All Platforms"
-            />
-          </div>
-
-          {/* Sort Order Button */}
-          <div className="flex flex-col gap-1 min-w-[100px] flex-1 sm:flex-initial">
-            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-              ↕️ Order
+          <div className="flex items-center gap-2">
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); handleReset(); }}
+                className="text-[11px] text-red-500 hover:text-red-600 font-bold px-2 py-0.5 rounded-md hover:bg-red-50 transition cursor-pointer"
+              >
+                Clear
+              </button>
+            )}
+            <span className="text-[11px] text-gray-400 font-semibold bg-gray-100 px-2.5 py-0.5 rounded-full">
+              {filtered.length} / {links.length} links
             </span>
-            <button
-              id="sort-date-btn"
-              type="button"
-              onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
-              title="Toggle sort direction"
-              className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 hover:bg-gray-100 transition cursor-pointer flex items-center justify-center gap-1 font-semibold shadow-sm h-[34px]"
-            >
-              Date {sortDir === 'desc' ? '↓' : '↑'}
-            </button>
+            <span className="text-xs text-gray-400 font-bold ml-0.5">
+              {isFilterOpen ? '▲' : '▼'}
+            </span>
           </div>
         </div>
 
-        {/* Row 2: Date & Time Range Picker Popover + Search & Reset Buttons */}
-        <div className="flex flex-wrap items-center gap-3 pt-2.5 border-t border-gray-100">
-          <span className="text-xs font-bold text-gray-600 whitespace-nowrap">
-            Start and ending time
-          </span>
+        {/* Collapsible Filter Form Panel */}
+        {isFilterOpen && (
+          <div className="p-3.5 pt-2 border-t border-gray-100 flex flex-col gap-3 bg-gray-50/40">
+            {/* Row 1: Multi-select Tags & Platforms & Sort Order */}
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-end gap-2.5">
+              {/* Multi-Select Tag Filter */}
+              <div className="flex flex-col gap-1 flex-1 min-w-[130px]">
+                <label htmlFor="filter-tag-btn" className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                  🏷️ Tags ({pendingTags.length > 0 ? pendingTags.length : 'All'})
+                </label>
+                <MultiSelectDropdown
+                  id="filter-tag-btn"
+                  options={availableTags}
+                  selected={pendingTags}
+                  onChange={setPendingTags}
+                  placeholder="All Tags"
+                />
+              </div>
 
-          <DateTimeRangePickerPopover
-            fromDate={pendingFromDate}
-            fromTime={pendingFromTime}
-            toDate={pendingToDate}
-            toTime={pendingToTime}
-            onFromDateChange={setPendingFromDate}
-            onFromTimeChange={setPendingFromTime}
-            onToDateChange={setPendingToDate}
-            onToTimeChange={setPendingToTime}
-            onPresetSelect={(p) => {
-              setPendingPreset(p)
-              const dates = getPresetDates(p)
-              setPendingFromDate(dates.fromDate)
-              setPendingFromTime(dates.fromTime)
-              setPendingToDate(dates.toDate)
-              setPendingToTime(dates.toTime)
-            }}
-            onReset={() => {
-              setPendingFromDate('')
-              setPendingFromTime('00:00')
-              setPendingToDate('')
-              setPendingToTime('23:59')
-            }}
-          />
+              {/* Multi-Select Platform Filter */}
+              <div className="flex flex-col gap-1 flex-1 min-w-[130px]">
+                <label htmlFor="filter-platform-btn" className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                  📱 Platforms ({pendingPlatforms.length > 0 ? pendingPlatforms.length : 'All'})
+                </label>
+                <MultiSelectDropdown
+                  id="filter-platform-btn"
+                  options={availablePlatforms}
+                  selected={pendingPlatforms}
+                  onChange={setPendingPlatforms}
+                  placeholder="All Platforms"
+                />
+              </div>
 
-          {/* Search & Reset Buttons */}
-          <div className="flex items-center gap-2 ml-auto">
-            <button
-              type="button"
-              onClick={handleApply}
-              className="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white font-bold px-5 py-1.5 rounded-lg shadow-sm text-xs transition flex items-center gap-1.5 cursor-pointer h-[32px]"
-            >
-              Search
-            </button>
-            <button
-              type="button"
-              onClick={handleReset}
-              className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-600 font-semibold px-4 py-1.5 rounded-lg text-xs transition cursor-pointer h-[32px]"
-            >
-              Reset
-            </button>
+              {/* Sort Order Button */}
+              <div className="flex flex-col gap-1 min-w-[100px] flex-1 sm:flex-initial">
+                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                  ↕️ Order
+                </span>
+                <button
+                  id="sort-date-btn"
+                  type="button"
+                  onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
+                  title="Toggle sort direction"
+                  className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 hover:bg-gray-100 transition cursor-pointer flex items-center justify-center gap-1 font-semibold shadow-sm h-[34px]"
+                >
+                  Date {sortDir === 'desc' ? '↓' : '↑'}
+                </button>
+              </div>
+            </div>
+
+            {/* Row 2: Date & Time Range Picker Popover + Search & Reset Buttons */}
+            <div className="flex flex-wrap items-center gap-3 pt-2.5 border-t border-gray-100">
+              <span className="text-xs font-bold text-gray-600 whitespace-nowrap">
+                Start and ending time
+              </span>
+
+              <DateTimeRangePickerPopover
+                fromDate={pendingFromDate}
+                fromTime={pendingFromTime}
+                toDate={pendingToDate}
+                toTime={pendingToTime}
+                onFromDateChange={setPendingFromDate}
+                onFromTimeChange={setPendingFromTime}
+                onToDateChange={setPendingToDate}
+                onToTimeChange={setPendingToTime}
+                onPresetSelect={(p) => {
+                  setPendingPreset(p)
+                  const dates = getPresetDates(p)
+                  setPendingFromDate(dates.fromDate)
+                  setPendingFromTime(dates.fromTime)
+                  setPendingToDate(dates.toDate)
+                  setPendingToTime(dates.toTime)
+                }}
+                onReset={() => {
+                  setPendingFromDate('')
+                  setPendingFromTime('00:00')
+                  setPendingToDate('')
+                  setPendingToTime('23:59')
+                }}
+              />
+
+              {/* Search & Reset Buttons */}
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  type="button"
+                  onClick={handleApply}
+                  className="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white font-bold px-5 py-1.5 rounded-lg shadow-sm text-xs transition flex items-center gap-1.5 cursor-pointer h-[32px]"
+                >
+                  Search
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-600 font-semibold px-4 py-1.5 rounded-lg text-xs transition cursor-pointer h-[32px]"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* ── Card Grid (Fix 4: grid grid-cols-2 gap-3) ── */}
