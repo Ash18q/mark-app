@@ -144,10 +144,11 @@ function PlatformInput({ id = 'platform-input', value, onChange, className = '',
   )
 }
 
-// ─── Tag Autocomplete Input (Multi-tag capable) ───────────────────────────────
-function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '', placeholder = 'e.g. tutorial, recipe (comma separated)', inputRef }) {
+// ─── Tag Autocomplete Input (Interactive Pill Chips + Custom Typeable) ────────
+function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '', placeholder = 'Add or select tags…', inputRef }) {
   const [open, setOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
+  const [inputValue, setInputValue] = useState('')
   const ref = useRef(null)
 
   // Current tags entered (split by comma)
@@ -155,15 +156,11 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
     return value.split(',').map(t => t.trim()).filter(Boolean)
   }, [value])
 
-  const lastTypedSegment = useMemo(() => {
-    const parts = value.split(',')
-    return parts[parts.length - 1].trim().toLowerCase()
-  }, [value])
-
   const filtered = useMemo(() => {
-    if (showAll || !lastTypedSegment) return suggestions
-    return suggestions.filter((s) => s.toLowerCase().includes(lastTypedSegment))
-  }, [suggestions, showAll, lastTypedSegment])
+    if (showAll || !inputValue.trim()) return suggestions
+    const q = inputValue.trim().toLowerCase()
+    return suggestions.filter((s) => s.toLowerCase().includes(q))
+  }, [suggestions, showAll, inputValue])
 
   useEffect(() => {
     const handler = (e) => {
@@ -176,6 +173,32 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
+  function addTag(tagToAdd) {
+    const t = tagToAdd.trim()
+    if (!t) return
+    if (!currentTags.includes(t)) {
+      const updated = [...currentTags, t]
+      onChange(updated.join(', '))
+    }
+    setInputValue('')
+  }
+
+  function removeTag(tagToRemove) {
+    const updated = currentTags.filter(t => t !== tagToRemove)
+    onChange(updated.join(', '))
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault()
+      if (inputValue.trim()) {
+        addTag(inputValue)
+      }
+    } else if (e.key === 'Backspace' && !inputValue && currentTags.length > 0) {
+      removeTag(currentTags[currentTags.length - 1])
+    }
+  }
+
   function handleChevronClick(e) {
     e.preventDefault()
     if (open && showAll) {
@@ -187,42 +210,74 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
     }
   }
 
-  function toggleTag(tag) {
-    let updated
-    if (currentTags.includes(tag)) {
-      updated = currentTags.filter(t => t !== tag)
-    } else {
-      const parts = value.split(',').map(t => t.trim()).filter(Boolean)
-      if (parts.length > 0 && !suggestions.includes(parts[parts.length - 1]) && parts[parts.length - 1].toLowerCase() === lastTypedSegment) {
-        parts[parts.length - 1] = tag
-        updated = parts
-      } else {
-        updated = [...currentTags, tag]
-      }
-    }
-    onChange(updated.join(', '))
-  }
-
   return (
     <div ref={ref} className="relative flex-1">
+      {/* Outer Chip Container */}
+      <div
+        className="min-h-[42px] w-full border border-gray-200 rounded-xl px-3 py-1.5 bg-gray-50 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-200 flex flex-wrap items-center gap-1.5 transition cursor-text pr-9"
+        onClick={() => {
+          if (inputRef && inputRef.current) inputRef.current.focus()
+          setOpen(true)
+        }}
+      >
+        {/* Rendered Tag Pills/Chips */}
+        {currentTags.map((tag) => (
+          <span
+            key={tag}
+            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-2xs animate-fadeIn"
+          >
+            <span>🏷️ {tag}</span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                removeTag(tag)
+              }}
+              className="hover:text-indigo-950 font-bold text-xs p-0.5 rounded-full hover:bg-indigo-200/60 transition"
+              title="Remove tag"
+            >
+              ✕
+            </button>
+          </span>
+        ))}
+
+        {/* Typeable Input for Custom Tags */}
+        <input
+          ref={inputRef}
+          id={id}
+          type="text"
+          value={inputValue}
+          onChange={(e) => {
+            const val = e.target.value
+            if (val.endsWith(',')) {
+              addTag(val.slice(0, -1))
+            } else {
+              setInputValue(val)
+              setShowAll(false)
+              setOpen(true)
+            }
+          }}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setOpen(true)}
+          placeholder={currentTags.length === 0 ? placeholder : 'Add tag…'}
+          className="bg-transparent text-sm text-gray-800 focus:outline-none flex-1 min-w-[100px] py-0.5"
+          autoComplete="off"
+        />
+      </div>
+
+      {/* Hidden input to pass form validation if required */}
       <input
-        ref={inputRef}
-        id={id}
-        type="text"
+        type="hidden"
         value={value}
-        onChange={(e) => { onChange(e.target.value); setShowAll(false); setOpen(true) }}
-        onFocus={() => setOpen(true)}
-        placeholder={placeholder}
-        className={`${className} pr-10`}
-        autoComplete="off"
         required
       />
+
       {/* Chevron arrow — clickable, shows all suggestions */}
       <button
         type="button"
         tabIndex={-1}
         onMouseDown={handleChevronClick}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+        className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 transition-colors"
         aria-label="Show tag suggestions"
       >
         <svg
@@ -232,6 +287,8 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
+
+      {/* Dropdown Suggestions List */}
       {open && filtered.length > 0 && (
         <ul className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden max-h-56 overflow-y-auto divide-y divide-gray-50 py-1 text-xs">
           {filtered.map((tag) => {
@@ -241,7 +298,11 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
                 key={tag}
                 onMouseDown={(e) => {
                   e.preventDefault()
-                  toggleTag(tag)
+                  if (isSelected) {
+                    removeTag(tag)
+                  } else {
+                    addTag(tag)
+                  }
                 }}
                 className={`px-3.5 py-2 cursor-pointer flex items-center justify-between font-medium transition ${
                   isSelected ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-gray-700 hover:bg-gray-50'
