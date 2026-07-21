@@ -897,68 +897,66 @@ function DateTimeRangePickerPopover({
 
       {/* Popover Card */}
       {open && (
-        <div className="absolute z-50 top-full left-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-full min-w-[300px] sm:min-w-[560px] max-w-[95vw]">
+        <div className="absolute z-50 top-full left-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-full min-w-[300px] sm:min-w-[540px] max-w-2xl">
           {/* Main Popover Grid */}
-          <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
-            {/* Left Column: Preset List */}
-            <div className="w-full sm:w-44 bg-gray-50/70 p-3 flex flex-col gap-1 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+            {/* Left Column: Quick Select buttons (vertical stack) */}
+            <div className="flex flex-col gap-1 text-xs">
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 px-2">Quick Select</span>
               {presets.map((p) => (
                 <button
                   key={p.key}
                   type="button"
                   onClick={() => { onPresetSelect(p.key); }}
-                  className="text-left px-2.5 py-1.5 rounded-lg text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 font-medium transition cursor-pointer"
+                  className="text-left px-3 py-1.5 rounded-lg text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 font-medium transition cursor-pointer"
                 >
                   {p.label}
                 </button>
               ))}
             </div>
 
-            {/* Right Column: Date/Time Inputs + Calendar */}
-            <div className="flex-1 p-3.5 flex flex-col gap-3">
-              {/* Top Row: Direct Typeable Date & Time Input Boxes */}
-              <div className="flex flex-wrap items-center gap-2 bg-gray-50 border border-gray-200 p-2 rounded-xl text-xs">
-                {/* From Date */}
-                <input
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => onFromDateChange(e.target.value)}
-                  className="bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
-                />
-
-                {/* From Time Input (Typeable HH:mm) */}
-                <div className="flex items-center bg-white border border-gray-200 rounded-lg px-2 py-1 focus-within:ring-2 focus-within:ring-blue-500">
-                  <span className="text-[10px] font-bold text-gray-400 mr-1 uppercase">Time:</span>
+            {/* Right Column: Calendar + Time inputs (vertical stack) */}
+            <div className="flex flex-col gap-3 pt-3 sm:pt-0 sm:pl-4">
+              {/* Date & Time Input Boxes (From / To) */}
+              <div className="flex flex-col gap-2 bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs">
+                {/* From Row */}
+                <div className="flex items-center justify-between gap-1.5">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase w-10">From:</span>
                   <input
-                    type="text"
-                    placeholder="00:00"
-                    value={fromTime}
-                    onChange={(e) => onFromTimeChange(e.target.value)}
-                    className="bg-transparent text-xs font-mono font-bold text-gray-700 focus:outline-none w-14 text-center cursor-text"
+                    type="date"
+                    value={fromDate}
+                    onChange={(e) => onFromDateChange(e.target.value)}
+                    className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none flex-1 cursor-pointer"
                   />
+                  <div className="flex items-center bg-white border border-gray-200 rounded-lg px-2 py-1 focus-within:ring-2 focus-within:ring-blue-500">
+                    <input
+                      type="text"
+                      placeholder="00:00"
+                      value={fromTime}
+                      onChange={(e) => onFromTimeChange(e.target.value)}
+                      className="bg-transparent text-xs font-mono font-bold text-gray-700 focus:outline-none w-12 text-center cursor-text"
+                    />
+                  </div>
                 </div>
 
-                <span className="text-gray-400 font-bold px-1">&gt;</span>
-
-                {/* To Date */}
-                <input
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => onToDateChange(e.target.value)}
-                  className="bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
-                />
-
-                {/* To Time Input (Typeable HH:mm) */}
-                <div className="flex items-center bg-white border border-gray-200 rounded-lg px-2 py-1 focus-within:ring-2 focus-within:ring-blue-500">
-                  <span className="text-[10px] font-bold text-gray-400 mr-1 uppercase">Time:</span>
+                {/* To Row */}
+                <div className="flex items-center justify-between gap-1.5">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase w-10">To:</span>
                   <input
-                    type="text"
-                    placeholder="23:59"
-                    value={toTime}
-                    onChange={(e) => onToTimeChange(e.target.value)}
-                    className="bg-transparent text-xs font-mono font-bold text-gray-700 focus:outline-none w-14 text-center cursor-text"
+                    type="date"
+                    value={toDate}
+                    onChange={(e) => onToDateChange(e.target.value)}
+                    className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none flex-1 cursor-pointer"
                   />
+                  <div className="flex items-center bg-white border border-gray-200 rounded-lg px-2 py-1 focus-within:ring-2 focus-within:ring-blue-500">
+                    <input
+                      type="text"
+                      placeholder="23:59"
+                      value={toTime}
+                      onChange={(e) => onToTimeChange(e.target.value)}
+                      className="bg-transparent text-xs font-mono font-bold text-gray-700 focus:outline-none w-12 text-center cursor-text"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1037,7 +1035,7 @@ function DateTimeRangePickerPopover({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-semibold px-4 py-1.5 rounded-lg shadow-sm cursor-pointer"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-1.5 rounded-lg shadow-sm cursor-pointer"
             >
               OK
             </button>
@@ -1335,7 +1333,7 @@ function LibraryTab({ links, onDelete, onUpdate }) {
           </div>
         </div>
 
-        {/* Row 2: Date & Time Range Picker Popover + Search & Reset Buttons (Matching User Screenshot 1 & 2) */}
+        {/* Row 2: Date & Time Range Picker Popover + Search & Reset Buttons */}
         <div className="flex flex-wrap items-center gap-3 pt-2.5 border-t border-gray-100">
           <span className="text-xs font-bold text-gray-600 whitespace-nowrap">
             Start and ending time
@@ -1363,7 +1361,6 @@ function LibraryTab({ links, onDelete, onUpdate }) {
               setPendingFromTime('00:00')
               setPendingToDate('')
               setPendingToTime('23:59')
-              setPendingPreset('all')
             }}
           />
 
@@ -1387,7 +1384,7 @@ function LibraryTab({ links, onDelete, onUpdate }) {
         </div>
       </div>
 
-      {/* ── Card Grid (Mobile-First) ── */}
+      {/* ── Card Grid (Fix 4: grid grid-cols-2 gap-3) ── */}
       {filtered.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center text-gray-400 shadow-sm">
           <div className="text-5xl mb-3">📭</div>
@@ -1395,7 +1392,7 @@ function LibraryTab({ links, onDelete, onUpdate }) {
           <p className="text-xs text-gray-300 mt-1">Add your first link in the "Add New Link" tab!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           {filtered.map((link) => {
             const isInstagram = (link.platform && link.platform.toLowerCase() === 'instagram') ||
                                 (link.url && (link.url.includes('instagram.com') || link.url.includes('instagr.am')))
@@ -1408,7 +1405,7 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                 {/* Top: Thumbnail (160px) + Action Buttons */}
                 <div className="relative w-full h-[160px] bg-gray-100 overflow-hidden">
                   {thumb && thumb !== 'FAILED' ? (
-                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative">
                       <img
                         src={thumb}
                         alt=""
@@ -1426,10 +1423,13 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                           }
                         }}
                       />
+                      {/* Fix 3: Fallback Icon if image onError fires */}
                       <span
-                        className="w-full h-full bg-gray-100 items-center justify-center text-4xl hidden text-gray-400"
+                        className="w-full h-full bg-gray-100 items-center justify-center text-4xl hidden text-gray-400 absolute inset-0"
                         style={{ display: 'none' }}
-                      >🔗</span>
+                      >
+                        🔗
+                      </span>
                     </a>
                   ) : isInstagram ? (
                     <a href={link.url} target="_blank" rel="noopener noreferrer" className="w-full h-full bg-pink-50 flex flex-col items-center justify-center gap-1.5 text-pink-500 hover:bg-pink-100 transition">
@@ -1526,35 +1526,53 @@ export default function Dashboard() {
   const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('add')
 
-  // ── Ultra-robust share intent URL detection ──────────────────────────────
-  // Android Web Share Target sends to /?share=true&url=<link>
-  // We check 3 layers to ensure we never miss it:
+  // Extract sharedUrl from query params
   const sharedUrl = (() => {
-    // Layer 1: React Router's searchParams (most reliable when on /dashboard)
     const sp = searchParams
     const fromReact = sp.get('url') || sp.get('text') || sp.get('link') || sp.get('href') || sp.get('q') || ''
     if (fromReact) return fromReact
 
-    // Layer 2: window.location.search direct parse (handles React Router edge cases)
     try {
       const params = new URLSearchParams(window.location.search)
       const fromSearch = params.get('url') || params.get('text') || params.get('link') || params.get('href') || params.get('q') || ''
       if (fromSearch) return fromSearch
     } catch { /* ignore */ }
 
-    // Layer 3: window.location.href full URL parse (strongest fallback)
     try {
       const parsed = new URL(window.location.href)
       return parsed.searchParams.get('url') || parsed.searchParams.get('text') || parsed.searchParams.get('link') || parsed.searchParams.get('href') || parsed.searchParams.get('q') || ''
     } catch { return '' }
   })()
 
-  console.log('[MARK] Path:', window.location.pathname, '| Params:', window.location.search, '| Extracted URL:', sharedUrl || '(none)')
   useEffect(() => { if (sharedUrl) setActiveTab('add') }, [sharedUrl])
 
   async function handleLogout() {
     await signOut()
     navigate('/login')
+  }
+
+  // ⚡ FIX 1: Speed (Popup Mode Direct Render for Android Share Intent)
+  if (sharedUrl) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden p-4 sm:p-6 border border-gray-100">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">⚡</span>
+              <h2 className="text-base font-bold text-gray-800">Quick Save Link</h2>
+            </div>
+            <button
+              onClick={() => navigate('/dashboard', { replace: true })}
+              className="text-gray-400 hover:text-gray-600 p-1 rounded-lg transition"
+              title="Close"
+            >
+              ✕
+            </button>
+          </div>
+          <AddLinkTab initialUrl={sharedUrl} links={links} />
+        </div>
+      </div>
+    )
   }
 
   const tabs = [
@@ -1617,16 +1635,6 @@ export default function Dashboard() {
 
       {/* ── Main Content ── */}
       <main className="max-w-3xl mx-auto px-4 py-6 pb-12">
-        {sharedUrl && activeTab === 'add' && (
-          <div className="mb-4 flex items-center gap-3 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 text-sm text-indigo-700">
-            <span className="text-xl">🔗</span>
-            <div>
-              <p className="font-semibold">Shared URL detected!</p>
-              <p className="text-xs text-indigo-500 mt-0.5">Pre-filled in the form below.</p>
-            </div>
-          </div>
-        )}
-
         {activeTab === 'add' && <AddLinkTab initialUrl={sharedUrl} links={links} />}
         {activeTab === 'library' && <LibraryTab links={links} onDelete={deleteLink} onUpdate={updateLink} />}
       </main>

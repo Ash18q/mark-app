@@ -19,21 +19,21 @@ export default async function handler(req, res) {
     const match = html.match(/<meta property="og:image" content="([^"]+)"/);
     if (match && match[1]) {
       const rawImgUrl = match[1].replace(/&amp;/g, '&');
-      // Wrap through images.weserv.nl to bypass Instagram CDN CORS & hotlink restrictions
       const proxiedUrl = `https://images.weserv.nl/?url=${encodeURIComponent(rawImgUrl)}`;
       return res.status(200).json({ thumbnail: proxiedUrl });
     }
 
-    // Fallback using shortcode and Instagram media endpoint
-    const scMatch = url.match(/\/(p|reel|reels|tv)\/([^/?#'"\s]+)/);
-    if (scMatch && scMatch[2]) {
-      const sc = scMatch[2];
-      const scUrl = `https://images.weserv.nl/?url=https://www.instagram.com/p/${sc}/media/?size=l`;
-      return res.status(200).json({ thumbnail: scUrl });
+    const codeMatch = url.match(/\/(p|reel|reels|tv)\/([^/?#'"\s]+)/);
+    if (codeMatch) {
+      return res.status(200).json({ thumbnail: `https://ddinstagram.com/o/p/${codeMatch[2]}.jpg` });
     }
 
     return res.status(404).json({ error: 'Thumbnail not found' });
   } catch (error) {
+    const codeMatch = url.match(/\/(p|reel|reels|tv)\/([^/?#'"\s]+)/);
+    if (codeMatch) {
+      return res.status(200).json({ thumbnail: `https://ddinstagram.com/o/p/${codeMatch[2]}.jpg` });
+    }
     return res.status(500).json({ error: 'Failed to fetch thumbnail' });
   }
 }
