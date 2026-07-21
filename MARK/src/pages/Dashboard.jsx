@@ -1285,11 +1285,11 @@ function LibraryTab({ links, onDelete, onUpdate }) {
   return (
     <div className="flex flex-col gap-4">
       {/* ── Collapsible Filter Bar ── */}
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm transition-all">
+      <div className="bg-white border border-gray-200 rounded-2xl relative z-30 shadow-sm transition-all">
         {/* Compact Toggle Header */}
         <div
           onClick={() => setIsFilterOpen(!isFilterOpen)}
-          className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-50/80 transition select-none"
+          className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-50/80 transition select-none rounded-2xl"
         >
           <div className="flex items-center gap-2">
             <span className="text-sm">🔍</span>
@@ -1322,7 +1322,7 @@ function LibraryTab({ links, onDelete, onUpdate }) {
 
         {/* Collapsible Filter Form Panel */}
         {isFilterOpen && (
-          <div className="p-3.5 pt-2 border-t border-gray-100 flex flex-col gap-3 bg-gray-50/40">
+          <div className="p-3.5 pt-2 border-t border-gray-100 flex flex-col gap-3 bg-gray-50/40 rounded-b-2xl">
             {/* Row 1: Multi-select Tags & Platforms & Sort Order */}
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-end gap-2.5">
               {/* Multi-Select Tag Filter */}
