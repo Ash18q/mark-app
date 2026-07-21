@@ -1353,9 +1353,15 @@ function LibraryTab({ links, onDelete, onUpdate }) {
   }
 
   function formatDate(iso) {
-    return new Date(iso).toLocaleString('en-GB', {
-      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false,
-    })
+    const d = new Date(iso)
+    if (isNaN(d.getTime())) return ''
+    const day = d.getDate().toString().padStart(2, '0')
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const month = monthNames[d.getMonth()]
+    const yr = d.getFullYear()
+    const hours = d.getHours().toString().padStart(2, '0')
+    const mins = d.getMinutes().toString().padStart(2, '0')
+    return `${day} ${month} '${yr.toString().slice(-2)}, ${hours}:${mins}`
   }
 
   const getDisplayUrl = (url) => {
@@ -1666,21 +1672,22 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                   </div>
                 </div>
 
-                {/* Middle Section: Tags Only (White BG) */}
-                <div className="p-3.5 bg-white flex flex-col gap-2 flex-1 justify-between">
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                {/* Middle Section: Tags Only (White BG - Compact Side-by-Side Flex Wrap) */}
+                <div className="p-3 bg-white flex flex-col gap-2 flex-1 justify-between min-w-0">
+                  <div className="flex flex-wrap items-center gap-1 min-w-0">
                     {(() => {
                       const itemTags = link.tag ? link.tag.split(',').map(t => t.trim()).filter(Boolean) : []
                       if (itemTags.length === 0) {
                         return (
-                          <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-500 border border-gray-200">
+                          <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-500 border border-gray-200">
                             🏷️ No tag
                           </span>
                         )
                       }
                       return itemTags.map(t => (
-                        <span key={t} className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80">
-                          🏷️ {t}
+                        <span key={t} className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80 max-w-full truncate">
+                          <span className="text-[9px]">🏷️</span>
+                          <span className="truncate">{t}</span>
                         </span>
                       ))
                     })()}
@@ -1692,18 +1699,18 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                     target="_blank"
                     rel="noopener noreferrer"
                     title={link.url}
-                    className="text-[11px] text-gray-500 hover:text-indigo-600 font-medium truncate flex items-center gap-1 pt-1"
+                    className="text-[10px] text-gray-400 hover:text-indigo-600 font-medium truncate flex items-center gap-1 pt-0.5"
                   >
                     <span>🌐</span> {getDisplayUrl(link.url)}
                   </a>
                 </div>
 
                 {/* Bottom Footer Section: Distinct Light Slate BG for Platform & Date/Time */}
-                <div className="bg-slate-50 border-t border-gray-100 p-2.5 px-3 flex items-center justify-between gap-2 mt-auto">
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold border shadow-2xs ${platformColor(link.platform)}`}>
-                    📱 {link.platform || 'Other'}
+                <div className="bg-slate-50 border-t border-gray-100 p-2 px-2.5 flex items-center justify-between gap-1 mt-auto min-w-0">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-2xs leading-tight flex-shrink-0 ${platformColor(link.platform)}`}>
+                    {link.platform || 'Other'}
                   </span>
-                  <span className="text-[10px] text-gray-400 font-mono whitespace-nowrap">
+                  <span className="text-[10px] text-gray-400 font-mono font-medium whitespace-nowrap overflow-hidden text-ellipsis ml-auto">
                     📅 {formatDate(link.created_at)}
                   </span>
                 </div>
