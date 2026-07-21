@@ -832,11 +832,11 @@ function DateTimeRangePickerPopover({
   const presets = [
     { label: 'Today', key: 'today' },
     { label: 'Yesterday', key: 'yesterday' },
-    { label: 'Last three days', key: '3days' },
+    { label: 'Last 3 days', key: '3days' },
     { label: 'Last week', key: '7days' },
-    { label: 'The last month', key: 'thisMonth' },
-    { label: 'The last three months', key: '3months' },
-    { label: 'Last six months', key: '6months' },
+    { label: 'This month', key: 'thisMonth' },
+    { label: 'Last 3 months', key: '3months' },
+    { label: 'Last 6 months', key: '6months' },
     { label: 'The past year', key: 'thisYear' },
   ]
 
@@ -847,7 +847,7 @@ function DateTimeRangePickerPopover({
 
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate()
   const firstDayIndex = new Date(calYear, calMonth, 1).getDay()
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
   const handleDateClick = (day) => {
     const mStr = String(calMonth + 1).padStart(2, '0')
@@ -873,7 +873,7 @@ function DateTimeRangePickerPopover({
   }
 
   return (
-    <div ref={popoverRef} className="relative w-full sm:w-auto flex-1 min-w-[240px]">
+    <div ref={popoverRef} className="relative w-full sm:w-auto flex-1 min-w-[220px]">
       {/* Trigger Input Box */}
       <div
         onClick={() => setOpen(!open)}
@@ -895,85 +895,93 @@ function DateTimeRangePickerPopover({
         )}
       </div>
 
-      {/* Popover Card */}
+      {/* Compact Popover Card: grid-cols-2 mobile-first layout */}
       {open && (
-        <div className="absolute z-50 top-full left-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-full min-w-[300px] sm:min-w-[540px] max-w-2xl">
-          {/* Main Popover Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
-            {/* Left Column: Quick Select buttons (vertical stack) */}
-            <div className="flex flex-col gap-1 text-xs">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 px-2">Quick Select</span>
-              {presets.map((p) => (
-                <button
-                  key={p.key}
-                  type="button"
-                  onClick={() => { onPresetSelect(p.key); }}
-                  className="text-left px-3 py-1.5 rounded-lg text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 font-medium transition cursor-pointer"
-                >
-                  {p.label}
-                </button>
-              ))}
+        <div className="absolute z-50 top-full left-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-full min-w-[310px] max-w-[95vw] sm:max-w-md p-3">
+          {/* Main 2-Column Mobile-First Grid */}
+          <div className="grid grid-cols-2 gap-3 bg-gray-50/80 border border-gray-100 p-2.5 rounded-xl">
+            {/* Left Column (col-span-1): Quick Select Chips */}
+            <div className="flex flex-col gap-1.5 col-span-1 border-r border-gray-200/60 pr-2">
+              <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider flex items-center gap-1">
+                ⚡ Quick Select
+              </span>
+              <div className="flex flex-col gap-1 overflow-y-auto max-h-[210px] pr-0.5">
+                {presets.map((p) => (
+                  <button
+                    key={p.key}
+                    type="button"
+                    onClick={() => { onPresetSelect(p.key); }}
+                    className="w-full text-left px-2 py-1 text-[11px] font-medium rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition cursor-pointer truncate shadow-2xs"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Right Column: Calendar + Time inputs (vertical stack) */}
-            <div className="flex flex-col gap-3 pt-3 sm:pt-0 sm:pl-4">
-              {/* Date & Time Input Boxes (From / To) */}
-              <div className="flex flex-col gap-2 bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs">
-                {/* From Row */}
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase w-10">From:</span>
-                  <input
-                    type="date"
-                    value={fromDate}
-                    onChange={(e) => onFromDateChange(e.target.value)}
-                    className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none flex-1 cursor-pointer"
-                  />
-                  <div className="flex items-center bg-white border border-gray-200 rounded-lg px-2 py-1 focus-within:ring-2 focus-within:ring-blue-500">
+            {/* Right Column (col-span-1): From/To Date + Time Inputs & Mini Calendar */}
+            <div className="flex flex-col gap-2 col-span-1">
+              <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider flex items-center gap-1">
+                📅 Date & Time
+              </span>
+
+              {/* Native From & To Inputs Stack */}
+              <div className="flex flex-col gap-1.5 text-xs">
+                {/* From Input Box */}
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[9px] font-bold text-gray-400 uppercase">From:</span>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="date"
+                      value={fromDate}
+                      onChange={(e) => onFromDateChange(e.target.value)}
+                      className="bg-white border border-gray-200 rounded-md px-1.5 py-0.5 text-[10px] text-gray-700 focus:ring-1 focus:ring-blue-500 focus:outline-none w-full cursor-pointer"
+                    />
                     <input
                       type="text"
                       placeholder="00:00"
                       value={fromTime}
                       onChange={(e) => onFromTimeChange(e.target.value)}
-                      className="bg-transparent text-xs font-mono font-bold text-gray-700 focus:outline-none w-12 text-center cursor-text"
+                      className="bg-white border border-gray-200 rounded-md px-1 py-0.5 text-[10px] font-mono font-bold text-gray-700 focus:outline-none w-11 text-center cursor-text"
                     />
                   </div>
                 </div>
 
-                {/* To Row */}
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase w-10">To:</span>
-                  <input
-                    type="date"
-                    value={toDate}
-                    onChange={(e) => onToDateChange(e.target.value)}
-                    className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none flex-1 cursor-pointer"
-                  />
-                  <div className="flex items-center bg-white border border-gray-200 rounded-lg px-2 py-1 focus-within:ring-2 focus-within:ring-blue-500">
+                {/* To Input Box */}
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[9px] font-bold text-gray-400 uppercase">To:</span>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="date"
+                      value={toDate}
+                      onChange={(e) => onToDateChange(e.target.value)}
+                      className="bg-white border border-gray-200 rounded-md px-1.5 py-0.5 text-[10px] text-gray-700 focus:ring-1 focus:ring-blue-500 focus:outline-none w-full cursor-pointer"
+                    />
                     <input
                       type="text"
                       placeholder="23:59"
                       value={toTime}
                       onChange={(e) => onToTimeChange(e.target.value)}
-                      className="bg-transparent text-xs font-mono font-bold text-gray-700 focus:outline-none w-12 text-center cursor-text"
+                      className="bg-white border border-gray-200 rounded-md px-1 py-0.5 text-[10px] font-mono font-bold text-gray-700 focus:outline-none w-11 text-center cursor-text"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Mini Interactive Calendar Grid */}
-              <div className="border border-gray-100 rounded-xl p-2.5 bg-white">
-                <div className="flex items-center justify-between mb-2 px-1">
+              {/* Compact Mini Interactive Calendar Grid */}
+              <div className="border border-gray-200/70 rounded-lg p-1.5 bg-white max-w-full">
+                <div className="flex items-center justify-between mb-1">
                   <button
                     type="button"
                     onClick={() => {
                       if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) }
                       else setCalMonth(m => m - 1)
                     }}
-                    className="text-xs text-gray-500 hover:text-indigo-600 px-1 font-bold cursor-pointer"
+                    className="text-[10px] text-gray-500 hover:text-indigo-600 font-bold px-0.5 cursor-pointer"
                   >
-                    « &lt;
+                    ‹
                   </button>
-                  <span className="text-xs font-bold text-gray-700">
+                  <span className="text-[10px] font-bold text-gray-700 truncate">
                     {monthNames[calMonth]} {calYear}
                   </span>
                   <button
@@ -982,21 +990,21 @@ function DateTimeRangePickerPopover({
                       if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) }
                       else setCalMonth(m => m + 1)
                     }}
-                    className="text-xs text-gray-500 hover:text-indigo-600 px-1 font-bold cursor-pointer"
+                    className="text-[10px] text-gray-500 hover:text-indigo-600 font-bold px-0.5 cursor-pointer"
                   >
-                    &gt; »
+                    ›
                   </button>
                 </div>
 
                 {/* Calendar Days Header */}
-                <div className="grid grid-cols-7 text-center text-[10px] font-bold text-gray-400 mb-1">
-                  <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                <div className="grid grid-cols-7 text-center text-[8px] font-bold text-gray-400 mb-0.5">
+                  <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
                 </div>
 
                 {/* Days Grid */}
-                <div className="grid grid-cols-7 text-center gap-1 text-xs">
+                <div className="grid grid-cols-7 text-center gap-0.5 text-[10px]">
                   {Array.from({ length: firstDayIndex }).map((_, i) => (
-                    <div key={`empty-${i}`} className="h-6" />
+                    <div key={`empty-${i}`} className="h-4" />
                   ))}
                   {Array.from({ length: daysInMonth }).map((_, i) => {
                     const day = i + 1
@@ -1012,9 +1020,9 @@ function DateTimeRangePickerPopover({
                         key={day}
                         type="button"
                         onClick={() => handleDateClick(day)}
-                        className={`h-7 w-7 rounded-full flex items-center justify-center mx-auto text-xs transition cursor-pointer ${
+                        className={`h-4.5 w-4.5 rounded-full flex items-center justify-center mx-auto text-[9px] transition cursor-pointer ${
                           isSelectedFrom || isSelectedTo
-                            ? 'bg-blue-600 text-white font-bold shadow-sm'
+                            ? 'bg-blue-600 text-white font-bold'
                             : isInRange
                             ? 'bg-blue-100 text-blue-700 font-medium'
                             : 'hover:bg-gray-100 text-gray-700'
