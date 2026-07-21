@@ -925,16 +925,17 @@ function DateTimeRangePickerPopover({
                 📅 Date & Time
               </span>
 
-              {/* Native From & To Inputs Stack */}
+              {/* Direct Typeable From & To Inputs Stack */}
               <div className="flex flex-col gap-1 text-[10px]">
                 {/* From Input Box */}
                 <div className="flex items-center gap-1">
                   <span className="text-[9px] font-bold text-gray-400 uppercase w-8 flex-shrink-0">From:</span>
                   <input
-                    type="date"
+                    type="text"
+                    placeholder="YYYY-MM-DD"
                     value={fromDate}
                     onChange={(e) => onFromDateChange(e.target.value)}
-                    className="bg-white border border-gray-200 rounded-md px-1.5 py-0.5 text-[10px] text-gray-700 focus:ring-1 focus:ring-blue-500 focus:outline-none flex-1 min-w-0 cursor-pointer"
+                    className="bg-white border border-gray-200 rounded-md px-1.5 py-0.5 text-[10px] font-mono font-bold text-gray-700 focus:ring-1 focus:ring-blue-500 focus:outline-none flex-1 min-w-0 cursor-text"
                   />
                   <input
                     type="text"
@@ -949,10 +950,11 @@ function DateTimeRangePickerPopover({
                 <div className="flex items-center gap-1">
                   <span className="text-[9px] font-bold text-gray-400 uppercase w-8 flex-shrink-0">To:</span>
                   <input
-                    type="date"
+                    type="text"
+                    placeholder="YYYY-MM-DD"
                     value={toDate}
                     onChange={(e) => onToDateChange(e.target.value)}
-                    className="bg-white border border-gray-200 rounded-md px-1.5 py-0.5 text-[10px] text-gray-700 focus:ring-1 focus:ring-blue-500 focus:outline-none flex-1 min-w-0 cursor-pointer"
+                    className="bg-white border border-gray-200 rounded-md px-1.5 py-0.5 text-[10px] font-mono font-bold text-gray-700 focus:ring-1 focus:ring-blue-500 focus:outline-none flex-1 min-w-0 cursor-text"
                   />
                   <input
                     type="text"
