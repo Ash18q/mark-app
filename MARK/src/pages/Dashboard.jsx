@@ -895,14 +895,14 @@ function DateTimeRangePickerPopover({
         )}
       </div>
 
-      {/* Compact Popover Card: grid-cols-1 md:grid-cols-3 layout */}
+      {/* Compact Popover Card: Side-by-Side layout on all screens (mobile & desktop) */}
       {open && (
-        <div className="absolute z-50 top-full left-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-full min-w-[310px] max-w-[95vw] sm:max-w-lg md:max-w-xl p-3 z-[100]">
-          {/* Main 3-Column Grid (1 col Quick Select, 2 cols Calendar + Time) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-50/80 border border-gray-100 p-2.5 rounded-xl">
-            {/* Left Column (md:col-span-1): Quick Select Chips */}
-            <div className="flex flex-col gap-1.5 col-span-1 md:col-span-1 border-b md:border-b-0 md:border-r border-gray-200/60 pb-2.5 md:pb-0 md:pr-2">
-              <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider flex items-center gap-1">
+        <div className="absolute z-[100] top-full left-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-[94vw] sm:w-[490px] p-3">
+          {/* Main 12-Column Grid (4 cols Quick Select, 8 cols Calendar + Time) */}
+          <div className="grid grid-cols-12 gap-2.5 bg-gray-50/80 border border-gray-100 p-2 rounded-xl">
+            {/* Left Column (col-span-4): Quick Select Chips */}
+            <div className="col-span-4 flex flex-col gap-1.5 border-r border-gray-200/60 pr-1.5">
+              <span className="text-[10px] font-bold text-gray-600 uppercase tracking-wider flex items-center gap-1">
                 ⚡ Quick Select
               </span>
               <div className="flex flex-col gap-1 overflow-y-auto max-h-[220px] pr-0.5">
@@ -911,7 +911,7 @@ function DateTimeRangePickerPopover({
                     key={p.key}
                     type="button"
                     onClick={() => { onPresetSelect(p.key); }}
-                    className="w-full text-left px-2.5 py-1 text-[11px] font-medium rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition cursor-pointer truncate shadow-2xs"
+                    className="w-full text-left px-2 py-1 text-[10px] font-medium rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition cursor-pointer truncate shadow-2xs"
                   >
                     {p.label}
                   </button>
@@ -919,69 +919,65 @@ function DateTimeRangePickerPopover({
               </div>
             </div>
 
-            {/* Right Column (md:col-span-2): From/To Date + Time Inputs & Mini Calendar */}
-            <div className="flex flex-col gap-2.5 col-span-1 md:col-span-2 pt-1 md:pt-0 md:pl-1">
-              <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider flex items-center gap-1">
+            {/* Right Column (col-span-8): From/To Date + Time Inputs & Mini Calendar */}
+            <div className="col-span-8 flex flex-col gap-2 pl-0.5">
+              <span className="text-[10px] font-bold text-gray-600 uppercase tracking-wider flex items-center gap-1">
                 📅 Date & Time
               </span>
 
               {/* Native From & To Inputs Stack */}
-              <div className="flex flex-col gap-1.5 text-xs">
+              <div className="flex flex-col gap-1 text-[10px]">
                 {/* From Input Box */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase w-10">From:</span>
-                  <div className="flex items-center gap-1 flex-1">
-                    <input
-                      type="date"
-                      value={fromDate}
-                      onChange={(e) => onFromDateChange(e.target.value)}
-                      className="bg-white border border-gray-200 rounded-md px-2 py-1 text-xs text-gray-700 focus:ring-1 focus:ring-blue-500 focus:outline-none flex-1 cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      placeholder="00:00"
-                      value={fromTime}
-                      onChange={(e) => onFromTimeChange(e.target.value)}
-                      className="bg-white border border-gray-200 rounded-md px-1.5 py-1 text-xs font-mono font-bold text-gray-700 focus:outline-none w-14 text-center cursor-text"
-                    />
-                  </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[9px] font-bold text-gray-400 uppercase w-8 flex-shrink-0">From:</span>
+                  <input
+                    type="date"
+                    value={fromDate}
+                    onChange={(e) => onFromDateChange(e.target.value)}
+                    className="bg-white border border-gray-200 rounded-md px-1.5 py-0.5 text-[10px] text-gray-700 focus:ring-1 focus:ring-blue-500 focus:outline-none flex-1 min-w-0 cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    placeholder="00:00"
+                    value={fromTime}
+                    onChange={(e) => onFromTimeChange(e.target.value)}
+                    className="bg-white border border-gray-200 rounded-md px-1 py-0.5 text-[10px] font-mono font-bold text-gray-700 focus:outline-none w-11 flex-shrink-0 text-center cursor-text"
+                  />
                 </div>
 
                 {/* To Input Box */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase w-10">To:</span>
-                  <div className="flex items-center gap-1 flex-1">
-                    <input
-                      type="date"
-                      value={toDate}
-                      onChange={(e) => onToDateChange(e.target.value)}
-                      className="bg-white border border-gray-200 rounded-md px-2 py-1 text-xs text-gray-700 focus:ring-1 focus:ring-blue-500 focus:outline-none flex-1 cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      placeholder="23:59"
-                      value={toTime}
-                      onChange={(e) => onToTimeChange(e.target.value)}
-                      className="bg-white border border-gray-200 rounded-md px-1.5 py-1 text-xs font-mono font-bold text-gray-700 focus:outline-none w-14 text-center cursor-text"
-                    />
-                  </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[9px] font-bold text-gray-400 uppercase w-8 flex-shrink-0">To:</span>
+                  <input
+                    type="date"
+                    value={toDate}
+                    onChange={(e) => onToDateChange(e.target.value)}
+                    className="bg-white border border-gray-200 rounded-md px-1.5 py-0.5 text-[10px] text-gray-700 focus:ring-1 focus:ring-blue-500 focus:outline-none flex-1 min-w-0 cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    placeholder="23:59"
+                    value={toTime}
+                    onChange={(e) => onToTimeChange(e.target.value)}
+                    className="bg-white border border-gray-200 rounded-md px-1 py-0.5 text-[10px] font-mono font-bold text-gray-700 focus:outline-none w-11 flex-shrink-0 text-center cursor-text"
+                  />
                 </div>
               </div>
 
               {/* Compact Mini Interactive Calendar Grid */}
-              <div className="border border-gray-200/70 rounded-xl p-2 bg-white max-w-full">
-                <div className="flex items-center justify-between mb-1.5 px-1">
+              <div className="border border-gray-200/70 rounded-xl p-1.5 bg-white max-w-full">
+                <div className="flex items-center justify-between mb-1 px-1">
                   <button
                     type="button"
                     onClick={() => {
                       if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) }
                       else setCalMonth(m => m - 1)
                     }}
-                    className="text-xs text-gray-500 hover:text-indigo-600 font-bold px-1 cursor-pointer"
+                    className="text-[10px] text-gray-500 hover:text-indigo-600 font-bold px-1 cursor-pointer"
                   >
                     ‹
                   </button>
-                  <span className="text-xs font-bold text-gray-700 truncate">
+                  <span className="text-[10px] font-bold text-gray-700 truncate">
                     {monthNames[calMonth]} {calYear}
                   </span>
                   <button
@@ -990,21 +986,21 @@ function DateTimeRangePickerPopover({
                       if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) }
                       else setCalMonth(m => m + 1)
                     }}
-                    className="text-xs text-gray-500 hover:text-indigo-600 font-bold px-1 cursor-pointer"
+                    className="text-[10px] text-gray-500 hover:text-indigo-600 font-bold px-1 cursor-pointer"
                   >
                     ›
                   </button>
                 </div>
 
                 {/* Calendar Days Header */}
-                <div className="grid grid-cols-7 text-center text-[9px] font-bold text-gray-400 mb-1">
+                <div className="grid grid-cols-7 text-center text-[8px] font-bold text-gray-400 mb-0.5">
                   <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
                 </div>
 
                 {/* Days Grid */}
-                <div className="grid grid-cols-7 text-center gap-1 text-xs">
+                <div className="grid grid-cols-7 text-center gap-0.5 text-[10px]">
                   {Array.from({ length: firstDayIndex }).map((_, i) => (
-                    <div key={`empty-${i}`} className="h-5" />
+                    <div key={`empty-${i}`} className="h-4.5" />
                   ))}
                   {Array.from({ length: daysInMonth }).map((_, i) => {
                     const day = i + 1
@@ -1020,7 +1016,7 @@ function DateTimeRangePickerPopover({
                         key={day}
                         type="button"
                         onClick={() => handleDateClick(day)}
-                        className={`h-5.5 w-5.5 rounded-full flex items-center justify-center mx-auto text-[10px] transition cursor-pointer ${
+                        className={`h-5 w-5 rounded-full flex items-center justify-center mx-auto text-[9px] transition cursor-pointer ${
                           isSelectedFrom || isSelectedTo
                             ? 'bg-blue-600 text-white font-bold'
                             : isInRange
