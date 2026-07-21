@@ -1628,7 +1628,7 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                 key={link.id}
                 className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden flex flex-col group hover:shadow-lg transition-all"
               >
-                {/* Top: Thumbnail (160px) + Action Buttons */}
+                {/* Top: Thumbnail (160px) - Completely clean without any overlays */}
                 <div className="relative w-full h-[160px] bg-gray-100 overflow-hidden">
                   {thumb && thumb !== 'FAILED' ? (
                     <a href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative">
@@ -1672,46 +1672,9 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                       🔗
                     </a>
                   )}
-
-                  {/* Top-Right Action Buttons (Copy, Edit, Delete) */}
-                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
-                    <button
-                      onClick={() => handleCopy(link.id, link.url)}
-                      className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-emerald-600 flex items-center justify-center shadow-md backdrop-blur-sm transition cursor-pointer"
-                      title={copiedId === link.id ? 'Copied!' : 'Copy link URL'}
-                      aria-label="Copy link URL"
-                    >
-                      {copiedId === link.id ? (
-                        <span className="text-xs font-bold text-emerald-600 animate-fadeIn">✓</span>
-                      ) : (
-                        <CopyIcon />
-                      )}
-                    </button>
-                    <button
-                      onClick={() => setEditingLink(link)}
-                      className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-indigo-600 flex items-center justify-center shadow-md backdrop-blur-sm transition cursor-pointer"
-                      title="Edit link"
-                      aria-label="Edit link"
-                    >
-                      <PencilIcon />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(link.id)}
-                      disabled={deletingId === link.id}
-                      className="w-8 h-8 rounded-full bg-red-500/90 hover:bg-red-600 text-white flex items-center justify-center shadow-md backdrop-blur-sm transition cursor-pointer disabled:opacity-50"
-                      title="Delete link"
-                      aria-label="Delete link"
-                    >
-                      {deletingId === link.id ? (
-                        <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <TrashIcon />
-                      )}
-                    </button>
-                  </div>
                 </div>
 
-                {/* Middle Section: Tags Only (White BG - Compact Side-by-Side Flex Wrap) */}
+                {/* Middle Section: Tags + Domain & Action Buttons (White BG) */}
                 <div className="p-3 bg-white flex flex-col gap-2 flex-1 justify-between min-w-0">
                   <div className="flex flex-wrap items-center gap-1 min-w-0">
                     {(() => {
@@ -1732,20 +1695,59 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                     })()}
                   </div>
 
-                  {/* URL Domain link */}
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={link.url}
-                    className="text-[10px] text-gray-400 hover:text-indigo-600 font-medium truncate flex items-center gap-1 pt-0.5"
-                  >
-                    <span>🌐</span> {getDisplayUrl(link.url)}
-                  </a>
+                  {/* URL Domain link + Action Buttons (Copy, Edit, Delete) */}
+                  <div className="flex items-center justify-between gap-1.5 pt-1.5 border-t border-gray-100">
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={link.url}
+                      className="text-[10px] text-gray-400 hover:text-indigo-600 font-medium truncate flex items-center gap-1 min-w-0"
+                    >
+                      <span>🌐</span> {getDisplayUrl(link.url)}
+                    </a>
+
+                    {/* Action Buttons (Copy, Edit, Delete) */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button
+                        onClick={() => handleCopy(link.id, link.url)}
+                        className="w-6 h-6 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-600 flex items-center justify-center border border-emerald-200 transition cursor-pointer"
+                        title={copiedId === link.id ? 'Copied!' : 'Copy link URL'}
+                        aria-label="Copy link URL"
+                      >
+                        {copiedId === link.id ? (
+                          <span className="text-[10px] font-bold text-emerald-600 animate-fadeIn">✓</span>
+                        ) : (
+                          <CopyIcon />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setEditingLink(link)}
+                        className="w-6 h-6 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center border border-indigo-200 transition cursor-pointer"
+                        title="Edit link"
+                        aria-label="Edit link"
+                      >
+                        <PencilIcon />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(link.id)}
+                        disabled={deletingId === link.id}
+                        className="w-6 h-6 rounded-full bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center border border-red-200 transition cursor-pointer disabled:opacity-50"
+                        title="Delete link"
+                        aria-label="Delete link"
+                      >
+                        {deletingId === link.id ? (
+                          <span className="w-2.5 h-2.5 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <TrashIcon />
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Bottom Footer Section: Distinct Light Slate BG for Platform & Date (Top) / Time (Below) */}
-                <div className="bg-slate-50 border-t border-gray-100 p-2 px-2.5 flex items-center justify-between gap-1 mt-auto min-w-0">
+                {/* Bottom Footer Section: Light Red BG for Platform & Date (Top) / Time (Below) */}
+                <div className="bg-red-50/70 border-t border-red-100/80 p-2 px-2.5 flex items-center justify-between gap-1 mt-auto min-w-0">
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-2xs leading-tight flex-shrink-0 ${platformColor(link.platform)}`}>
                     {link.platform || 'Other'}
                   </span>
@@ -1755,7 +1757,7 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                     const { dateStr, timeStr } = formatDateParts(link.created_at)
                     return (
                       <div className="flex flex-col items-end text-right font-mono leading-tight flex-shrink-0 ml-auto">
-                        <span className="text-[10px] text-gray-500 font-semibold">{dateStr}</span>
+                        <span className="text-[10px] text-gray-600 font-semibold">{dateStr}</span>
                         <span className="text-[9px] text-gray-400 font-medium">{timeStr}</span>
                       </div>
                     )
