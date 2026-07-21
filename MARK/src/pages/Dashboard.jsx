@@ -170,7 +170,11 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
       }
     }
     document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    document.addEventListener('touchstart', handler)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      document.removeEventListener('touchstart', handler)
+    }
   }, [])
 
   function addTag(tagToAdd) {
@@ -193,7 +197,13 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
       e.preventDefault()
       if (inputValue.trim()) {
         addTag(inputValue)
+      } else {
+        setOpen(false)
+        setShowAll(false)
       }
+    } else if (e.key === 'Escape') {
+      setOpen(false)
+      setShowAll(false)
     } else if (e.key === 'Backspace' && !inputValue && currentTags.length > 0) {
       removeTag(currentTags[currentTags.length - 1])
     }
@@ -201,7 +211,7 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
 
   function handleChevronClick(e) {
     e.preventDefault()
-    if (open && showAll) {
+    if (open) {
       setOpen(false)
       setShowAll(false)
     } else {
@@ -272,13 +282,13 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
         required
       />
 
-      {/* Chevron arrow — clickable, shows all suggestions */}
+      {/* Chevron arrow — clickable, shows/closes suggestions */}
       <button
         type="button"
         tabIndex={-1}
         onMouseDown={handleChevronClick}
         className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 transition-colors"
-        aria-label="Show tag suggestions"
+        aria-label="Toggle tag suggestions"
       >
         <svg
           className={`w-4 h-4 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
@@ -288,37 +298,57 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
         </svg>
       </button>
 
-      {/* Dropdown Suggestions List */}
+      {/* Dropdown Suggestions List with Header & Done Button */}
       {open && filtered.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden max-h-56 overflow-y-auto divide-y divide-gray-50 py-1 text-xs">
-          {filtered.map((tag) => {
-            const isSelected = currentTags.includes(tag)
-            return (
-              <li
-                key={tag}
-                onMouseDown={(e) => {
-                  e.preventDefault()
-                  if (isSelected) {
-                    removeTag(tag)
-                  } else {
-                    addTag(tag)
-                  }
-                }}
-                className={`px-3.5 py-2 cursor-pointer flex items-center justify-between font-medium transition ${
-                  isSelected ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <span className="flex items-center gap-1.5">
-                  <span className="text-gray-400 text-[10px]">🏷️</span>
-                  {tag}
-                </span>
-                {isSelected && (
-                  <span className="text-indigo-600 font-bold text-xs">✓</span>
-                )}
-              </li>
-            )
-          })}
-        </ul>
+        <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden flex flex-col">
+          {/* Header Bar with Done Button */}
+          <div className="bg-gray-50 border-b border-gray-100 px-3 py-1.5 flex items-center justify-between">
+            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+              {currentTags.length > 0 ? `🏷️ ${currentTags.length} Selected` : 'Select Tags'}
+            </span>
+            <button
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault()
+                setOpen(false)
+                setShowAll(false)
+              }}
+              className="text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-0.5 rounded-md transition cursor-pointer"
+            >
+              Done ✓
+            </button>
+          </div>
+
+          <ul className="max-h-52 overflow-y-auto divide-y divide-gray-50 py-1 text-xs">
+            {filtered.map((tag) => {
+              const isSelected = currentTags.includes(tag)
+              return (
+                <li
+                  key={tag}
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    if (isSelected) {
+                      removeTag(tag)
+                    } else {
+                      addTag(tag)
+                    }
+                  }}
+                  className={`px-3.5 py-2 cursor-pointer flex items-center justify-between font-medium transition ${
+                    isSelected ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-gray-400 text-[10px]">🏷️</span>
+                    {tag}
+                  </span>
+                  {isSelected && (
+                    <span className="text-indigo-600 font-bold text-xs">✓</span>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
       )}
     </div>
   )
