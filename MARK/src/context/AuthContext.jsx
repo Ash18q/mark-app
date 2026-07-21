@@ -19,8 +19,8 @@ export function AuthProvider({ children }) {
 
     if (!error && data) {
       setLinks(data)
-      // Extract distinct tags for autocomplete
-      const distinctTags = [...new Set(data.map((l) => l.tag).filter(Boolean))]
+      // Extract distinct tags for autocomplete (including comma-separated tags)
+      const distinctTags = [...new Set(data.flatMap((l) => l.tag ? l.tag.split(',').map(t => t.trim()) : []).filter(Boolean))]
       setTags(distinctTags)
     }
   }, [])
@@ -66,7 +66,8 @@ export function AuthProvider({ children }) {
     }
 
     setLinks((prev) => [data, ...prev])
-    setTags((prev) => (prev.includes(tag) ? prev : [tag, ...prev]))
+    const newTags = tag.split(',').map(t => t.trim()).filter(Boolean)
+    setTags((prev) => [...new Set([...newTags, ...prev])])
     return data
   }, [])  // ✅ user dependency hataya — ab live session use hoti hai
 

@@ -144,17 +144,26 @@ function PlatformInput({ id = 'platform-input', value, onChange, className = '',
   )
 }
 
-// ─── Tag Autocomplete Input ───────────────────────────────────────────────────
-function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '', placeholder = 'e.g. tutorial, recipe, notes', inputRef }) {
+// ─── Tag Autocomplete Input (Multi-tag capable) ───────────────────────────────
+function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '', placeholder = 'e.g. tutorial, recipe (comma separated)', inputRef }) {
   const [open, setOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
   const ref = useRef(null)
 
-  // Normal filter: match typed text, exclude exact match
-  // showAll mode (chevron click): show everything so user can pick any tag
-  const filtered = showAll
-    ? suggestions
-    : suggestions.filter((s) => s.toLowerCase().includes(value.toLowerCase()) && s !== value)
+  // Current tags entered (split by comma)
+  const currentTags = useMemo(() => {
+    return value.split(',').map(t => t.trim()).filter(Boolean)
+  }, [value])
+
+  const lastTypedSegment = useMemo(() => {
+    const parts = value.split(',')
+    return parts[parts.length - 1].trim().toLowerCase()
+  }, [value])
+
+  const filtered = useMemo(() => {
+    if (showAll || !lastTypedSegment) return suggestions
+    return suggestions.filter((s) => s.toLowerCase().includes(lastTypedSegment))
+  }, [suggestions, showAll, lastTypedSegment])
 
   useEffect(() => {
     const handler = (e) => {
@@ -170,7 +179,6 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
   function handleChevronClick(e) {
     e.preventDefault()
     if (open && showAll) {
-      // already open in showAll mode → close
       setOpen(false)
       setShowAll(false)
     } else {
@@ -179,8 +187,24 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
     }
   }
 
+  function toggleTag(tag) {
+    let updated
+    if (currentTags.includes(tag)) {
+      updated = currentTags.filter(t => t !== tag)
+    } else {
+      const parts = value.split(',').map(t => t.trim()).filter(Boolean)
+      if (parts.length > 0 && !suggestions.includes(parts[parts.length - 1]) && parts[parts.length - 1].toLowerCase() === lastTypedSegment) {
+        parts[parts.length - 1] = tag
+        updated = parts
+      } else {
+        updated = [...currentTags, tag]
+      }
+    }
+    onChange(updated.join(', '))
+  }
+
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative flex-1">
       <input
         ref={inputRef}
         id={id}
@@ -209,17 +233,30 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
         </svg>
       </button>
       {open && filtered.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden max-h-64 overflow-y-auto">
-          {filtered.map((tag) => (
-            <li
-              key={tag}
-              onMouseDown={() => { onChange(tag); setOpen(false); setShowAll(false) }}
-              className="px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors"
-            >
-              <span className="w-2 h-2 rounded-full bg-indigo-400 flex-shrink-0" />
-              {tag}
-            </li>
-          ))}
+        <ul className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden max-h-56 overflow-y-auto divide-y divide-gray-50 py-1 text-xs">
+          {filtered.map((tag) => {
+            const isSelected = currentTags.includes(tag)
+            return (
+              <li
+                key={tag}
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  toggleTag(tag)
+                }}
+                className={`px-3.5 py-2 cursor-pointer flex items-center justify-between font-medium transition ${
+                  isSelected ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <span className="flex items-center gap-1.5">
+                  <span className="text-gray-400 text-[10px]">🏷️</span>
+                  {tag}
+                </span>
+                {isSelected && (
+                  <span className="text-indigo-600 font-bold text-xs">✓</span>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>
@@ -1109,8 +1146,10 @@ function getPresetDates(preset) {
 function LibraryTab({ links, onDelete, onUpdate }) {
   const { tags } = useAuth()
 
-  // Distinct lists
-  const availableTags = useMemo(() => [...new Set(links.map(l => l.tag).filter(Boolean))], [links])
+  // Distinct lists (parsing comma-separated multi-tags)
+  const availableTags = useMemo(() => {
+    return [...new Set(links.flatMap(l => l.tag ? l.tag.split(',').map(t => t.trim()) : []).filter(Boolean))]
+  }, [links])
   const availablePlatforms = useMemo(() => [...new Set(links.map(l => l.platform).filter(Boolean))], [links])
 
   // Pending filter states
@@ -1167,8 +1206,11 @@ function LibraryTab({ links, onDelete, onUpdate }) {
   const filtered = useMemo(() => {
     return links
       .filter(l => {
-        // Multi-tag filter
-        if (appliedTags.length > 0 && !appliedTags.includes(l.tag)) return false
+        // Multi-tag filter matching
+        if (appliedTags.length > 0) {
+          const itemTags = l.tag ? l.tag.split(',').map(t => t.trim()) : []
+          if (!appliedTags.some(t => itemTags.includes(t))) return false
+        }
         // Multi-platform filter
         if (appliedPlatforms.length > 0 && !appliedPlatforms.includes(l.platform)) return false
 
@@ -1512,12 +1554,24 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                   </div>
                 </div>
 
-                {/* Middle: Badges (Tag + Platform) */}
+                {/* Middle: Badges (Tags + Platform) */}
                 <div className="p-4 flex flex-col gap-3 flex-1 justify-between">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200">
-                      🏷️ {link.tag || 'No tag'}
-                    </span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {(() => {
+                      const itemTags = link.tag ? link.tag.split(',').map(t => t.trim()).filter(Boolean) : []
+                      if (itemTags.length === 0) {
+                        return (
+                          <span className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500 border border-gray-200">
+                            🏷️ No tag
+                          </span>
+                        )
+                      }
+                      return itemTags.map(t => (
+                        <span key={t} className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200">
+                          🏷️ {t}
+                        </span>
+                      ))
+                    })()}
                     <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${platformColor(link.platform)}`}>
                       📱 {link.platform || 'Other'}
                     </span>
