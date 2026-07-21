@@ -1616,7 +1616,7 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                           }
                         }}
                       />
-                      {/* Fix 3: Fallback Icon if image onError fires */}
+                      {/* Fallback Icon if image onError fires */}
                       <span
                         className="w-full h-full bg-gray-100 items-center justify-center text-4xl hidden text-gray-400 absolute inset-0"
                         style={{ display: 'none' }}
@@ -1666,44 +1666,46 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                   </div>
                 </div>
 
-                {/* Middle: Badges (Tags + Platform) */}
-                <div className="p-4 flex flex-col gap-3 flex-1 justify-between">
+                {/* Middle Section: Tags Only (White BG) */}
+                <div className="p-3.5 bg-white flex flex-col gap-2 flex-1 justify-between">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {(() => {
                       const itemTags = link.tag ? link.tag.split(',').map(t => t.trim()).filter(Boolean) : []
                       if (itemTags.length === 0) {
                         return (
-                          <span className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500 border border-gray-200">
+                          <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-500 border border-gray-200">
                             🏷️ No tag
                           </span>
                         )
                       }
                       return itemTags.map(t => (
-                        <span key={t} className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200">
+                        <span key={t} className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80">
                           🏷️ {t}
                         </span>
                       ))
                     })()}
-                    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${platformColor(link.platform)}`}>
-                      📱 {link.platform || 'Other'}
-                    </span>
                   </div>
 
-                  {/* Bottom: URL domain (Left) + Date (Right) */}
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100 text-xs text-gray-500">
-                    <a
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title={link.url}
-                      className="hover:text-indigo-600 font-medium truncate max-w-[60%] flex items-center gap-1"
-                    >
-                      <span>🌐</span> {getDisplayUrl(link.url)}
-                    </a>
-                    <span className="text-[11px] text-gray-400 font-mono whitespace-nowrap ml-auto">
-                      {formatDate(link.created_at)}
-                    </span>
-                  </div>
+                  {/* URL Domain link */}
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={link.url}
+                    className="text-[11px] text-gray-500 hover:text-indigo-600 font-medium truncate flex items-center gap-1 pt-1"
+                  >
+                    <span>🌐</span> {getDisplayUrl(link.url)}
+                  </a>
+                </div>
+
+                {/* Bottom Footer Section: Distinct Light Slate BG for Platform & Date/Time */}
+                <div className="bg-slate-50 border-t border-gray-100 p-2.5 px-3 flex items-center justify-between gap-2 mt-auto">
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold border shadow-2xs ${platformColor(link.platform)}`}>
+                    📱 {link.platform || 'Other'}
+                  </span>
+                  <span className="text-[10px] text-gray-400 font-mono whitespace-nowrap">
+                    📅 {formatDate(link.created_at)}
+                  </span>
                 </div>
               </div>
             )
