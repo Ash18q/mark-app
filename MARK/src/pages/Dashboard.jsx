@@ -27,6 +27,12 @@ const PencilIcon = () => (
       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
   </svg>
 )
+const CopyIcon = () => (
+  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+  </svg>
+)
 const LinkIcon = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -1285,6 +1291,24 @@ function LibraryTab({ links, onDelete, onUpdate }) {
 
   const [deletingId, setDeletingId] = useState(null)
   const [editingLink, setEditingLink] = useState(null)
+  const [copiedId, setCopiedId] = useState(null)
+
+  function handleCopy(id, url) {
+    try {
+      navigator.clipboard.writeText(url)
+      setCopiedId(id)
+      setTimeout(() => setCopiedId(null), 2000)
+    } catch {
+      const input = document.createElement('input')
+      input.value = url
+      document.body.appendChild(input)
+      input.select()
+      document.execCommand('copy')
+      document.body.removeChild(input)
+      setCopiedId(id)
+      setTimeout(() => setCopiedId(null), 2000)
+    }
+  }
 
   const hasActiveFilters = appliedTags.length > 0 || appliedPlatforms.length > 0 || Boolean(appliedFromDate) || Boolean(appliedToDate)
 
@@ -1352,16 +1376,19 @@ function LibraryTab({ links, onDelete, onUpdate }) {
     try { await onDelete(id) } finally { setDeletingId(null) }
   }
 
-  function formatDate(iso) {
+  function formatDateParts(iso) {
     const d = new Date(iso)
-    if (isNaN(d.getTime())) return ''
+    if (isNaN(d.getTime())) return { dateStr: '', timeStr: '' }
     const day = d.getDate().toString().padStart(2, '0')
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     const month = monthNames[d.getMonth()]
     const yr = d.getFullYear()
     const hours = d.getHours().toString().padStart(2, '0')
     const mins = d.getMinutes().toString().padStart(2, '0')
-    return `${day} ${month} '${yr.toString().slice(-2)}, ${hours}:${mins}`
+    return {
+      dateStr: `${day} ${month} ${yr}`,
+      timeStr: `${hours}:${mins}`
+    }
   }
 
   const getDisplayUrl = (url) => {
@@ -1646,8 +1673,20 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                     </a>
                   )}
 
-                  {/* Top-Right Action Buttons */}
+                  {/* Top-Right Action Buttons (Copy, Edit, Delete) */}
                   <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
+                    <button
+                      onClick={() => handleCopy(link.id, link.url)}
+                      className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-emerald-600 flex items-center justify-center shadow-md backdrop-blur-sm transition cursor-pointer"
+                      title={copiedId === link.id ? 'Copied!' : 'Copy link URL'}
+                      aria-label="Copy link URL"
+                    >
+                      {copiedId === link.id ? (
+                        <span className="text-xs font-bold text-emerald-600 animate-fadeIn">✓</span>
+                      ) : (
+                        <CopyIcon />
+                      )}
+                    </button>
                     <button
                       onClick={() => setEditingLink(link)}
                       className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-indigo-600 flex items-center justify-center shadow-md backdrop-blur-sm transition cursor-pointer"
@@ -1705,14 +1744,22 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                   </a>
                 </div>
 
-                {/* Bottom Footer Section: Distinct Light Slate BG for Platform & Date/Time */}
+                {/* Bottom Footer Section: Distinct Light Slate BG for Platform & Date (Top) / Time (Below) */}
                 <div className="bg-slate-50 border-t border-gray-100 p-2 px-2.5 flex items-center justify-between gap-1 mt-auto min-w-0">
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-2xs leading-tight flex-shrink-0 ${platformColor(link.platform)}`}>
                     {link.platform || 'Other'}
                   </span>
-                  <span className="text-[10px] text-gray-400 font-mono font-medium whitespace-nowrap overflow-hidden text-ellipsis ml-auto">
-                    📅 {formatDate(link.created_at)}
-                  </span>
+
+                  {/* Date (Top) and Time (Below) without icon */}
+                  {(() => {
+                    const { dateStr, timeStr } = formatDateParts(link.created_at)
+                    return (
+                      <div className="flex flex-col items-end text-right font-mono leading-tight flex-shrink-0 ml-auto">
+                        <span className="text-[10px] text-gray-500 font-semibold">{dateStr}</span>
+                        <span className="text-[9px] text-gray-400 font-medium">{timeStr}</span>
+                      </div>
+                    )
+                  })()}
                 </div>
               </div>
             )
