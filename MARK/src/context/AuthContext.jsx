@@ -128,13 +128,14 @@ export function AuthProvider({ children }) {
     // ⚡ Fast synchronous check of cached session from localStorage to eliminate open delay
     try {
       const storageKeys = Object.keys(localStorage)
-      const tokenKey = storageKeys.find((k) => k.includes('-auth-token'))
+      const tokenKey = storageKeys.find((k) => k.includes('auth-token') || k.includes('sb-'))
       if (tokenKey) {
         const cached = JSON.parse(localStorage.getItem(tokenKey) || '{}')
-        if (cached?.user) {
-          setUser(cached.user)
-          fetchLinks(cached.user.id)
+        const u = cached?.user || cached?.currentSession?.user
+        if (u) {
+          setUser(u)
           setLoading(false)
+          fetchLinks(u.id)
         }
       }
     } catch { /* fallback to getSession */ }

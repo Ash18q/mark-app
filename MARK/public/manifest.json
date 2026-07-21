@@ -22,11 +22,11 @@
     }
   ],
   "share_target": {
-    "action": "/?share=true",
+    "action": "/dashboard",
     "method": "GET",
     "params": {
       "title": "title",
-      "text": "url",
+      "text": "text",
       "url": "url"
     }
   },
