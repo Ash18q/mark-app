@@ -165,6 +165,13 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
   useEffect(() => {
     const handler = (e) => {
       if (ref.current && !ref.current.contains(e.target)) {
+        if (inputValue.trim()) {
+          const t = inputValue.trim()
+          if (!currentTags.includes(t)) {
+            onChange([...currentTags, t].join(', '))
+          }
+          setInputValue('')
+        }
         setOpen(false)
         setShowAll(false)
       }
@@ -175,7 +182,7 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
       document.removeEventListener('mousedown', handler)
       document.removeEventListener('touchstart', handler)
     }
-  }, [])
+  }, [inputValue, currentTags, onChange])
 
   function addTag(tagToAdd) {
     const t = tagToAdd.trim()
@@ -202,6 +209,9 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
         setShowAll(false)
       }
     } else if (e.key === 'Escape') {
+      if (inputValue.trim()) {
+        addTag(inputValue)
+      }
       setOpen(false)
       setShowAll(false)
     } else if (e.key === 'Backspace' && !inputValue && currentTags.length > 0) {
@@ -211,6 +221,9 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
 
   function handleChevronClick(e) {
     e.preventDefault()
+    if (inputValue.trim()) {
+      addTag(inputValue)
+    }
     if (open) {
       setOpen(false)
       setShowAll(false)
@@ -268,6 +281,11 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
             }
           }}
           onKeyDown={handleKeyDown}
+          onBlur={() => {
+            if (inputValue.trim()) {
+              addTag(inputValue)
+            }
+          }}
           onFocus={() => setOpen(true)}
           placeholder={currentTags.length === 0 ? placeholder : 'Add tag…'}
           className="bg-transparent text-sm text-gray-800 focus:outline-none flex-1 min-w-[100px] py-0.5"
@@ -310,6 +328,9 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
               type="button"
               onMouseDown={(e) => {
                 e.preventDefault()
+                if (inputValue.trim()) {
+                  addTag(inputValue)
+                }
                 setOpen(false)
                 setShowAll(false)
               }}
