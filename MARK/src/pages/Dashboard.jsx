@@ -1872,35 +1872,36 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* ── Tabs ── */}
-      <div className="sticky top-14 z-30 bg-white/80 backdrop-blur border-b border-gray-200">
-        <div className="max-w-3xl mx-auto px-4 flex">
+      {/* ── Main Content ── */}
+      <main className="max-w-3xl mx-auto px-4 py-6 pb-24">
+        {activeTab === 'add' && <AddLinkTab initialUrl={sharedUrl} links={links} />}
+        {activeTab === 'library' && <LibraryTab links={links} onDelete={deleteLink} onUpdate={updateLink} />}
+      </main>
+
+      {/* ── Fixed Bottom Navigation Bar (Android App Style: 50/50 Split) ── */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-gray-200 shadow-lg">
+        <div className="max-w-3xl mx-auto grid grid-cols-2 h-14">
           {tabs.map(tab => (
             <button
               key={tab.id}
               id={`tab-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-3.5 text-sm font-semibold border-b-2 transition-all
+              className={`col-span-1 flex items-center justify-center gap-2 h-full text-sm font-semibold transition-all select-none border-t-2 cursor-pointer
                 ${activeTab === tab.id
-                  ? 'border-indigo-600 text-indigo-700 bg-indigo-50/60'
-                  : 'border-transparent text-gray-500 hover:text-indigo-600 hover:bg-gray-50'}`}
+                  ? 'border-indigo-600 text-indigo-700 bg-indigo-50/80 font-bold'
+                  : 'border-transparent text-gray-500 hover:text-indigo-600 hover:bg-gray-50/50'}`}
             >
-              <span>{tab.icon}</span> {tab.label}
+              <span className="text-base">{tab.icon}</span>
+              <span>{tab.label}</span>
               {tab.id === 'library' && links.length > 0 && (
-                <span className="ml-1 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                <span className="ml-1 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-2xs">
                   {links.length}
                 </span>
               )}
             </button>
           ))}
         </div>
-      </div>
-
-      {/* ── Main Content ── */}
-      <main className="max-w-3xl mx-auto px-4 py-6 pb-12">
-        {activeTab === 'add' && <AddLinkTab initialUrl={sharedUrl} links={links} />}
-        {activeTab === 'library' && <LibraryTab links={links} onDelete={deleteLink} onUpdate={updateLink} />}
-      </main>
+      </nav>
     </div>
   )
 }
