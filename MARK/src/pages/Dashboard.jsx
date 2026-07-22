@@ -1400,12 +1400,9 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
       })
   }, [links, appliedTags, appliedPlatforms, appliedFromDate, appliedFromTime, appliedToDate, appliedToTime, sortDir])
 
-  // Sync filtered links and filter status to parent Dashboard for Export feature
-  useEffect(() => {
-    if (onFilteredChange) {
-      onFilteredChange(filtered, hasActiveFilters)
-    }
-  }, [filtered, hasActiveFilters, onFilteredChange])
+  // Previews state for fetched metadata: { [linkId]: { thumbnail, title } }
+  const [previews, setPreviews] = useState({})
+  const [loadingPreviews, setLoadingPreviews] = useState({})
 
   async function handleDelete(id) {
     if (!window.confirm('Delete this link?')) return
@@ -1468,43 +1465,45 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
     return null
   }
 
-  // State for dynamically fetched Instagram thumbnails
-  const [thumbnails, setThumbnails] = useState({})
-
-  // Fetch Instagram thumbnails using Vercel Serverless Function (/api/thumbnail) + images.weserv.nl proxy fallback
+  // Fetch Link Previews (thumbnail + title) via /api/thumbnail
   useEffect(() => {
     links.forEach(async (link) => {
-      const isInsta = (link.platform && link.platform.toLowerCase() === 'instagram') ||
-                      (link.url && (link.url.includes('instagram.com') || link.url.includes('instagr.am')))
-      if (!isInsta) return
-      if (thumbnails[link.id]) return // Already cached
+      if (previews[link.id] || loadingPreviews[link.id]) return
 
-      // Extract shortcode for reliable proxy CDN fallback
-      const match = link.url.match(/\/(p|reel|reels|tv)\/([^/?#'"\s]+)/)
-      const shortcode = match ? match[2] : null
+      setLoadingPreviews(prev => ({ ...prev, [link.id]: true }))
+      const syncThumb = getThumbnail(link.url)
 
       try {
         const res = await fetch(`/api/thumbnail?url=${encodeURIComponent(link.url)}`)
         if (res.ok) {
           const data = await res.json()
-          if (data.thumbnail) {
-            setThumbnails(prev => ({ ...prev, [link.id]: data.thumbnail }))
-            return
-          }
+          setPreviews(prev => ({
+            ...prev,
+            [link.id]: {
+              thumbnail: data.thumbnail || syncThumb,
+              title: data.title || getDisplayUrl(link.url)
+            }
+          }))
+          return
         }
       } catch (err) { /* fallback below */ }
 
-      // Ultra-reliable fallback using images.weserv.nl proxying Instagram media endpoint
-      if (shortcode) {
-        setThumbnails(prev => ({
-          ...prev,
-          [link.id]: `https://images.weserv.nl/?url=https://www.instagram.com/p/${shortcode}/media/?size=l`
-        }))
-      } else {
-        setThumbnails(prev => ({ ...prev, [link.id]: 'FAILED' }))
-      }
+      setPreviews(prev => ({
+        ...prev,
+        [link.id]: {
+          thumbnail: syncThumb,
+          title: getDisplayUrl(link.url)
+        }
+      }))
     })
-  }, [links, thumbnails])
+  }, [links])
+
+  // Sync filtered links, filter status, and previews to parent Dashboard for Export feature
+  useEffect(() => {
+    if (onFilteredChange) {
+      onFilteredChange(filtered, hasActiveFilters, previews)
+    }
+  }, [filtered, hasActiveFilters, previews, onFilteredChange])
 
   return (
     <div className="flex flex-col gap-4">
@@ -1659,15 +1658,23 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
           {filtered.map((link) => {
             const isInstagram = (link.platform && link.platform.toLowerCase() === 'instagram') ||
                                 (link.url && (link.url.includes('instagram.com') || link.url.includes('instagr.am')))
-            const thumb = getThumbnail(link.url) || thumbnails[link.id]
+            const prevInfo = previews[link.id]
+            const thumb = prevInfo?.thumbnail || getThumbnail(link.url)
+            const cardTitle = prevInfo?.title || getDisplayUrl(link.url)
+            const isLoading = !prevInfo && loadingPreviews[link.id]
+
             return (
               <div
                 key={link.id}
                 className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden flex flex-col group hover:shadow-lg transition-all"
               >
-                {/* Top: Thumbnail (160px) - Completely clean without any overlays */}
+                {/* 1. Top: Thumbnail (160px) */}
                 <div className="relative w-full h-[160px] bg-gray-100 overflow-hidden">
-                  {thumb && thumb !== 'FAILED' ? (
+                  {isLoading ? (
+                    <div className="w-full h-full bg-gray-200 animate-pulse flex items-center justify-center">
+                      <span className="text-2xl opacity-40">🖼️</span>
+                    </div>
+                  ) : thumb && thumb !== 'FAILED' ? (
                     <a href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative">
                       <img
                         src={thumb}
@@ -1711,9 +1718,19 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
                   )}
                 </div>
 
-                {/* Middle Section: Tags + Domain & Action Buttons (White BG) */}
-                <div className="p-3 bg-white flex flex-col gap-2 flex-1 justify-between min-w-0">
-                  <div className="flex flex-wrap items-center gap-1 min-w-0">
+                {/* 2. Middle Section: Title (top) -> Tags (light bg) -> Domain & 3-Dots Menu */}
+                <div className="p-3 bg-white flex flex-col gap-2.5 flex-1 justify-between min-w-0">
+                  {/* Title (max 2 lines) */}
+                  {isLoading ? (
+                    <div className="h-4 bg-gray-200 rounded animate-pulse w-4/5 my-0.5" />
+                  ) : (
+                    <h4 className="text-sm font-semibold text-gray-800 line-clamp-2 leading-snug">
+                      {cardTitle}
+                    </h4>
+                  )}
+
+                  {/* Tags (light bg container) */}
+                  <div className="flex flex-wrap items-center gap-1 min-w-0 bg-slate-50/80 p-1.5 rounded-xl border border-gray-100/80">
                     {(() => {
                       const itemTags = link.tag ? link.tag.split(',').map(t => t.trim()).filter(Boolean) : []
                       if (itemTags.length === 0) {
@@ -1860,21 +1877,26 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
 }
 
 // ─── Export Data Helpers ──────────────────────────────────────────────────────
-function exportToCSV(data) {
-  const headers = ['S.No.', 'URL', 'Tags', 'Platform', 'Created At']
-  const rows = data.map((item, index) => [
-    index + 1,
-    `"${(item.url || '').replace(/"/g, '""')}"`,
-    `"${(item.tag || '').replace(/"/g, '""')}"`,
-    `"${(item.platform || '').replace(/"/g, '""')}"`,
-    `"${new Date(item.created_at).toLocaleString()}"`
-  ])
+function exportToCSV(data, previews = {}) {
+  const headers = ['#', 'Title', 'URL', 'Tags', 'Platform', 'Created At']
+  const rows = data.map((item, index) => {
+    const itemTitle = previews[item.id]?.title || getDisplayUrl(item.url)
+    return [
+      index + 1,
+      `"${(itemTitle || '').replace(/"/g, '""')}"`,
+      `"${(item.url || '').replace(/"/g, '""')}"`,
+      `"${(item.tag || '').replace(/"/g, '""')}"`,
+      `"${(item.platform || '').replace(/"/g, '""')}"`,
+      `"${new Date(item.created_at).toLocaleString()}"`
+    ]
+  })
   const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
   downloadFile(csvContent, `MARK_links_${getTodayDateStr()}.csv`, 'text/csv;charset=utf-8;')
 }
 
-function exportToJSON(data) {
+function exportToJSON(data, previews = {}) {
   const formatted = data.map((item) => ({
+    title: previews[item.id]?.title || getDisplayUrl(item.url),
     url: item.url,
     tags: item.tag,
     platform: item.platform,
@@ -1902,14 +1924,14 @@ function downloadFile(content, fileName, mimeType) {
 }
 
 // ─── Export Modal ─────────────────────────────────────────────────────────────
-function ExportModal({ data, hasFilters, onClose }) {
+function ExportModal({ data, hasFilters, previews = {}, onClose }) {
   const [format, setFormat] = useState('csv')
 
   function handleDownload() {
     if (format === 'csv') {
-      exportToCSV(data)
+      exportToCSV(data, previews)
     } else {
-      exportToJSON(data)
+      exportToJSON(data, previews)
     }
     onClose()
   }
@@ -2018,7 +2040,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('add')
 
   // Filtered links tracking from LibraryTab for Export feature
-  const [libraryState, setLibraryState] = useState({ data: [], hasFilters: false })
+  const [libraryState, setLibraryState] = useState({ data: [], hasFilters: false, previews: {} })
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
 
   // Sync default links if libraryState is empty
@@ -2126,7 +2148,7 @@ export default function Dashboard() {
             links={links}
             onDelete={deleteLink}
             onUpdate={updateLink}
-            onFilteredChange={(data, hasFilters) => setLibraryState({ data, hasFilters })}
+            onFilteredChange={(data, hasFilters, previews) => setLibraryState({ data, hasFilters, previews })}
           />
         )}
       </main>
@@ -2136,6 +2158,7 @@ export default function Dashboard() {
         <ExportModal
           data={exportData}
           hasFilters={libraryState.hasFilters}
+          previews={libraryState.previews}
           onClose={() => setIsExportModalOpen(false)}
         />
       )}

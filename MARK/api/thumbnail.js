@@ -19,7 +19,6 @@ export default async function handler(req, res) {
       }
     });
 
-    // check agar preview.images array hai toh pehli image le lo
     let thumbnail = null;
     if (preview.images && preview.images.length > 0) {
       thumbnail = preview.images[0];
@@ -27,11 +26,26 @@ export default async function handler(req, res) {
       thumbnail = preview.favicons[0]; // fallback
     }
 
-    if (thumbnail) {
-      return res.status(200).json({ thumbnail });
+    let title = preview.title || null;
+    if (!title) {
+      try {
+        title = new URL(url).hostname;
+      } catch {
+        title = url;
+      }
     }
-    return res.status(404).json({ error: 'Thumbnail not found' });
+
+    console.log('[Preview] URL:', url, 'Title:', title, 'Image:', thumbnail);
+
+    return res.status(200).json({ thumbnail, title });
   } catch (error) {
-    return res.status(500).json({ error: 'Failed to fetch thumbnail' });
+    let domainTitle = '';
+    try {
+      domainTitle = new URL(url).hostname;
+    } catch {
+      domainTitle = url;
+    }
+    console.log('[Preview Error] URL:', url, 'Error:', error?.message);
+    return res.status(200).json({ thumbnail: null, title: domainTitle });
   }
 }
