@@ -1862,9 +1862,9 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
 
 // ─── Export Data Helpers ──────────────────────────────────────────────────────
 function exportToCSV(data) {
-  const headers = ['ID', 'URL', 'Tag', 'Platform', 'Created At']
-  const rows = data.map((item) => [
-    item.id || '',
+  const headers = ['#', 'URL', 'Tags', 'Platform', 'Created At']
+  const rows = data.map((item, index) => [
+    index + 1,
     `"${(item.url || '').replace(/"/g, '""')}"`,
     `"${(item.tag || '').replace(/"/g, '""')}"`,
     `"${(item.platform || '').replace(/"/g, '""')}"`,
@@ -1876,11 +1876,10 @@ function exportToCSV(data) {
 
 function exportToJSON(data) {
   const formatted = data.map((item) => ({
-    id: item.id,
     url: item.url,
-    tag: item.tag,
+    tags: item.tag,
     platform: item.platform,
-    createdAt: item.created_at
+    created_at: item.created_at
   }))
   const jsonContent = JSON.stringify(formatted, null, 2)
   downloadFile(jsonContent, `MARK_links_${getTodayDateStr()}.json`, 'application/json;charset=utf-8;')
