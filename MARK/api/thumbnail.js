@@ -49,33 +49,45 @@ export default async function handler(req, res) {
       }
     }
 
-    // ── 2. Instagram Specialized Handler (Graph API oEmbed + Fallback) ──────
+    // ── 2. Instagram Specialized Handler (Meta Graph oEmbed + Fallback) ──────
     if (url.includes('instagram.com') || url.includes('instagr.am')) {
-      console.log('[Instagram] Token exists:', !!process.env.INSTAGRAM_ACCESS_TOKEN);
+      const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN || process.env.FACEBOOK_ACCESS_TOKEN || process.env.INSTAGRAM_TOKEN || process.env.INSTA_TOKEN;
+      console.log('[Instagram] Token exists:', !!accessToken);
 
-      try {
-        const oembedUrl = `https://graph.facebook.com/v19.0/instagram_oembed?url=${encodeURIComponent(url)}&access_token=${process.env.INSTAGRAM_ACCESS_TOKEN}`;
-        const resp = await fetch(oembedUrl);
-        if (resp.ok) {
-          const data = await resp.json();
-          if (data.thumbnail_url) {
-            console.log('[Instagram oEmbed Success] Title:', data.title, 'Image:', data.thumbnail_url);
-            return res.status(200).json({
-              thumbnail: data.thumbnail_url,
-              title: data.title || data.author_name || ''
-            });
+      // Extract shortcode cleanly from any Instagram URL format
+      const shortcodeMatch = url.match(/\/(?:p|reel|reels|tv|share\/p|share\/reel)\/([^/?#'"\s]+)/);
+      const shortcode = shortcodeMatch ? shortcodeMatch[1] : null;
+
+      if (shortcode) {
+        const canonicalUrl = `https://www.instagram.com/p/${shortcode}/`;
+
+        if (accessToken) {
+          try {
+            const oembedUrl = `https://graph.facebook.com/v19.0/instagram_oembed?url=${encodeURIComponent(canonicalUrl)}&access_token=${accessToken}`;
+            const resp = await fetch(oembedUrl);
+            console.log('[Instagram oEmbed Status]', resp.status);
+            if (resp.ok) {
+              const data = await resp.json();
+              if (data.thumbnail_url) {
+                const titleText = data.title || (data.author_name ? `@${data.author_name} on Instagram` : 'Instagram Post');
+                console.log('[Instagram oEmbed Success] Title:', titleText, 'Image:', data.thumbnail_url);
+                return res.status(200).json({
+                  thumbnail: data.thumbnail_url,
+                  title: titleText
+                });
+              }
+            } else {
+              const errBody = await resp.text();
+              console.log('[Instagram oEmbed Error Response]', errBody);
+            }
+          } catch (e) {
+            console.error('[Instagram oEmbed] Error:', e.message);
           }
         }
-      } catch (e) {
-        console.error('[Instagram oEmbed] Error:', e.message);
-      }
 
-      // Fallback if Graph API fails or token invalid
-      const match = url.match(/\/(p|reel|reels|tv|share\/p|share\/reel)\/([^/?#'"\s]+)/);
-      if (match && match[2]) {
-        const shortcode = match[2];
+        // Fallback using clean canonical URL image proxy
         const instaThumb = `https://images.weserv.nl/?url=https://www.instagram.com/p/${shortcode}/media/?size=l`;
-        console.log('[Preview - Instagram Fallback] Image:', instaThumb);
+        console.log('[Preview - Instagram Fallback] Shortcode:', shortcode, 'Image:', instaThumb);
         return res.status(200).json({ thumbnail: instaThumb, title: 'Instagram Post' });
       }
     }

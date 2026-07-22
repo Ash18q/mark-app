@@ -1450,9 +1450,9 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
       }
 
       if (host.includes('instagram.com') || host.includes('instagr.am')) {
-        const match = url.match(/\/(p|reel|reels|tv|share\/p|share\/reel)\/([^/?#'"\s]+)/)
-        if (match && match[2]) {
-          const shortcode = match[2]
+        const match = url.match(/\/(?:p|reel|reels|tv|share\/p|share\/reel)\/([^/?#'"\s]+)/)
+        if (match && match[1]) {
+          const shortcode = match[1]
           return `https://images.weserv.nl/?url=https://www.instagram.com/p/${shortcode}/media/?size=l`
         }
       }
@@ -1695,8 +1695,8 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
-                          const match = link.url.match(/\/(p|reel|reels|tv|share\/p|share\/reel)\/([^/?#'"\s]+)/)
-                          const shortcode = match ? match[2] : null
+                          const match = link.url.match(/\/(?:p|reel|reels|tv|share\/p|share\/reel)\/([^/?#'"\s]+)/)
+                          const shortcode = match ? match[1] : null
                           if (shortcode && !e.target.src.includes('instagr.am')) {
                             e.target.src = `https://images.weserv.nl/?url=https://instagr.am/p/${shortcode}/media/?size=m`
                           } else {
