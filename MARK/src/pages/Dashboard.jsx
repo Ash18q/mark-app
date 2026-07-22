@@ -39,6 +39,11 @@ const LinkIcon = () => (
       d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
   </svg>
 )
+const ThreeDotsIcon = () => (
+  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+  </svg>
+)
 const XIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1292,6 +1297,14 @@ function LibraryTab({ links, onDelete, onUpdate }) {
   const [deletingId, setDeletingId] = useState(null)
   const [editingLink, setEditingLink] = useState(null)
   const [copiedId, setCopiedId] = useState(null)
+  const [activeMenuId, setActiveMenuId] = useState(null)
+
+  // Close 3-dots popover menu when clicking anywhere outside
+  useEffect(() => {
+    const closeMenu = () => setActiveMenuId(null)
+    document.addEventListener('click', closeMenu)
+    return () => document.removeEventListener('click', closeMenu)
+  }, [])
 
   function handleCopy(id, url) {
     try {
@@ -1307,6 +1320,24 @@ function LibraryTab({ links, onDelete, onUpdate }) {
       document.body.removeChild(input)
       setCopiedId(id)
       setTimeout(() => setCopiedId(null), 2000)
+    }
+  }
+
+  async function handleNativeShare(link) {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: link.tag || 'Saved Link',
+          text: `Check out this link: ${link.url}`,
+          url: link.url,
+        })
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          handleCopy(link.id, link.url)
+        }
+      }
+    } else {
+      handleCopy(link.id, link.url)
     }
   }
 
@@ -1695,8 +1726,8 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                     })()}
                   </div>
 
-                  {/* URL Domain link + Action Buttons (Copy, Edit, Delete) */}
-                  <div className="flex items-center justify-between gap-1.5 pt-1.5 border-t border-gray-100">
+                  {/* URL Domain link + 3-Dots Action Menu Button */}
+                  <div className="flex items-center justify-between gap-1.5 pt-1.5 border-t border-gray-100 relative">
                     <a
                       href={link.url}
                       target="_blank"
@@ -1707,41 +1738,81 @@ function LibraryTab({ links, onDelete, onUpdate }) {
                       <span>🌐</span> {getDisplayUrl(link.url)}
                     </a>
 
-                    {/* Action Buttons (Copy, Edit, Delete) */}
-                    <div className="flex items-center gap-1 flex-shrink-0">
+                    {/* 3-Dots Menu Button */}
+                    <div className="relative flex-shrink-0">
                       <button
-                        onClick={() => handleCopy(link.id, link.url)}
-                        className="w-6 h-6 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-600 flex items-center justify-center border border-emerald-200 transition cursor-pointer"
-                        title={copiedId === link.id ? 'Copied!' : 'Copy link URL'}
-                        aria-label="Copy link URL"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setActiveMenuId(activeMenuId === link.id ? null : link.id)
+                        }}
+                        className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition cursor-pointer"
+                        title="More actions"
+                        aria-label="More actions"
                       >
-                        {copiedId === link.id ? (
-                          <span className="text-[10px] font-bold text-emerald-600 animate-fadeIn">✓</span>
-                        ) : (
-                          <CopyIcon />
-                        )}
+                        <ThreeDotsIcon />
                       </button>
-                      <button
-                        onClick={() => setEditingLink(link)}
-                        className="w-6 h-6 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center border border-indigo-200 transition cursor-pointer"
-                        title="Edit link"
-                        aria-label="Edit link"
-                      >
-                        <PencilIcon />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(link.id)}
-                        disabled={deletingId === link.id}
-                        className="w-6 h-6 rounded-full bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center border border-red-200 transition cursor-pointer disabled:opacity-50"
-                        title="Delete link"
-                        aria-label="Delete link"
-                      >
-                        {deletingId === link.id ? (
-                          <span className="w-2.5 h-2.5 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <TrashIcon />
-                        )}
-                      </button>
+
+                      {/* 3-Dots Action Popover Menu (Copy, Share, Edit, Delete) */}
+                      {activeMenuId === link.id && (
+                        <div className="absolute right-0 bottom-full mb-1 z-50 w-36 bg-white border border-gray-200 rounded-xl shadow-xl py-1 text-xs divide-y divide-gray-100 animate-fadeIn">
+                          {/* 1. Copy Link */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleCopy(link.id, link.url)
+                              setActiveMenuId(null)
+                            }}
+                            className="w-full text-left px-3 py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 font-medium flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <span>📋</span>
+                            <span>{copiedId === link.id ? 'Copied!' : 'Copy Link'}</span>
+                          </button>
+
+                          {/* 2. Share Link */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleNativeShare(link)
+                              setActiveMenuId(null)
+                            }}
+                            className="w-full text-left px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700 font-medium flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <span>📤</span>
+                            <span>Share Link</span>
+                          </button>
+
+                          {/* 3. Edit Link */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setEditingLink(link)
+                              setActiveMenuId(null)
+                            }}
+                            className="w-full text-left px-3 py-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 font-medium flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <span>✏️</span>
+                            <span>Edit Link</span>
+                          </button>
+
+                          {/* 4. Delete Link */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setActiveMenuId(null)
+                              handleDelete(link.id)
+                            }}
+                            className="w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 font-medium flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <span>🗑️</span>
+                            <span>Delete Link</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
