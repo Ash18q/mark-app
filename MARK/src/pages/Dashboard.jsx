@@ -1662,24 +1662,35 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
             // Use API-fetched preview thumbnail (Meta Graph / oEmbed) or synchronous fallback
             const thumb = prevInfo?.thumbnail || syncThumb
 
-            let cardTitle = prevInfo?.title
+            let cardTitle = link.title || prevInfo?.title
             if (cardTitle && isInstagram) {
-              const matchOn = cardTitle.match(/^.*?\s+on\s+Instagram(?:\s*:\s*"?|\s*:?\s*)?(.*)$/i)
-              if (matchOn && matchOn[1] && matchOn[1].trim().length > 0) {
-                let caption = matchOn[1].trim()
+              const matchOn = cardTitle.match(/^(.*?)\s+on\s+Instagram(?:\s*:\s*"?|\s*:?\s*)?(.*)$/i)
+              if (matchOn) {
+                const author = matchOn[1] ? matchOn[1].trim() : ''
+                let caption = matchOn[2] ? matchOn[2].trim() : ''
+
                 if (caption.startsWith('"')) caption = caption.slice(1).trim()
                 if (caption.endsWith('..."')) caption = caption.slice(0, -1).trim()
                 else if (caption.endsWith('"')) caption = caption.slice(0, -1).trim()
-                if (caption.length > 0) cardTitle = caption
+
+                if (caption.length > 0) {
+                  cardTitle = caption
+                } else if (author.length > 0 && author !== 'Post' && author !== 'Reel') {
+                  cardTitle = author
+                }
+              }
+
+              if (cardTitle.startsWith('"') && cardTitle.endsWith('"')) {
+                cardTitle = cardTitle.slice(1, -1).trim()
               }
             }
 
-            if (!cardTitle || cardTitle === '- YouTube' || cardTitle === 'YouTube' || cardTitle === 'Instagram') {
+            if (!cardTitle || cardTitle === '- YouTube' || cardTitle === 'YouTube' || cardTitle === 'Instagram' || cardTitle === 'Instagram Post') {
               if (isYouTube) {
                 cardTitle = 'YouTube Video'
               } else if (isInstagram) {
                 const itemTag = link.tag ? link.tag.split(',')[0].trim() : ''
-                cardTitle = itemTag ? `Instagram Post (${itemTag})` : 'Instagram Post'
+                cardTitle = itemTag || 'Instagram Post'
               } else {
                 cardTitle = getDisplayUrl(link.url)
               }
