@@ -1663,6 +1663,17 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
             const thumb = prevInfo?.thumbnail || syncThumb
 
             let cardTitle = prevInfo?.title
+            if (cardTitle && isInstagram) {
+              const matchOn = cardTitle.match(/^.*?\s+on\s+Instagram(?:\s*:\s*"?|\s*:?\s*)?(.*)$/i)
+              if (matchOn && matchOn[1] && matchOn[1].trim().length > 0) {
+                let caption = matchOn[1].trim()
+                if (caption.startsWith('"')) caption = caption.slice(1).trim()
+                if (caption.endsWith('..."')) caption = caption.slice(0, -1).trim()
+                else if (caption.endsWith('"')) caption = caption.slice(0, -1).trim()
+                if (caption.length > 0) cardTitle = caption
+              }
+            }
+
             if (!cardTitle || cardTitle === '- YouTube' || cardTitle === 'YouTube' || cardTitle === 'Instagram') {
               if (isYouTube) {
                 cardTitle = 'YouTube Video'

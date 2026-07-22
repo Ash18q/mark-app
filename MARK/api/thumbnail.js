@@ -2,7 +2,7 @@ import { getLinkPreview } from 'link-preview-js';
 
 function cleanInstaTitle(rawTitle) {
   if (!rawTitle) return 'Instagram Post';
-  return rawTitle
+  let t = rawTitle
     .replace(/&quot;/g, '"')
     .replace(/&#x2019;/g, "'")
     .replace(/&#x2018;/g, "'")
@@ -12,6 +12,20 @@ function cleanInstaTitle(rawTitle) {
     .replace(/&#x([0-9a-fA-F]+);/g, (_, code) => String.fromCodePoint(parseInt(code, 16)))
     .replace(/&#([0-9]+);/g, (_, code) => String.fromCodePoint(parseInt(code, 10)))
     .trim();
+
+  // Strip author prefix: "[Author] on Instagram: " or "[Author] on Instagram"
+  const instaOnMatch = t.match(/^.*?\s+on\s+Instagram(?:\s*:\s*"?|\s*:?\s*)?(.*)$/i);
+  if (instaOnMatch && instaOnMatch[1] && instaOnMatch[1].trim().length > 0) {
+    let caption = instaOnMatch[1].trim();
+    if (caption.startsWith('"')) caption = caption.slice(1).trim();
+    if (caption.endsWith('..."')) caption = caption.slice(0, -1).trim();
+    else if (caption.endsWith('"')) caption = caption.slice(0, -1).trim();
+    if (caption.length > 0) {
+      t = caption;
+    }
+  }
+
+  return t;
 }
 
 export default async function handler(req, res) {
