@@ -1699,6 +1699,8 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
                           const shortcode = match ? match[1] : null
                           if (shortcode && !e.target.src.includes('instagr.am')) {
                             e.target.src = `https://images.weserv.nl/?url=https://instagr.am/p/${shortcode}/media/?size=m`
+                          } else if (shortcode && !e.target.src.includes('size=l')) {
+                            e.target.src = `https://images.weserv.nl/?url=https://www.instagram.com/p/${shortcode}/media/?size=l`
                           } else {
                             e.target.style.display = 'none';
                             if (e.target.nextElementSibling) {

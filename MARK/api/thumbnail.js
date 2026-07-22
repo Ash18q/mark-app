@@ -1,5 +1,19 @@
 import { getLinkPreview } from 'link-preview-js';
 
+function cleanInstaTitle(rawTitle) {
+  if (!rawTitle) return 'Instagram Post';
+  return rawTitle
+    .replace(/&quot;/g, '"')
+    .replace(/&#x2019;/g, "'")
+    .replace(/&#x2018;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, code) => String.fromCodePoint(parseInt(code, 16)))
+    .replace(/&#([0-9]+);/g, (_, code) => String.fromCodePoint(parseInt(code, 10)))
+    .trim();
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -49,23 +63,66 @@ export default async function handler(req, res) {
       }
     }
 
-    // ── 2. Instagram Specialized Handler (Meta Graph oEmbed + Basic Display) ─
+    // ── 2. Instagram Specialized Handler (Facebook Bot Fetch + oEmbed Fallback) ─
     if (url.includes('instagram.com') || url.includes('instagr.am')) {
-      const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN || process.env.FACEBOOK_ACCESS_TOKEN || process.env.INSTAGRAM_TOKEN || process.env.INSTA_TOKEN;
-      console.log('[Instagram] Token exists:', !!accessToken);
-
       const shortcodeMatch = url.match(/\/(?:p|reel|reels|tv|share\/p|share\/reel)\/([^/?#'"\s]+)/);
       const shortcode = shortcodeMatch ? shortcodeMatch[1] : null;
 
       if (shortcode) {
         const canonicalUrl = `https://www.instagram.com/p/${shortcode}/`;
 
+        // Primary: Fetch Open Graph metadata using Facebook External Hit User-Agent
+        try {
+          const botRes = await fetch(canonicalUrl, {
+            headers: {
+              'User-Agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
+            },
+            signal: AbortSignal.timeout(6000)
+          });
+
+          if (botRes.ok) {
+            const html = await botRes.text();
+
+            const ogTitleMatch = html.match(/property="og:title"\s+content="([^"]+)"/i) ||
+                                 html.match(/content="([^"]+)"\s+property="og:title"/i);
+
+            const ogImgMatch = html.match(/property="og:image"\s+content="([^"]+)"/i) ||
+                               html.match(/content="([^"]+)"\s+property="og:image"/i) ||
+                               html.match(/name="twitter:image"\s+content="([^"]+)"/i);
+
+            let titleText = null;
+            if (ogTitleMatch && ogTitleMatch[1]) {
+              titleText = cleanInstaTitle(ogTitleMatch[1]);
+            }
+
+            let imgUrl = null;
+            if (ogImgMatch && ogImgMatch[1]) {
+              imgUrl = ogImgMatch[1].replace(/&amp;/g, '&');
+            }
+
+            if (!imgUrl) {
+              imgUrl = `https://images.weserv.nl/?url=https://instagr.am/p/${shortcode}/media/?size=m`;
+            }
+
+            if (titleText || imgUrl) {
+              console.log('[Instagram Bot Fetch Success] Shortcode:', shortcode, 'Title:', titleText?.slice(0, 50), 'Image:', imgUrl?.slice(0, 50));
+              return res.status(200).json({
+                thumbnail: imgUrl,
+                title: titleText || 'Instagram Post'
+              });
+            }
+          }
+        } catch (e) {
+          console.log('[Instagram Bot Fetch Exception]', e?.message);
+        }
+
+        // Secondary: Try Instagram Graph / Basic Display API if token exists
+        const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN || process.env.FACEBOOK_ACCESS_TOKEN || process.env.INSTAGRAM_TOKEN || process.env.INSTA_TOKEN;
+
         if (accessToken) {
-          // Method A: Instagram Basic Display oEmbed API (graph.instagram.com/oembed)
           try {
             const instaOembedUrl = `https://graph.instagram.com/oembed?url=${encodeURIComponent(canonicalUrl)}&access_token=${accessToken}`;
             const resp = await fetch(instaOembedUrl);
-            console.log('[Graph Instagram oEmbed Status]', resp.status);
             if (resp.ok) {
               const data = await resp.json();
               if (data.thumbnail_url) {
@@ -76,64 +133,14 @@ export default async function handler(req, res) {
                   title: titleText
                 });
               }
-            } else {
-              const errTxt = await resp.text();
-              console.log('[Graph Instagram oEmbed Error]', errTxt);
             }
           } catch (e) {
             console.error('[Graph Instagram oEmbed Exception]', e.message);
           }
-
-          // Method B: Meta Graph Facebook oEmbed API (graph.facebook.com/v19.0/instagram_oembed)
-          try {
-            const oembedUrl = `https://graph.facebook.com/v19.0/instagram_oembed?url=${encodeURIComponent(canonicalUrl)}&access_token=${accessToken}`;
-            const resp = await fetch(oembedUrl);
-            console.log('[Meta FB oEmbed Status]', resp.status);
-            if (resp.ok) {
-              const data = await resp.json();
-              if (data.thumbnail_url) {
-                const titleText = data.title || (data.author_name ? `@${data.author_name} on Instagram` : 'Instagram Post');
-                console.log('[Meta FB oEmbed Success] Title:', titleText, 'Image:', data.thumbnail_url);
-                return res.status(200).json({
-                  thumbnail: data.thumbnail_url,
-                  title: titleText
-                });
-              }
-            } else {
-              const errBody = await resp.text();
-              console.log('[Meta FB oEmbed Error]', errBody);
-            }
-          } catch (e) {
-            console.error('[Meta FB oEmbed Exception]', e.message);
-          }
-
-          // Method C: Instagram Basic Display API (/me/media) for User Access Token
-          try {
-            const meMediaUrl = `https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink&access_token=${accessToken}`;
-            const meResp = await fetch(meMediaUrl);
-            console.log('[Instagram /me/media Status]', meResp.status);
-            if (meResp.ok) {
-              const meData = await meResp.json();
-              if (meData.data && Array.isArray(meData.data)) {
-                const matchedItem = meData.data.find(item => item.permalink && item.permalink.includes(shortcode));
-                if (matchedItem) {
-                  const mediaThumb = matchedItem.media_url || matchedItem.thumbnail_url;
-                  const captionTitle = matchedItem.caption || 'Instagram Post';
-                  console.log('[Instagram Basic Display Success] Title:', captionTitle, 'Image:', mediaThumb);
-                  return res.status(200).json({
-                    thumbnail: mediaThumb,
-                    title: captionTitle
-                  });
-                }
-              }
-            }
-          } catch (e) {
-            console.error('[Instagram Basic Display Exception]', e.message);
-          }
         }
 
-        // Fallback using image proxy
-        const instaThumb = `https://images.weserv.nl/?url=https://www.instagram.com/p/${shortcode}/media/?size=l`;
+        // Fallback using weserv image proxy
+        const instaThumb = `https://images.weserv.nl/?url=https://instagr.am/p/${shortcode}/media/?size=m`;
         console.log('[Preview - Instagram Fallback] Shortcode:', shortcode, 'Image:', instaThumb);
         return res.status(200).json({ thumbnail: instaThumb, title: 'Instagram Post' });
       }
