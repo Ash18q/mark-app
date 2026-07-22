@@ -1664,24 +1664,35 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
 
             let cardTitle = link.title || prevInfo?.title
             if (cardTitle && isInstagram) {
-              const matchOn = cardTitle.match(/^(.*?)\s+on\s+Instagram(?:\s*:\s*"?|\s*:?\s*)?(.*)$/i)
-              if (matchOn) {
-                const author = matchOn[1] ? matchOn[1].trim() : ''
-                let caption = matchOn[2] ? matchOn[2].trim() : ''
+              let str = cardTitle
+                .replace(/&quot;/g, '"')
+                .replace(/&#x2019;/g, "'")
+                .replace(/&#x2018;/g, "'")
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&#x([0-9a-fA-F]+);/g, (_, code) => String.fromCodePoint(parseInt(code, 16)))
+                .replace(/&#([0-9]+);/g, (_, code) => String.fromCodePoint(parseInt(code, 10)))
+                .trim()
 
-                if (caption.startsWith('"')) caption = caption.slice(1).trim()
-                if (caption.endsWith('..."')) caption = caption.slice(0, -1).trim()
-                else if (caption.endsWith('"')) caption = caption.slice(0, -1).trim()
+              const match = str.match(/on\s+instagram/i)
+              if (match) {
+                const idx = match.index
+                const authorPart = str.slice(0, idx).trim()
+                let afterPart = str.slice(idx + match[0].length).trim()
 
-                if (caption.length > 0) {
-                  cardTitle = caption
-                } else if (author.length > 0 && author !== 'Post' && author !== 'Reel') {
-                  cardTitle = author
+                afterPart = afterPart.replace(/^[:\s"\-–—'”„“]+/, '').trim()
+                afterPart = afterPart.replace(/["'”„“\s]+$/, '').trim()
+
+                const contentCheck = afterPart.replace(/\./g, '').trim()
+                if (contentCheck.length > 0) {
+                  cardTitle = afterPart
+                } else if (authorPart.length > 0 && authorPart.toLowerCase() !== 'post' && authorPart.toLowerCase() !== 'reel') {
+                  cardTitle = authorPart
                 }
-              }
-
-              if (cardTitle.startsWith('"') && cardTitle.endsWith('"')) {
-                cardTitle = cardTitle.slice(1, -1).trim()
+              } else {
+                str = str.replace(/^["'”„“\s]+/, '').replace(/["'”„“\s]+$/, '').trim()
+                if (str.length > 0) cardTitle = str
               }
             }
 
