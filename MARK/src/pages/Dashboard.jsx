@@ -1655,16 +1655,23 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
               (link.url && (link.url.includes('instagram.com') || link.url.includes('instagr.am')))
             const isYouTube = (link.platform && link.platform.toLowerCase() === 'youtube') ||
               (link.url && (link.url.includes('youtube.com') || link.url.includes('youtu.be')))
-            
+
             const syncThumb = getThumbnail(link.url)
             const prevInfo = previews[link.id]
 
             // Prefer sync YouTube/Instagram thumbnail if preview thumb is generic favicon or logo
             const thumb = (isYouTube || isInstagram) && syncThumb ? syncThumb : (prevInfo?.thumbnail || syncThumb)
-            
+
             let cardTitle = prevInfo?.title
-            if (!cardTitle || cardTitle === '- YouTube' || cardTitle === 'YouTube' || cardTitle === 'Instagram') {
-              cardTitle = isYouTube ? 'YouTube Video' : isInstagram ? 'Instagram Post' : getDisplayUrl(link.url)
+            if (!cardTitle || cardTitle === '- YouTube' || cardTitle === 'YouTube' || cardTitle === 'Instagram' || cardTitle === 'Instagram Post') {
+              if (isYouTube) {
+                cardTitle = 'YouTube Video'
+              } else if (isInstagram) {
+                const itemTag = link.tag ? link.tag.split(',')[0].trim() : ''
+                cardTitle = itemTag ? `Instagram Post (${itemTag})` : 'Instagram Post'
+              } else {
+                cardTitle = getDisplayUrl(link.url)
+              }
             }
 
             const isLoading = !prevInfo && loadingPreviews[link.id]
@@ -1689,8 +1696,9 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
                           const match = link.url.match(/\/(p|reel|reels|tv|share\/p|share\/reel)\/([^/?#'"\s]+)/)
-                          if (match && !e.target.src.includes('ddinstagram.com')) {
-                            e.target.src = `https://ddinstagram.com/o/p/${match[2]}.jpg`
+                          const shortcode = match ? match[2] : null
+                          if (shortcode && !e.target.src.includes('instagr.am')) {
+                            e.target.src = `https://images.weserv.nl/?url=https://instagr.am/p/${shortcode}/media/?size=m`
                           } else {
                             e.target.style.display = 'none';
                             if (e.target.nextElementSibling) {
@@ -1699,18 +1707,38 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
                           }
                         }}
                       />
-                      {/* Fallback Icon if image onError fires */}
-                      <span
-                        className="w-full h-full bg-gray-100 items-center justify-center text-4xl hidden text-gray-400 absolute inset-0"
-                        style={{ display: 'none' }}
-                      >
-                        🔗
-                      </span>
+                      {/* Fallback Instagram Gradient Banner if image fails to load */}
+                      {isInstagram ? (
+                        <span
+                          className="w-full h-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 flex flex-col items-center justify-center gap-1 text-white p-3 text-center absolute inset-0 hidden"
+                          style={{ display: 'none' }}
+                        >
+                          <span className="text-3xl drop-shadow">📸</span>
+                          <span className="text-[11px] font-extrabold tracking-wide uppercase">Instagram Post</span>
+                          {link.tag && (
+                            <span className="text-[10px] bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-full font-semibold max-w-full truncate">
+                              {link.tag.split(',')[0]}
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        <span
+                          className="w-full h-full bg-gray-100 items-center justify-center text-4xl hidden text-gray-400 absolute inset-0"
+                          style={{ display: 'none' }}
+                        >
+                          🔗
+                        </span>
+                      )}
                     </a>
                   ) : isInstagram ? (
-                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="w-full h-full bg-pink-50 flex flex-col items-center justify-center gap-1.5 text-pink-500 hover:bg-pink-100 transition">
-                      <span className="text-3xl">📸</span>
-                      <span className="text-[10px] font-bold tracking-wider uppercase">Instagram Link</span>
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="w-full h-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 flex flex-col items-center justify-center gap-1 text-white hover:opacity-95 transition p-3 text-center">
+                      <span className="text-3xl drop-shadow">📸</span>
+                      <span className="text-[11px] font-extrabold tracking-wide uppercase">Instagram Post</span>
+                      {link.tag && (
+                        <span className="text-[10px] bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-full font-semibold max-w-full truncate">
+                          {link.tag.split(',')[0]}
+                        </span>
+                      )}
                     </a>
                   ) : (
                     <a
