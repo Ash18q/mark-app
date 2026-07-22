@@ -1862,7 +1862,7 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
 
 // ─── Export Data Helpers ──────────────────────────────────────────────────────
 function exportToCSV(data) {
-  const headers = ['#', 'URL', 'Tags', 'Platform', 'Created At']
+  const headers = ['S.No.', 'URL', 'Tags', 'Platform', 'Created At']
   const rows = data.map((item, index) => [
     index + 1,
     `"${(item.url || '').replace(/"/g, '""')}"`,
