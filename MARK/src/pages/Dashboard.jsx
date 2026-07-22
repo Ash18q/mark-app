@@ -1653,9 +1653,20 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
           {filtered.map((link) => {
             const isInstagram = (link.platform && link.platform.toLowerCase() === 'instagram') ||
               (link.url && (link.url.includes('instagram.com') || link.url.includes('instagr.am')))
+            const isYouTube = (link.platform && link.platform.toLowerCase() === 'youtube') ||
+              (link.url && (link.url.includes('youtube.com') || link.url.includes('youtu.be')))
+            
+            const syncThumb = getThumbnail(link.url)
             const prevInfo = previews[link.id]
-            const thumb = prevInfo?.thumbnail || getThumbnail(link.url)
-            const cardTitle = prevInfo?.title || getDisplayUrl(link.url)
+
+            // Prefer sync YouTube/Instagram thumbnail if preview thumb is generic favicon or logo
+            const thumb = (isYouTube || isInstagram) && syncThumb ? syncThumb : (prevInfo?.thumbnail || syncThumb)
+            
+            let cardTitle = prevInfo?.title
+            if (!cardTitle || cardTitle === '- YouTube' || cardTitle === 'YouTube' || cardTitle === 'Instagram') {
+              cardTitle = isYouTube ? 'YouTube Video' : isInstagram ? 'Instagram Post' : getDisplayUrl(link.url)
+            }
+
             const isLoading = !prevInfo && loadingPreviews[link.id]
 
             return (
