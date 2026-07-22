@@ -1,5 +1,3 @@
-import { getLinkPreview } from 'link-preview-js';
-
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -10,79 +8,72 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing url parameter' });
   }
 
-  // ── Layer 1: link-preview-js (Primary) ──────────────────────────────────
   try {
-    const preview = await getLinkPreview(url, {
-      timeout: 5000,
-      followRedirects: 'follow',
+    // Fetch the HTML page with a proper User-Agent
+    const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
+      },
+      signal: AbortSignal.timeout(5000)
     });
 
-    let thumbnail = (preview.images && preview.images.length > 0) ? preview.images[0] : ((preview.favicons && preview.favicons.length > 0) ? preview.favicons[0] : null);
-    let title = preview.title || preview.siteName || null;
-
-    const isBadTitle = title && (title.includes('403') || title.toLowerCase().includes('forbidden') || title.toLowerCase().includes('access denied'));
-
-    if (thumbnail && title && !isBadTitle) {
-      console.log('[Preview - Layer 1 Success] URL:', url, 'Title:', title, 'Image:', thumbnail);
-      return res.status(200).json({ thumbnail, title });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
-  } catch (e) {
-    console.log('[Preview - Layer 1 Failed] URL:', url, 'Error:', e?.message);
-  }
 
-  // ── Layer 2: og.space API (Fallback) ─────────────────────────────────────
-  try {
-    const resp = await fetch(`https://og.space/api/v1/og?url=${encodeURIComponent(url)}`);
-    if (resp.ok) {
-      const data = await resp.json();
-      if (data.image) {
-        console.log('[Preview - Layer 2 Success] URL:', url, 'Title:', data.title, 'Image:', data.image);
-        return res.status(200).json({ thumbnail: data.image, title: data.title || '' });
+    const html = await response.text();
+
+    // Extract og:image
+    const ogImageMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i) || html.match(/<meta\s+content=["']([^"']+)["']\s+property=["']og:image["']/i);
+    let thumbnail = ogImageMatch ? ogImageMatch[1].replace(/&amp;/g, '&') : null;
+
+    // Fallback: if og:image is relative URL, convert to absolute
+    if (thumbnail && thumbnail.startsWith('/')) {
+      const baseUrl = new URL(url).origin;
+      thumbnail = baseUrl + thumbnail;
+    }
+
+    // Fallback: if no og:image, try favicon
+    if (!thumbnail) {
+      const faviconMatch = html.match(/<link\s+rel=["'](?:shortcut\s+)?icon["']\s+href=["']([^"']+)["']/i);
+      if (faviconMatch) {
+        const faviconUrl = faviconMatch[1];
+        if (faviconUrl.startsWith('/')) {
+          thumbnail = new URL(url).origin + faviconUrl;
+        } else {
+          thumbnail = faviconUrl;
+        }
       }
     }
-  } catch (e) {
-    console.log('[Preview - Layer 2 Failed] URL:', url, 'Error:', e?.message);
-  }
 
-  // ── Layer 3: Manual HTML Parse (Last Resort) ─────────────────────────────
-  try {
-    const htmlResp = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
+    // Extract title
+    const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
+    let title = titleMatch ? titleMatch[1].trim() : null;
+
+    // Fallback: if no title, use og:title
+    if (!title) {
+      const ogTitleMatch = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i) || html.match(/<meta\s+content=["']([^"']+)["']\s+property=["']og:title["']/i);
+      title = ogTitleMatch ? ogTitleMatch[1].trim() : null;
+    }
+
+    // Final fallback: domain name
+    if (!title) {
+      title = new URL(url).hostname.replace('www.', '');
+    }
+
+    return res.status(200).json({ thumbnail, title });
+
+  } catch (error) {
+    console.error('[Thumbnail Error]', error.message);
+    let hostname = 'link';
+    try {
+      hostname = new URL(url).hostname.replace('www.', '');
+    } catch { /* ignore */ }
+
+    return res.status(200).json({ 
+      error: 'Failed to fetch thumbnail',
+      thumbnail: `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`,
+      title: hostname
     });
-    if (htmlResp.ok) {
-      const html = await htmlResp.text();
-      const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
-      const ogImageMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i) || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i);
-      
-      const title = titleMatch ? titleMatch[1].trim() : null;
-      const thumbnail = ogImageMatch ? ogImageMatch[1].replace(/&amp;/g, '&') : null;
-
-      if (thumbnail) {
-        console.log('[Preview - Layer 3 Success] URL:', url, 'Title:', title, 'Image:', thumbnail);
-        return res.status(200).json({ thumbnail, title: title || new URL(url).hostname });
-      }
-    }
-  } catch (e) {
-    console.log('[Preview - Layer 3 Failed] URL:', url, 'Error:', e?.message);
   }
-
-  // ── Final Fallback: Favicon + Domain Name ──────────────────────────────
-  let domain = '';
-  try {
-    domain = new URL(url).hostname;
-  } catch {
-    domain = url;
-  }
-  const fallbackFavicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
-  console.log('[Preview - Final Fallback] URL:', url, 'Title:', domain, 'Image:', fallbackFavicon);
-
-  return res.status(200).json({
-    thumbnail: fallbackFavicon,
-    title: domain
-  });
 }
