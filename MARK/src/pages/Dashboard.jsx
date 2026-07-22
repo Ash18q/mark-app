@@ -1327,9 +1327,8 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: link.tag || 'Saved Link',
-          text: `Check out this link: ${link.url}`,
-          url: link.url,
+          title: link.tag ? `MARK - ${link.tag}` : 'MARK Link',
+          url: link.url
         })
       } catch (err) {
         if (err.name !== 'AbortError') {
