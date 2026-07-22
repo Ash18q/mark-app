@@ -61,27 +61,53 @@ export default async function handler(req, res) {
         const canonicalUrl = `https://www.instagram.com/p/${shortcode}/`;
 
         if (accessToken) {
-          // Method A: Try Meta Graph oEmbed API
+          // Method A: Instagram Basic Display oEmbed API (graph.instagram.com/oembed)
           try {
-            const oembedUrl = `https://graph.facebook.com/v19.0/instagram_oembed?url=${encodeURIComponent(canonicalUrl)}&access_token=${accessToken}`;
-            const resp = await fetch(oembedUrl);
-            console.log('[Instagram oEmbed Status]', resp.status);
+            const instaOembedUrl = `https://graph.instagram.com/oembed?url=${encodeURIComponent(canonicalUrl)}&access_token=${accessToken}`;
+            const resp = await fetch(instaOembedUrl);
+            console.log('[Graph Instagram oEmbed Status]', resp.status);
             if (resp.ok) {
               const data = await resp.json();
               if (data.thumbnail_url) {
                 const titleText = data.title || (data.author_name ? `@${data.author_name} on Instagram` : 'Instagram Post');
-                console.log('[Instagram oEmbed Success] Title:', titleText, 'Image:', data.thumbnail_url);
+                console.log('[Graph Instagram oEmbed Success] Title:', titleText, 'Image:', data.thumbnail_url);
                 return res.status(200).json({
                   thumbnail: data.thumbnail_url,
                   title: titleText
                 });
               }
+            } else {
+              const errTxt = await resp.text();
+              console.log('[Graph Instagram oEmbed Error]', errTxt);
             }
           } catch (e) {
-            console.error('[Instagram oEmbed] Error:', e.message);
+            console.error('[Graph Instagram oEmbed Exception]', e.message);
           }
 
-          // Method B: Try Instagram Basic Display API (/me/media) for User Access Token
+          // Method B: Meta Graph Facebook oEmbed API (graph.facebook.com/v19.0/instagram_oembed)
+          try {
+            const oembedUrl = `https://graph.facebook.com/v19.0/instagram_oembed?url=${encodeURIComponent(canonicalUrl)}&access_token=${accessToken}`;
+            const resp = await fetch(oembedUrl);
+            console.log('[Meta FB oEmbed Status]', resp.status);
+            if (resp.ok) {
+              const data = await resp.json();
+              if (data.thumbnail_url) {
+                const titleText = data.title || (data.author_name ? `@${data.author_name} on Instagram` : 'Instagram Post');
+                console.log('[Meta FB oEmbed Success] Title:', titleText, 'Image:', data.thumbnail_url);
+                return res.status(200).json({
+                  thumbnail: data.thumbnail_url,
+                  title: titleText
+                });
+              }
+            } else {
+              const errBody = await resp.text();
+              console.log('[Meta FB oEmbed Error]', errBody);
+            }
+          } catch (e) {
+            console.error('[Meta FB oEmbed Exception]', e.message);
+          }
+
+          // Method C: Instagram Basic Display API (/me/media) for User Access Token
           try {
             const meMediaUrl = `https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink&access_token=${accessToken}`;
             const meResp = await fetch(meMediaUrl);
@@ -102,7 +128,7 @@ export default async function handler(req, res) {
               }
             }
           } catch (e) {
-            console.error('[Instagram Basic Display] Error:', e.message);
+            console.error('[Instagram Basic Display Exception]', e.message);
           }
         }
 
