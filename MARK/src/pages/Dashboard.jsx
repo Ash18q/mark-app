@@ -1266,7 +1266,7 @@ function getPresetDates(preset) {
 }
 
 // ─── My Library Table (Tab 2) ─────────────────────────────────────────────────
-function LibraryTab({ links, onDelete, onUpdate }) {
+function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
   const { tags } = useAuth()
 
   // Distinct lists (parsing comma-separated multi-tags)
@@ -1400,6 +1400,13 @@ function LibraryTab({ links, onDelete, onUpdate }) {
         return sortDir === 'asc' ? d : -d
       })
   }, [links, appliedTags, appliedPlatforms, appliedFromDate, appliedFromTime, appliedToDate, appliedToTime, sortDir])
+
+  // Sync filtered links and filter status to parent Dashboard for Export feature
+  useEffect(() => {
+    if (onFilteredChange) {
+      onFilteredChange(filtered, hasActiveFilters)
+    }
+  }, [filtered, hasActiveFilters, onFilteredChange])
 
   async function handleDelete(id) {
     if (!window.confirm('Delete this link?')) return
@@ -1853,12 +1860,171 @@ function LibraryTab({ links, onDelete, onUpdate }) {
   )
 }
 
+// ─── Export Data Helpers ──────────────────────────────────────────────────────
+function exportToCSV(data) {
+  const headers = ['ID', 'URL', 'Tag', 'Platform', 'Created At']
+  const rows = data.map((item) => [
+    item.id || '',
+    `"${(item.url || '').replace(/"/g, '""')}"`,
+    `"${(item.tag || '').replace(/"/g, '""')}"`,
+    `"${(item.platform || '').replace(/"/g, '""')}"`,
+    `"${new Date(item.created_at).toLocaleString()}"`
+  ])
+  const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
+  downloadFile(csvContent, `MARK_links_${getTodayDateStr()}.csv`, 'text/csv;charset=utf-8;')
+}
+
+function exportToJSON(data) {
+  const formatted = data.map((item) => ({
+    id: item.id,
+    url: item.url,
+    tag: item.tag,
+    platform: item.platform,
+    createdAt: item.created_at
+  }))
+  const jsonContent = JSON.stringify(formatted, null, 2)
+  downloadFile(jsonContent, `MARK_links_${getTodayDateStr()}.json`, 'application/json;charset=utf-8;')
+}
+
+function getTodayDateStr() {
+  const d = new Date()
+  return d.toISOString().split('T')[0]
+}
+
+function downloadFile(content, fileName, mimeType) {
+  const blob = new Blob([content], { type: mimeType })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = fileName
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+// ─── Export Modal ─────────────────────────────────────────────────────────────
+function ExportModal({ data, hasFilters, onClose }) {
+  const [format, setFormat] = useState('csv')
+
+  function handleDownload() {
+    if (format === 'csv') {
+      exportToCSV(data)
+    } else {
+      exportToJSON(data)
+    }
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100 p-5 flex flex-col gap-4">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">📥</span>
+            <h3 className="text-base font-bold text-gray-800">Export Links Data</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 p-1 rounded-lg transition cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Count & Filter Info */}
+        <div className="bg-indigo-50/80 border border-indigo-100 rounded-xl p-3.5 flex items-center justify-between">
+          <div>
+            <span className="block text-xs text-indigo-900 font-bold">
+              {data.length} {data.length === 1 ? 'link' : 'links'} ready to export
+            </span>
+            <span className="text-[11px] text-indigo-600 font-medium">
+              {hasFilters ? '⚡ Filtered View (Custom selection)' : '🌐 All Links (Full Library)'}
+            </span>
+          </div>
+          <span className="text-2xl">📦</span>
+        </div>
+
+        {/* Format Selection Options */}
+        <div className="flex flex-col gap-2">
+          <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+            Choose Export Format
+          </label>
+          
+          <div className="grid grid-cols-2 gap-2.5">
+            {/* Option 1: CSV */}
+            <div
+              onClick={() => setFormat('csv')}
+              className={`p-3.5 rounded-xl border-2 cursor-pointer transition flex flex-col gap-1 ${
+                format === 'csv'
+                  ? 'border-indigo-600 bg-indigo-50/60 text-indigo-900'
+                  : 'border-gray-200 hover:bg-gray-50 text-gray-600'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-base">📊</span>
+                {format === 'csv' && <span className="text-xs text-indigo-600 font-bold">✓</span>}
+              </div>
+              <span className="text-xs font-bold">CSV (.csv)</span>
+              <span className="text-[10px] text-gray-400">Excel / Google Sheets</span>
+            </div>
+
+            {/* Option 2: JSON */}
+            <div
+              onClick={() => setFormat('json')}
+              className={`p-3.5 rounded-xl border-2 cursor-pointer transition flex flex-col gap-1 ${
+                format === 'json'
+                  ? 'border-indigo-600 bg-indigo-50/60 text-indigo-900'
+                  : 'border-gray-200 hover:bg-gray-50 text-gray-600'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-base">📜</span>
+                {format === 'json' && <span className="text-xs text-indigo-600 font-bold">✓</span>}
+              </div>
+              <span className="text-xs font-bold">JSON (.json)</span>
+              <span className="text-[10px] text-gray-400">Structured Data</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl transition cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleDownload}
+            className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
+          >
+            <span>📥</span>
+            <span>Download File</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Dashboard Page ───────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { user, links, deleteLink, updateLink, signOut } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('add')
+
+  // Filtered links tracking from LibraryTab for Export feature
+  const [libraryState, setLibraryState] = useState({ data: [], hasFilters: false })
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+
+  // Sync default links if libraryState is empty
+  const exportData = libraryState.data.length > 0 || libraryState.hasFilters ? libraryState.data : links
 
   // Extract sharedUrl from query params
   const sharedUrl = (() => {
@@ -1930,6 +2096,17 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {activeTab === 'library' && (
+              <button
+                id="export-btn"
+                onClick={() => setIsExportModalOpen(true)}
+                className="flex items-center gap-1.5 text-xs text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-1 rounded-lg transition font-bold cursor-pointer shadow-2xs"
+                title="Export links data"
+              >
+                <span>📥</span>
+                <span>Export</span>
+              </button>
+            )}
             <span className="hidden sm:block text-xs text-gray-400 truncate max-w-[150px]">{user?.email}</span>
             <button
               id="logout-btn"
@@ -1946,8 +2123,24 @@ export default function Dashboard() {
       {/* ── Main Content ── */}
       <main className="max-w-3xl mx-auto px-4 py-6 pb-24">
         {activeTab === 'add' && <AddLinkTab initialUrl={sharedUrl} links={links} />}
-        {activeTab === 'library' && <LibraryTab links={links} onDelete={deleteLink} onUpdate={updateLink} />}
+        {activeTab === 'library' && (
+          <LibraryTab
+            links={links}
+            onDelete={deleteLink}
+            onUpdate={updateLink}
+            onFilteredChange={(data, hasFilters) => setLibraryState({ data, hasFilters })}
+          />
+        )}
       </main>
+
+      {/* ── Export Modal ── */}
+      {isExportModalOpen && (
+        <ExportModal
+          data={exportData}
+          hasFilters={libraryState.hasFilters}
+          onClose={() => setIsExportModalOpen(false)}
+        />
+      )}
 
       {/* ── Fixed Bottom Navigation Bar (Android App Style: 50/50 Split) ── */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-gray-200 shadow-lg">
