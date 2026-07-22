@@ -1659,11 +1659,11 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
             const syncThumb = getThumbnail(link.url)
             const prevInfo = previews[link.id]
 
-            // Prefer sync YouTube/Instagram thumbnail if preview thumb is generic favicon or logo
-            const thumb = (isYouTube || isInstagram) && syncThumb ? syncThumb : (prevInfo?.thumbnail || syncThumb)
+            // Use API-fetched preview thumbnail (Meta Graph / oEmbed) or synchronous fallback
+            const thumb = prevInfo?.thumbnail || syncThumb
 
             let cardTitle = prevInfo?.title
-            if (!cardTitle || cardTitle === '- YouTube' || cardTitle === 'YouTube' || cardTitle === 'Instagram' || cardTitle === 'Instagram Post') {
+            if (!cardTitle || cardTitle === '- YouTube' || cardTitle === 'YouTube' || cardTitle === 'Instagram') {
               if (isYouTube) {
                 cardTitle = 'YouTube Video'
               } else if (isInstagram) {

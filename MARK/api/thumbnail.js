@@ -49,12 +49,11 @@ export default async function handler(req, res) {
       }
     }
 
-    // ── 2. Instagram Specialized Handler (Meta Graph oEmbed + Fallback) ──────
+    // ── 2. Instagram Specialized Handler (Meta Graph oEmbed + Basic Display) ─
     if (url.includes('instagram.com') || url.includes('instagr.am')) {
       const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN || process.env.FACEBOOK_ACCESS_TOKEN || process.env.INSTAGRAM_TOKEN || process.env.INSTA_TOKEN;
       console.log('[Instagram] Token exists:', !!accessToken);
 
-      // Extract shortcode cleanly from any Instagram URL format
       const shortcodeMatch = url.match(/\/(?:p|reel|reels|tv|share\/p|share\/reel)\/([^/?#'"\s]+)/);
       const shortcode = shortcodeMatch ? shortcodeMatch[1] : null;
 
@@ -62,6 +61,7 @@ export default async function handler(req, res) {
         const canonicalUrl = `https://www.instagram.com/p/${shortcode}/`;
 
         if (accessToken) {
+          // Method A: Try Meta Graph oEmbed API
           try {
             const oembedUrl = `https://graph.facebook.com/v19.0/instagram_oembed?url=${encodeURIComponent(canonicalUrl)}&access_token=${accessToken}`;
             const resp = await fetch(oembedUrl);
@@ -76,16 +76,37 @@ export default async function handler(req, res) {
                   title: titleText
                 });
               }
-            } else {
-              const errBody = await resp.text();
-              console.log('[Instagram oEmbed Error Response]', errBody);
             }
           } catch (e) {
             console.error('[Instagram oEmbed] Error:', e.message);
           }
+
+          // Method B: Try Instagram Basic Display API (/me/media) for User Access Token
+          try {
+            const meMediaUrl = `https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink&access_token=${accessToken}`;
+            const meResp = await fetch(meMediaUrl);
+            console.log('[Instagram /me/media Status]', meResp.status);
+            if (meResp.ok) {
+              const meData = await meResp.json();
+              if (meData.data && Array.isArray(meData.data)) {
+                const matchedItem = meData.data.find(item => item.permalink && item.permalink.includes(shortcode));
+                if (matchedItem) {
+                  const mediaThumb = matchedItem.media_url || matchedItem.thumbnail_url;
+                  const captionTitle = matchedItem.caption || 'Instagram Post';
+                  console.log('[Instagram Basic Display Success] Title:', captionTitle, 'Image:', mediaThumb);
+                  return res.status(200).json({
+                    thumbnail: mediaThumb,
+                    title: captionTitle
+                  });
+                }
+              }
+            }
+          } catch (e) {
+            console.error('[Instagram Basic Display] Error:', e.message);
+          }
         }
 
-        // Fallback using clean canonical URL image proxy
+        // Fallback using image proxy
         const instaThumb = `https://images.weserv.nl/?url=https://www.instagram.com/p/${shortcode}/media/?size=l`;
         console.log('[Preview - Instagram Fallback] Shortcode:', shortcode, 'Image:', instaThumb);
         return res.status(200).json({ thumbnail: instaThumb, title: 'Instagram Post' });
