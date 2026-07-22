@@ -365,9 +365,8 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
                       addTag(tag)
                     }
                   }}
-                  className={`px-3.5 py-2 cursor-pointer flex items-center justify-between font-medium transition ${
-                    isSelected ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`px-3.5 py-2 cursor-pointer flex items-center justify-between font-medium transition ${isSelected ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-gray-700 hover:bg-gray-50'
+                    }`}
                 >
                   <span className="flex items-center gap-1.5">
                     <span className="text-gray-400 text-[10px]">🏷️</span>
@@ -1178,13 +1177,12 @@ function DateTimeRangePickerPopover({
                         key={day}
                         type="button"
                         onClick={() => handleDateClick(day)}
-                        className={`h-5 w-5 rounded-full flex items-center justify-center mx-auto text-[9px] transition cursor-pointer ${
-                          isSelectedFrom || isSelectedTo
+                        className={`h-5 w-5 rounded-full flex items-center justify-center mx-auto text-[9px] transition cursor-pointer ${isSelectedFrom || isSelectedTo
                             ? 'bg-blue-600 text-white font-bold'
                             : isInRange
-                            ? 'bg-blue-100 text-blue-700 font-medium'
-                            : 'hover:bg-gray-100 text-gray-700'
-                        }`}
+                              ? 'bg-blue-100 text-blue-700 font-medium'
+                              : 'hover:bg-gray-100 text-gray-700'
+                          }`}
                       >
                         {day}
                       </button>
@@ -1434,13 +1432,11 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
     }
   }
 
-  // ── Thumbnail helper (synchronous for YouTube & Instagram) ───────────────
   const getThumbnail = (url) => {
     try {
       const u = new URL(url)
       const host = u.hostname.toLowerCase()
 
-      // YouTube (watch, shorts, embed, youtu.be)
       if (host.includes('youtube.com') || host.includes('youtu.be')) {
         let vid = u.searchParams.get('v')
         if (!vid && host.includes('youtu.be')) {
@@ -1453,7 +1449,6 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
         if (vid) return `https://img.youtube.com/vi/${vid}/hqdefault.jpg`
       }
 
-      // Instagram (p, reel, reels, tv, share/p, share/reel)
       if (host.includes('instagram.com') || host.includes('instagr.am')) {
         const match = url.match(/\/(p|reel|reels|tv|share\/p|share\/reel)\/([^/?#'"\s]+)/)
         if (match && match[2]) {
@@ -1657,7 +1652,7 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
         <div className="grid grid-cols-2 gap-3">
           {filtered.map((link) => {
             const isInstagram = (link.platform && link.platform.toLowerCase() === 'instagram') ||
-                                (link.url && (link.url.includes('instagram.com') || link.url.includes('instagr.am')))
+              (link.url && (link.url.includes('instagram.com') || link.url.includes('instagr.am')))
             const prevInfo = previews[link.id]
             const thumb = prevInfo?.thumbnail || getThumbnail(link.url)
             const cardTitle = prevInfo?.title || getDisplayUrl(link.url)
@@ -1971,16 +1966,15 @@ function ExportModal({ data, hasFilters, previews = {}, onClose }) {
           <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
             Choose Export Format
           </label>
-          
+
           <div className="grid grid-cols-2 gap-2.5">
             {/* Option 1: CSV */}
             <div
               onClick={() => setFormat('csv')}
-              className={`p-3.5 rounded-xl border-2 cursor-pointer transition flex flex-col gap-1 ${
-                format === 'csv'
+              className={`p-3.5 rounded-xl border-2 cursor-pointer transition flex flex-col gap-1 ${format === 'csv'
                   ? 'border-indigo-600 bg-indigo-50/60 text-indigo-900'
                   : 'border-gray-200 hover:bg-gray-50 text-gray-600'
-              }`}
+                }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-base">📊</span>
@@ -1993,11 +1987,10 @@ function ExportModal({ data, hasFilters, previews = {}, onClose }) {
             {/* Option 2: JSON */}
             <div
               onClick={() => setFormat('json')}
-              className={`p-3.5 rounded-xl border-2 cursor-pointer transition flex flex-col gap-1 ${
-                format === 'json'
+              className={`p-3.5 rounded-xl border-2 cursor-pointer transition flex flex-col gap-1 ${format === 'json'
                   ? 'border-indigo-600 bg-indigo-50/60 text-indigo-900'
                   : 'border-gray-200 hover:bg-gray-50 text-gray-600'
-              }`}
+                }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-base">📜</span>
