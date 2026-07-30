@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import Notes from '../components/Notes'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_PLATFORMS = [
@@ -2101,7 +2102,7 @@ function ExportModal({ data, hasFilters, previews = {}, onClose }) {
 
 // ─── Dashboard Page ───────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const { user, links, deleteLink, updateLink, signOut } = useAuth()
+  const { user, links, notes, deleteLink, updateLink, signOut } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('add')
@@ -2163,8 +2164,9 @@ export default function Dashboard() {
   }
 
   const tabs = [
-    { id: 'add', label: 'Add New Link', icon: '➕' },
+    { id: 'add', label: 'Add Link', icon: '➕' },
     { id: 'library', label: 'My Library', icon: '📋' },
+    { id: 'notes', label: 'Notes', icon: '📝' },
   ]
 
   return (
@@ -2179,7 +2181,7 @@ export default function Dashboard() {
             </div>
             <div className="leading-none">
               <span className="font-extrabold text-indigo-800 text-lg tracking-tight">MARK</span>
-              <span className="block text-[10px] text-gray-400 font-medium -mt-0.5">Link Manager</span>
+              <span className="block text-[10px] text-gray-400 font-medium -mt-0.5">Link & Note Manager</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -2218,6 +2220,7 @@ export default function Dashboard() {
             onFilteredChange={(data, hasFilters, previews) => setLibraryState({ data, hasFilters, previews })}
           />
         )}
+        {activeTab === 'notes' && <Notes />}
       </main>
 
       {/* ── Export Modal ── */}
@@ -2230,24 +2233,29 @@ export default function Dashboard() {
         />
       )}
 
-      {/* ── Fixed Bottom Navigation Bar (Android App Style: 50/50 Split) ── */}
+      {/* ── Fixed Bottom Navigation Bar (3-Tab Equal Split) ── */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-gray-200 shadow-lg">
-        <div className="max-w-3xl mx-auto grid grid-cols-2 h-14">
+        <div className="max-w-3xl mx-auto grid grid-cols-3 h-14">
           {tabs.map(tab => (
             <button
               key={tab.id}
               id={`tab-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
-              className={`col-span-1 flex items-center justify-center gap-2 h-full text-sm font-semibold transition-all select-none border-t-2 cursor-pointer
+              className={`col-span-1 flex items-center justify-center gap-1.5 h-full text-xs sm:text-sm font-semibold transition-all select-none border-t-2 cursor-pointer
                 ${activeTab === tab.id
                   ? 'border-indigo-600 text-indigo-700 bg-indigo-50/80 font-bold'
                   : 'border-transparent text-gray-500 hover:text-indigo-600 hover:bg-gray-50/50'}`}
             >
               <span className="text-base">{tab.icon}</span>
-              <span>{tab.label}</span>
+              <span className="truncate">{tab.label}</span>
               {tab.id === 'library' && links.length > 0 && (
-                <span className="ml-1 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-2xs">
+                <span className="ml-0.5 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-2xs">
                   {links.length}
+                </span>
+              )}
+              {tab.id === 'notes' && notes && notes.length > 0 && (
+                <span className="ml-0.5 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-2xs">
+                  {notes.length}
                 </span>
               )}
             </button>
