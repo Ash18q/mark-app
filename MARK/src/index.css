@@ -76,6 +76,20 @@
   pointer-events: none;
 }
 
+/* TipTap Multi-color Highlight Support */
+.ProseMirror mark {
+  background-color: var(--highlight-color, #fef08a);
+  color: inherit;
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.25rem;
+}
+
+.ProseMirror mark[data-color] {
+  background-color: attr(data-color color);
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.25rem;
+}
+
 .mark-tiptap-table,
 .ProseMirror table {
   border-collapse: collapse;

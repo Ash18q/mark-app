@@ -59,7 +59,7 @@ export default function ColorPicker({
   }
 
   return (
-    <div className="w-64 bg-slate-900 text-white rounded-2xl p-3 border border-slate-700 shadow-2xl space-y-3 animate-in fade-in zoom-in-95 duration-100 z-50">
+    <div className="w-full max-w-[280px] bg-slate-900 text-white rounded-2xl p-3.5 border border-slate-700 shadow-2xl space-y-3 animate-in fade-in zoom-in-95 duration-100 z-50">
       {/* Title */}
       <div className="flex items-center justify-between pb-1 border-b border-slate-800">
         <span className="text-[11px] font-extrabold text-slate-300 uppercase tracking-wider">{title}</span>

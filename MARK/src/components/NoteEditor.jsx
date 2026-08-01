@@ -143,13 +143,13 @@ export default function NoteEditor({
               </button>
 
               {showNoteBgPicker && (
-                <div className="absolute right-0 top-9 z-50">
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
                   <ColorPicker
-                    title="Card Theme Color"
+                    title="Note Page Background Color"
                     selectedColor={color}
                     showNoFill={false}
                     onChange={(selected) => {
-                      setColor(selected)
+                      if (selected) setColor(selected)
                       setShowNoteBgPicker(false)
                     }}
                     onClose={() => setShowNoteBgPicker(false)}
