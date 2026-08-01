@@ -76,18 +76,18 @@
   pointer-events: none;
 }
 
-/* TipTap Multi-color Highlight Support */
-.ProseMirror mark {
-  background-color: var(--highlight-color, #fef08a);
+/* ── TipTap Multi-color Highlight Support (Fix for Pencil Tool) ── */
+.ProseMirror mark,
+.prose mark {
   color: inherit;
   border-radius: 0.25rem;
   padding: 0.1rem 0.25rem;
 }
 
-.ProseMirror mark[data-color] {
-  background-color: attr(data-color color);
-  border-radius: 0.25rem;
-  padding: 0.1rem 0.25rem;
+/* Default yellow fallback only when no custom background-color inline style exists */
+.ProseMirror mark:not([style*="background-color"]),
+.prose mark:not([style*="background-color"]) {
+  background-color: #fef08a;
 }
 
 .mark-tiptap-table,
