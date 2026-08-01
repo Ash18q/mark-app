@@ -17,6 +17,39 @@ import Toolbar from './Toolbar'
 import ColorPicker from './ColorPicker'
 import { NOTE_COLORS, DEFAULT_COLOR, getTheme } from '../utils/noteColors'
 
+// Extend TableHeader and TableCell to persist inline 'style' attribute (for custom background colors)
+const CustomTableHeader = TableHeader.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      style: {
+        default: null,
+        parseHTML: element => element.getAttribute('style'),
+        renderHTML: attributes => {
+          if (!attributes.style) return {}
+          return { style: attributes.style }
+        },
+      },
+    }
+  },
+})
+
+const CustomTableCell = TableCell.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      style: {
+        default: null,
+        parseHTML: element => element.getAttribute('style'),
+        renderHTML: attributes => {
+          if (!attributes.style) return {}
+          return { style: attributes.style }
+        },
+      },
+    }
+  },
+})
+
 export default function NoteEditor({
   note = null,
   initialType = 'text',
@@ -34,8 +67,6 @@ export default function NoteEditor({
   const [isPinned, setIsPinned] = useState(note?.is_pinned || false)
   const [showOptions, setShowOptions] = useState(false)
   const [showNoteBgPicker, setShowNoteBgPicker] = useState(false)
-  const [tableFormat, setTableFormat] = useState('')
-  const [customTableColors, setCustomTableColors] = useState(null)
 
   const titleInputRef = useRef(null)
   const theme = getTheme(color)
@@ -59,8 +90,8 @@ export default function NoteEditor({
         }
       }),
       TableRow,
-      TableHeader,
-      TableCell,
+      CustomTableHeader,
+      CustomTableCell,
       Placeholder.configure({
         placeholder: 'Type rich content or insert an Excel table...'
       })
@@ -226,11 +257,7 @@ export default function NoteEditor({
 
         {/* ── MS EXCEL-STYLE RIBBON TOOLBAR ── */}
         <div className="p-2 border-b border-white/10 bg-black/15 shrink-0">
-          <Toolbar
-            editor={editor}
-            onTableFormat={(cls) => { setTableFormat(cls); setCustomTableColors(null) }}
-            onCustomTableFormat={(colors) => { setTableFormat('table-custom'); setCustomTableColors(colors) }}
-          />
+          <Toolbar editor={editor} />
         </div>
 
         {/* ── Editor Body Area ── */}
@@ -247,14 +274,7 @@ export default function NoteEditor({
           />
 
           {/* TipTap Rich Editor Canvas */}
-          <div
-            className={`bg-black/20 rounded-2xl border border-white/15 p-3 min-h-[220px] shadow-inner overflow-x-auto ${tableFormat}`}
-            style={customTableColors ? {
-              '--tbl-header': customTableColors.headerBg,
-              '--tbl-row': customTableColors.rowBg,
-              '--tbl-footer': customTableColors.footerBg,
-            } : {}}
-          >
+          <div className="bg-black/20 rounded-2xl border border-white/15 p-3 min-h-[220px] shadow-inner overflow-x-auto">
             <EditorContent editor={editor} />
           </div>
 

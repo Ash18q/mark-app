@@ -1,15 +1,51 @@
 import { useState } from 'react'
 
-// Calculate safe fixed position for a floating picker that stays within viewport
-function calcPickerPos(e) {
-  const rect = e.currentTarget.getBoundingClientRect()
-  const PICKER_W = 270
-  let left = rect.left
-  if (left + PICKER_W > window.innerWidth - 8) {
-    left = window.innerWidth - PICKER_W - 8
-  }
-  if (left < 8) left = 8
-  return { top: rect.bottom + 6, left }
+// Apply table style directly into TipTap document via ProseMirror transaction.
+// Styles are stored in cell 'style' attributes → saved with HTML → persist on reopen.
+function applyTableStyleToDoc(editor, headerBg, rowBg, footerBg) {
+  if (!editor) return
+  const { state } = editor
+  const tr = state.tr
+  const ops = []
+  let tableRowCount = 0
+  let currentRow = 0
+
+  state.doc.descendants((node, pos) => {
+    if (node.type.name === 'table') {
+      let cnt = 0
+      node.forEach(c => { if (c.type.name === 'tableRow') cnt++ })
+      tableRowCount = cnt
+      currentRow = 0
+    }
+    if (node.type.name === 'tableRow') currentRow++
+    if (node.type.name === 'tableHeader') {
+      ops.push({
+        pos,
+        attrs: {
+          ...node.attrs,
+          style: `background-color: ${headerBg}; color: #ffffff; font-weight: bold; border: 1px solid rgba(255,255,255,0.2);`
+        }
+      })
+    }
+    if (node.type.name === 'tableCell') {
+      const isLast = footerBg && currentRow === tableRowCount
+      const bg = isLast ? footerBg : (rowBg || '')
+      const textColor = isLast ? '#ffffff' : (rowBg ? '#ffffff' : 'inherit')
+      const fontWt = isLast ? 'bold' : 'normal'
+      ops.push({
+        pos,
+        attrs: {
+          ...node.attrs,
+          style: bg
+            ? `background-color: ${bg}; color: ${textColor}; font-weight: ${fontWt}; border: 1px solid rgba(255,255,255,0.15);`
+            : 'border: 1px solid rgba(255,255,255,0.15);'
+        }
+      })
+    }
+  })
+
+  ops.forEach(({ pos, attrs }) => tr.setNodeMarkup(pos, null, attrs))
+  if (ops.length) editor.view.dispatch(tr)
 }
 
 // ── Excel-Style 10×6 Theme Color Grid ──
@@ -34,8 +70,8 @@ const SWATCH_COLORS = [
   '#000000','#1e293b','#18181b','#ffffff','#fef3c7','#e0f2fe','#f0fdf4','#fdf4ff',
 ]
 
-// Floating Excel-Style Color Picker — uses fixed position so it never overflows viewport
-function FloatingColorPicker({ label, pos, onSelect, onClose, showNoFill = true }) {
+// Floating Excel-Style Color Picker — centered under button, never overflows screen
+function FloatingColorPicker({ label, onSelect, onClose, showNoFill = true }) {
   const [customHex, setCustomHex] = useState('')
 
   return (
@@ -46,10 +82,9 @@ function FloatingColorPicker({ label, pos, onSelect, onClose, showNoFill = true 
         onMouseDown={(e) => e.preventDefault()}
         onClick={onClose}
       />
-      {/* Picker panel – fixed-positioned so it stays on screen */}
+      {/* Picker panel – centered absolute popover */}
       <div
-        className="bg-[#0f172a] border border-slate-700 rounded-2xl shadow-2xl overflow-hidden"
-        style={{ position: 'fixed', top: pos.top, left: pos.left, width: '270px', zIndex: 9999 }}
+        className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-50 bg-[#0f172a] border border-slate-700 rounded-2xl shadow-2xl overflow-hidden w-[270px] max-w-[calc(100vw-24px)]"
         onMouseDown={(e) => e.preventDefault()}
       >
         {/* Header */}
@@ -162,12 +197,11 @@ function SwatchRow({ colors, selected, onSelect }) {
   )
 }
 
-export default function Toolbar({ editor, onTableFormat, onCustomTableFormat }) {
+export default function Toolbar({ editor }) {
   const [showTextColorPicker,  setShowTextColorPicker]  = useState(false)
   const [showHighlightPicker,  setShowHighlightPicker]  = useState(false)
   const [showTableFormatModal, setShowTableFormatModal] = useState(false)
   const [showCustomTable,      setShowCustomTable]      = useState(false)
-  const [pickerPos,            setPickerPos]            = useState({ top: 0, left: 0 })
   const [customTable, setCustomTable] = useState({
     headerBg: '#1e3a8a',
     rowBg:    '#1e293b',
@@ -218,9 +252,8 @@ export default function Toolbar({ editor, onTableFormat, onCustomTableFormat }) 
       <div className="relative">
         <button
           type="button"
-          onMouseDown={(e) => e.preventDefault()} // keeps editor selection alive!
-          onClick={(e) => {
-            setPickerPos(calcPickerPos(e))
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => {
             setShowTextColorPicker(v => !v)
             setShowHighlightPicker(false)
           }}
@@ -233,7 +266,6 @@ export default function Toolbar({ editor, onTableFormat, onCustomTableFormat }) 
         {showTextColorPicker && (
           <FloatingColorPicker
             label="Text Color"
-            pos={pickerPos}
             showNoFill
             onSelect={(hex) => {
               hex ? editor.chain().focus().setColor(hex).run()
@@ -249,9 +281,8 @@ export default function Toolbar({ editor, onTableFormat, onCustomTableFormat }) 
       <div className="relative">
         <button
           type="button"
-          onMouseDown={(e) => e.preventDefault()} // keeps editor selection alive!
-          onClick={(e) => {
-            setPickerPos(calcPickerPos(e))
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => {
             setShowHighlightPicker(v => !v)
             setShowTextColorPicker(false)
           }}
@@ -264,7 +295,6 @@ export default function Toolbar({ editor, onTableFormat, onCustomTableFormat }) 
         {showHighlightPicker && (
           <FloatingColorPicker
             label="Highlight Fill"
-            pos={pickerPos}
             showNoFill
             onSelect={(hex) => {
               hex ? editor.chain().focus().setHighlight({ color: hex }).run()
@@ -283,7 +313,7 @@ export default function Toolbar({ editor, onTableFormat, onCustomTableFormat }) 
         {[1,2].map(lv => (
           <button key={lv} type="button"
             onClick={() => editor.chain().focus().toggleHeading({ level: lv }).run()}
-            className={`px-2 py-1 font-bold text-xs rounded-lg transition cursor-pointer ${editor.isActive('heading', { level: lv }) ? 'bg-amber-400 text-slate-950' : 'hover:bg-slate-700 text-white'}`}>
+            className={`px-2 py-1 text-xs font-bold rounded-lg transition cursor-pointer ${editor.isActive('heading', { level: lv }) ? 'bg-amber-400 text-slate-950' : 'hover:bg-slate-700 text-slate-200'}`}>
             H{lv}
           </button>
         ))}
@@ -291,27 +321,40 @@ export default function Toolbar({ editor, onTableFormat, onCustomTableFormat }) 
 
       {/* Lists */}
       <div className="flex items-center gap-0.5 bg-slate-800 rounded-xl p-0.5 border border-slate-700">
-        <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`px-2 py-1 rounded-lg transition cursor-pointer ${editor.isActive('bulletList') ? 'bg-amber-400 text-slate-950' : 'hover:bg-slate-700 text-white'}`}>
+        <button type="button"
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          className={`px-2 py-1 text-xs font-bold rounded-lg transition cursor-pointer ${editor.isActive('bulletList') ? 'bg-amber-400 text-slate-950' : 'hover:bg-slate-700 text-slate-200'}`}>
           • List
         </button>
-        <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={`px-2 py-1 rounded-lg transition cursor-pointer ${editor.isActive('orderedList') ? 'bg-amber-400 text-slate-950' : 'hover:bg-slate-700 text-white'}`}>
+        <button type="button"
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          className={`px-2 py-1 text-xs font-bold rounded-lg transition cursor-pointer ${editor.isActive('orderedList') ? 'bg-amber-400 text-slate-950' : 'hover:bg-slate-700 text-slate-200'}`}>
           1. List
         </button>
       </div>
 
       <div className="h-4 w-px bg-slate-700" />
 
-      {/* Table */}
-      <div className="flex items-center gap-0.5 bg-slate-800 rounded-xl p-0.5 border border-slate-700">
-        <button type="button"
-          onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
-          className="px-2 py-1 font-bold rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white transition cursor-pointer text-[11px]">
-          📊 Table
+      {/* Table Actions */}
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => {
+            if (!editor.isActive('table')) {
+              editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+            }
+          }}
+          className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1 shadow-sm"
+          title="Insert Table"
+        >
+          <span>📊</span> Table
         </button>
-        <button type="button" onClick={() => setShowTableFormatModal(true)}
-          className="px-2 py-1 font-bold rounded-lg bg-indigo-700 hover:bg-indigo-600 text-white transition cursor-pointer text-[11px]">
+        <button
+          type="button"
+          onClick={() => setShowTableFormatModal(true)}
+          className="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1 shadow-sm"
+          title="Format Table Style"
+        >
           Format ▼
         </button>
         {editor.isActive('table') && (
@@ -353,15 +396,17 @@ export default function Toolbar({ editor, onTableFormat, onCustomTableFormat }) 
 
             {/* Preset Grid */}
             <div className="p-4 grid grid-cols-2 gap-2.5 max-h-[60vh] overflow-y-auto">
-              {TABLE_PRESETS.map(({ label, cls, headerBg, altBg, border }) => (
+              {TABLE_PRESETS.map(({ label, headerBg, altBg, border }) => (
                 <button
-                  key={cls}
+                  key={label}
                   type="button"
                   onClick={() => {
                     if (!editor.isActive('table')) {
                       editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
                     }
-                    onTableFormat && onTableFormat(cls)
+                    setTimeout(() => {
+                      applyTableStyleToDoc(editor, headerBg, altBg, null)
+                    }, 10)
                     setShowTableFormatModal(false)
                   }}
                   className="p-3 bg-slate-800/70 hover:bg-slate-700/70 rounded-2xl border border-slate-700/60 text-left transition hover:scale-[1.03] group overflow-hidden"
@@ -470,7 +515,9 @@ export default function Toolbar({ editor, onTableFormat, onCustomTableFormat }) 
                   if (!editor.isActive('table')) {
                     editor.chain().focus().insertTable({ rows: 4, cols: 3, withHeaderRow: true }).run()
                   }
-                  onCustomTableFormat && onCustomTableFormat(customTable)
+                  setTimeout(() => {
+                    applyTableStyleToDoc(editor, customTable.headerBg, customTable.rowBg, customTable.footerBg)
+                  }, 10)
                   setShowCustomTable(false)
                   setShowTableFormatModal(false)
                 }}
