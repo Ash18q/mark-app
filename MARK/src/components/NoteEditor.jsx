@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { NOTE_COLORS, DEFAULT_COLOR } from '../utils/noteColors'
+import { NOTE_COLORS, DEFAULT_COLOR, getTheme } from '../utils/noteColors'
 
 export default function NoteEditor({
   note = null,
@@ -13,6 +13,7 @@ export default function NoteEditor({
   const [content, setContent] = useState(note?.content || '')
   const [type, setType] = useState(note?.type || initialType)
   const [color, setColor] = useState(note?.color || DEFAULT_COLOR)
+  const [customHex, setCustomHex] = useState('')
 
   // Checklist state
   const [checklistItems, setChecklistItems] = useState(
@@ -41,13 +42,15 @@ export default function NoteEditor({
   const [tagInput, setTagInput] = useState('')
   const [isPinned, setIsPinned] = useState(note?.is_pinned || false)
   const [showOptions, setShowOptions] = useState(false)
-  const [showColorPicker, setShowColorPicker] = useState(false)
+  const [showColorPickerModal, setShowColorPickerModal] = useState(false)
+  const [showTextColorPicker, setShowTextColorPicker] = useState(false)
+  const [showBgColorPicker, setShowBgColorPicker] = useState(false)
 
-  // Ref for title focus & text area selection formatting
+  // Refs
   const titleInputRef = useRef(null)
   const textareaRef = useRef(null)
 
-  const theme = NOTE_COLORS[color] || NOTE_COLORS.olive
+  const theme = getTheme(color)
 
   useEffect(() => {
     if (titleInputRef.current) {
@@ -55,7 +58,7 @@ export default function NoteEditor({
     }
   }, [])
 
-  // ─── Formatting Helpers for Rich Text ───
+  // ─── Formatting Helpers for Rich Text Editor ───
   const applyFormatting = (prefix, suffix = prefix) => {
     const el = textareaRef.current
     if (!el) return
@@ -64,27 +67,41 @@ export default function NoteEditor({
     const end = el.selectionEnd
     const selectedText = content.substring(start, end)
 
-    let replacement = ''
-    if (prefix.startsWith('<') && prefix.endsWith('>')) {
-      // HTML tag format
-      replacement = `${prefix}${selectedText || 'text'}${suffix}`
-    } else {
-      // Markdown format
-      replacement = `${prefix}${selectedText || 'text'}${suffix}`
-    }
-
+    const replacement = `${prefix}${selectedText || 'text'}${suffix}`
     const newContent = content.substring(0, start) + replacement + content.substring(end)
     setContent(newContent)
 
-    // Re-focus and set selection
     setTimeout(() => {
       el.focus()
       el.setSelectionRange(start + prefix.length, start + prefix.length + (selectedText ? selectedText.length : 4))
     }, 50)
   }
 
-  const applyColorFormat = (hexColor) => {
+  const applyTextColor = (hexColor) => {
     applyFormatting(`<font color="${hexColor}">`, `</font>`)
+    setShowTextColorPicker(false)
+  }
+
+  const applyHighlightColor = (hexColor) => {
+    applyFormatting(`<mark style="background-color: ${hexColor}; color: #000; padding: 0 4px; border-radius: 4px;">`, `</mark>`)
+    setShowBgColorPicker(false)
+  }
+
+  const insertHeading = (level) => {
+    applyFormatting(`<h${level} style="font-size: ${level === 1 ? '1.25rem' : '1.1rem'}; font-weight: bold; margin: 4px 0;">`, `</h${level}>`)
+  }
+
+  const insertList = (listType) => {
+    if (listType === 'bullet') {
+      applyFormatting('\n• ', '')
+    } else {
+      applyFormatting('\n1. ', '')
+    }
+  }
+
+  const clearFormatting = () => {
+    const stripped = content.replace(/<[^>]*>/g, '')
+    setContent(stripped)
   }
 
   // ─── Checklist Helper Functions ───
@@ -197,12 +214,15 @@ export default function NoteEditor({
     t => !tags.includes(t) && t.toLowerCase().includes(tagInput.toLowerCase())
   )
 
+  // Standard Excel style palette list
+  const standardColors = ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#06b6d4', '#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#64748b']
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-      <div className={`w-full max-w-xl ${theme.bg} ${theme.text} rounded-3xl shadow-2xl overflow-hidden border ${theme.border} flex flex-col max-h-[92vh] transition-colors duration-300`}>
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className={`w-full max-w-xl ${theme.bg} ${theme.text} rounded-3xl shadow-2xl overflow-hidden border ${theme.border} flex flex-col max-h-[92vh] transition-colors duration-300 relative`}>
         
         {/* ── Top Header Navigation Bar ── */}
-        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-black/20">
+        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-black/25">
           {/* Back Button */}
           <button
             onClick={onClose}
@@ -216,7 +236,7 @@ export default function NoteEditor({
           <div className="flex items-center gap-1 bg-black/30 p-1 rounded-xl">
             <button
               onClick={() => setType('text')}
-              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition ${
+              className={`px-3 py-1 text-xs font-extrabold rounded-lg transition ${
                 type === 'text'
                   ? 'bg-amber-400 text-gray-950 shadow-2xs'
                   : 'opacity-70 hover:opacity-100'
@@ -226,7 +246,7 @@ export default function NoteEditor({
             </button>
             <button
               onClick={() => setType('checklist')}
-              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition ${
+              className={`px-3 py-1 text-xs font-extrabold rounded-lg transition ${
                 type === 'checklist'
                   ? 'bg-amber-400 text-gray-950 shadow-2xs'
                   : 'opacity-70 hover:opacity-100'
@@ -236,7 +256,7 @@ export default function NoteEditor({
             </button>
             <button
               onClick={() => setType('table')}
-              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition ${
+              className={`px-3 py-1 text-xs font-extrabold rounded-lg transition ${
                 type === 'table'
                   ? 'bg-amber-400 text-gray-950 shadow-2xs'
                   : 'opacity-70 hover:opacity-100'
@@ -249,38 +269,14 @@ export default function NoteEditor({
           {/* Right Action Controls */}
           <div className="flex items-center gap-1.5">
             {/* Color Palette Button */}
-            <div className="relative">
-              <button
-                onClick={() => setShowColorPicker(!showColorPicker)}
-                className="w-7 h-7 rounded-full border-2 border-white/40 shadow-inner transition transform hover:scale-105 cursor-pointer flex items-center justify-center text-xs"
-                style={{ backgroundColor: theme.hex }}
-                title="Change Note Color"
-              >
-                🎨
-              </button>
-
-              {/* Color Picker Dropdown */}
-              {showColorPicker && (
-                <>
-                  <div className="fixed inset-0 z-20" onClick={() => setShowColorPicker(false)} />
-                  <div className="absolute right-0 top-9 z-30 bg-gray-900/95 backdrop-blur border border-gray-700 p-2.5 rounded-2xl shadow-2xl grid grid-cols-4 gap-2 animate-in fade-in zoom-in-95 duration-100">
-                    {Object.values(NOTE_COLORS).map(c => (
-                      <button
-                        key={c.id}
-                        onClick={() => { setColor(c.id); setShowColorPicker(false); }}
-                        className={`w-7 h-7 rounded-full border-2 transition transform hover:scale-110 flex items-center justify-center text-[10px] ${
-                          color === c.id ? 'border-amber-400 scale-110 ring-2 ring-amber-400/50' : 'border-white/20'
-                        }`}
-                        style={{ backgroundColor: c.hex }}
-                        title={c.name}
-                      >
-                        {color === c.id ? '✓' : ''}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+            <button
+              onClick={() => setShowColorPickerModal(true)}
+              className="w-8 h-8 rounded-full border-2 border-white/50 shadow-md transition transform hover:scale-110 cursor-pointer flex items-center justify-center text-sm"
+              style={{ backgroundColor: theme.hex }}
+              title="Note Page Background Color"
+            >
+              🎨
+            </button>
 
             {/* Pin Toggle Button */}
             <button
@@ -293,7 +289,7 @@ export default function NoteEditor({
               📌
             </button>
 
-            {/* Options Menu Dropdown */}
+            {/* Options Menu */}
             <div className="relative">
               <button
                 onClick={() => setShowOptions(!showOptions)}
@@ -359,44 +355,164 @@ export default function NoteEditor({
             className={`w-full bg-transparent text-xl font-extrabold ${theme.title} placeholder-white/40 focus:outline-none border-b border-white/10 pb-2`}
           />
 
-          {/* ── RICH TEXT FORMATTING TOOLBAR (For Text Notes) ── */}
+          {/* ── EXCEL / WORD STYLE RICH EDITING TOOLBAR (For Text Notes) ── */}
           {type === 'text' && (
-            <div className="flex flex-wrap items-center gap-1 p-1.5 rounded-xl bg-black/25 border border-white/10 text-xs">
-              <button
-                type="button"
-                onClick={() => applyFormatting('<b>', '</b>')}
-                className="px-2 py-1 font-extrabold rounded hover:bg-white/15 cursor-pointer"
-                title="Bold"
-              >
-                B
-              </button>
-              <button
-                type="button"
-                onClick={() => applyFormatting('<i>', '</i>')}
-                className="px-2 py-1 italic rounded hover:bg-white/15 cursor-pointer"
-                title="Italic"
-              >
-                I
-              </button>
-              <button
-                type="button"
-                onClick={() => applyFormatting('<u>', '</u>')}
-                className="px-2 py-1 underline rounded hover:bg-white/15 cursor-pointer"
-                title="Underline"
-              >
-                U
-              </button>
-              
-              <div className="h-4 w-px bg-white/20 mx-1" />
+            <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-2xl bg-black/30 border border-white/10 text-xs shadow-inner">
+              {/* Font Format Group */}
+              <div className="flex items-center gap-0.5 bg-white/10 rounded-xl p-0.5">
+                <button
+                  type="button"
+                  onClick={() => applyFormatting('<b>', '</b>')}
+                  className="px-2.5 py-1 font-black rounded-lg hover:bg-white/20 transition cursor-pointer"
+                  title="Bold (B)"
+                >
+                  B
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyFormatting('<i>', '</i>')}
+                  className="px-2.5 py-1 italic rounded-lg hover:bg-white/20 transition cursor-pointer font-serif"
+                  title="Italic (I)"
+                >
+                  I
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyFormatting('<u>', '</u>')}
+                  className="px-2.5 py-1 underline rounded-lg hover:bg-white/20 transition cursor-pointer"
+                  title="Underline (U)"
+                >
+                  U
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyFormatting('<s>', '</s>')}
+                  className="px-2 py-1 line-through rounded-lg hover:bg-white/20 transition cursor-pointer"
+                  title="Strikethrough (S)"
+                >
+                  S
+                </button>
+              </div>
 
-              {/* Text Color Presets */}
-              <span className="text-[10px] opacity-70 px-1">Color:</span>
-              <button type="button" onClick={() => applyColorFormat('#f5f7d2')} className="w-4 h-4 rounded-full bg-[#f5f7d2] border border-white/30 hover:scale-110 transition" title="Yellow" />
-              <button type="button" onClick={() => applyColorFormat('#ffffff')} className="w-4 h-4 rounded-full bg-white border border-white/30 hover:scale-110 transition" title="White" />
-              <button type="button" onClick={() => applyColorFormat('#fca5a5')} className="w-4 h-4 rounded-full bg-red-300 border border-white/30 hover:scale-110 transition" title="Red" />
-              <button type="button" onClick={() => applyColorFormat('#86efac')} className="w-4 h-4 rounded-full bg-green-300 border border-white/30 hover:scale-110 transition" title="Green" />
-              <button type="button" onClick={() => applyColorFormat('#93c5fd')} className="w-4 h-4 rounded-full bg-blue-300 border border-white/30 hover:scale-110 transition" title="Blue" />
-              <button type="button" onClick={() => applyColorFormat('#fdba74')} className="w-4 h-4 rounded-full bg-orange-300 border border-white/30 hover:scale-110 transition" title="Orange" />
+              <div className="h-4 w-px bg-white/20 mx-0.5" />
+
+              {/* Headings */}
+              <div className="flex items-center gap-0.5 bg-white/10 rounded-xl p-0.5">
+                <button
+                  type="button"
+                  onClick={() => insertHeading(1)}
+                  className="px-2 py-1 font-bold text-xs rounded-lg hover:bg-white/20 transition cursor-pointer"
+                  title="Heading 1"
+                >
+                  H1
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertHeading(2)}
+                  className="px-2 py-1 font-bold text-xs rounded-lg hover:bg-white/20 transition cursor-pointer"
+                  title="Heading 2"
+                >
+                  H2
+                </button>
+              </div>
+
+              {/* Lists */}
+              <div className="flex items-center gap-0.5 bg-white/10 rounded-xl p-0.5">
+                <button
+                  type="button"
+                  onClick={() => insertList('bullet')}
+                  className="px-2 py-1 font-bold rounded-lg hover:bg-white/20 transition cursor-pointer"
+                  title="Bullet List"
+                >
+                  • List
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertList('number')}
+                  className="px-2 py-1 font-bold rounded-lg hover:bg-white/20 transition cursor-pointer"
+                  title="Numbered List"
+                >
+                  1. List
+                </button>
+              </div>
+
+              <div className="h-4 w-px bg-white/20 mx-0.5" />
+
+              {/* Text Color Dropdown */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => { setShowTextColorPicker(!showTextColorPicker); setShowBgColorPicker(false); }}
+                  className="px-2.5 py-1 font-bold rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center gap-1 cursor-pointer"
+                  title="Text Font Color"
+                >
+                  <span className="font-extrabold text-amber-300">A</span>
+                  <span className="text-[10px]">▼</span>
+                </button>
+
+                {showTextColorPicker && (
+                  <>
+                    <div className="fixed inset-0 z-20" onClick={() => setShowTextColorPicker(false)} />
+                    <div className="absolute left-0 top-8 z-30 bg-slate-900 text-white border border-slate-700 p-2.5 rounded-2xl shadow-2xl w-48 space-y-2 animate-in fade-in zoom-in-95 duration-100">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Font Colors</div>
+                      <div className="grid grid-cols-5 gap-1.5">
+                        {standardColors.map(c => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => applyTextColor(c)}
+                            className="w-6 h-6 rounded-full border border-white/20 hover:scale-110 transition"
+                            style={{ backgroundColor: c }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Text Highlight / Fill Color Dropdown */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => { setShowBgColorPicker(!showBgColorPicker); setShowTextColorPicker(false); }}
+                  className="px-2.5 py-1 font-bold rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center gap-1 cursor-pointer"
+                  title="Highlight Background Fill Color"
+                >
+                  <span>🖍️</span>
+                  <span className="text-[10px]">▼</span>
+                </button>
+
+                {showBgColorPicker && (
+                  <>
+                    <div className="fixed inset-0 z-20" onClick={() => setShowBgColorPicker(false)} />
+                    <div className="absolute left-0 top-8 z-30 bg-slate-900 text-white border border-slate-700 p-2.5 rounded-2xl shadow-2xl w-48 space-y-2 animate-in fade-in zoom-in-95 duration-100">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Highlight Fill</div>
+                      <div className="grid grid-cols-5 gap-1.5">
+                        {['#fef08a', '#bbf7d0', '#a5f3fc', '#fbcfe8', '#fed7aa', '#e9d5ff', '#cbd5e1'].map(c => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => applyHighlightColor(c)}
+                            className="w-6 h-6 rounded-full border border-white/20 hover:scale-110 transition"
+                            style={{ backgroundColor: c }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Clear Formatting */}
+              <button
+                type="button"
+                onClick={clearFormatting}
+                className="px-2 py-1 text-[11px] opacity-75 hover:opacity-100 rounded-lg hover:bg-white/15 transition cursor-pointer ml-auto"
+                title="Clear Formatting"
+              >
+                🧹 Clear
+              </button>
             </div>
           )}
 
@@ -406,8 +522,8 @@ export default function NoteEditor({
               ref={textareaRef}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Type your note content here... (Supports Bold, Italic, Colors)"
-              rows={8}
+              placeholder="Type your note content here... (Use rich toolbar above for Bold, Italic, Colors, Headings)"
+              rows={9}
               className="w-full bg-transparent text-sm leading-relaxed placeholder-white/40 focus:outline-none resize-none"
             />
           ) : type === 'checklist' ? (
@@ -475,13 +591,13 @@ export default function NoteEditor({
           ) : (
             /* ── TABLE / EXCEL GRID EDITOR ── */
             <div className="space-y-3">
-              <div className="overflow-x-auto no-scrollbar border border-white/15 rounded-2xl bg-black/25 p-2">
-                <table className="w-full text-left border-collapse min-w-[300px]">
+              <div className="overflow-x-auto no-scrollbar border border-white/15 rounded-2xl bg-black/30 p-2">
+                <table className="w-full text-left border-collapse min-w-[320px]">
                   {/* Table Header */}
                   <thead>
-                    <tr className="border-b border-white/20">
+                    <tr className="border-b border-white/20 bg-white/5">
                       {tableData.headers.map((header, cIdx) => (
-                        <th key={cIdx} className="p-1.5 group relative">
+                        <th key={cIdx} className="p-2 group relative">
                           <div className="flex items-center justify-between gap-1">
                             <input
                               type="text"
@@ -510,7 +626,7 @@ export default function NoteEditor({
                   {/* Table Rows */}
                   <tbody>
                     {tableData.rows.map((row, rIdx) => (
-                      <tr key={rIdx} className="border-b border-white/10 group last:border-0">
+                      <tr key={rIdx} className="border-b border-white/10 group last:border-0 hover:bg-white/5">
                         {row.map((cell, cIdx) => (
                           <td key={cIdx} className="p-1.5">
                             <input
@@ -518,7 +634,7 @@ export default function NoteEditor({
                               value={cell}
                               onChange={(e) => updateTableCell(rIdx, cIdx, e.target.value)}
                               placeholder="..."
-                              className="w-full bg-transparent text-xs text-white/90 focus:outline-none focus:bg-white/10 rounded px-1 py-0.5"
+                              className="w-full bg-transparent text-xs focus:outline-none focus:bg-white/10 rounded px-1.5 py-1"
                             />
                           </td>
                         ))}
@@ -545,14 +661,14 @@ export default function NoteEditor({
                 <button
                   type="button"
                   onClick={addTableRow}
-                  className="px-3 py-1.5 bg-black/30 hover:bg-black/40 text-xs font-bold rounded-xl border border-white/10 transition cursor-pointer flex items-center gap-1"
+                  className="px-3.5 py-1.5 bg-black/40 hover:bg-black/60 text-xs font-bold rounded-xl border border-white/15 transition cursor-pointer flex items-center gap-1.5 shadow-sm"
                 >
                   <span>➕ Add Row</span>
                 </button>
                 <button
                   type="button"
                   onClick={addTableColumn}
-                  className="px-3 py-1.5 bg-black/30 hover:bg-black/40 text-xs font-bold rounded-xl border border-white/10 transition cursor-pointer flex items-center gap-1"
+                  className="px-3.5 py-1.5 bg-black/40 hover:bg-black/60 text-xs font-bold rounded-xl border border-white/15 transition cursor-pointer flex items-center gap-1.5 shadow-sm"
                 >
                   <span>➕ Add Column</span>
                 </button>
@@ -567,7 +683,7 @@ export default function NoteEditor({
               {tags.map((tag) => (
                 <span
                   key={tag}
-                  className="bg-black/30 text-white text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5"
+                  className="bg-black/30 text-white text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-white/10"
                 >
                   <span>#{tag}</span>
                   <button
@@ -592,7 +708,7 @@ export default function NoteEditor({
                   }
                 }}
                 placeholder="Add tag (e.g. Portfolio, Best AI)..."
-                className="w-full bg-black/20 text-xs text-white placeholder-white/40 px-3 py-2 rounded-xl focus:outline-none border border-white/10"
+                className="w-full bg-black/25 text-xs text-white placeholder-white/40 px-3.5 py-2.5 rounded-xl focus:outline-none border border-white/15"
               />
 
               {/* Tag Suggestions Dropdown */}
@@ -615,6 +731,93 @@ export default function NoteEditor({
         </div>
 
       </div>
+
+      {/* ── EXCEL-STYLE FULL NOTE PAGE COLOR PALETTE MODAL ── */}
+      {showColorPickerModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-slate-900 text-white rounded-3xl p-5 border border-slate-700 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🎨</span>
+                <h3 className="font-extrabold text-sm text-slate-100">Note Page Theme Colors</h3>
+              </div>
+              <button
+                onClick={() => setShowColorPickerModal(false)}
+                className="text-slate-400 hover:text-white p-1 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Dark Color Palettes */}
+            <div className="space-y-1.5">
+              <div className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Dark Themes</div>
+              <div className="grid grid-cols-4 gap-2.5">
+                {Object.values(NOTE_COLORS).filter(c => !c.isLight).map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => { setColor(c.id); setShowColorPickerModal(false); }}
+                    className={`h-10 rounded-2xl border-2 transition transform hover:scale-105 flex flex-col items-center justify-center gap-0.5 text-white ${
+                      color === c.id ? 'border-amber-400 scale-105 ring-2 ring-amber-400/50' : 'border-white/20'
+                    }`}
+                    style={{ backgroundColor: c.hex }}
+                  >
+                    <span className="text-[10px] font-extrabold">{c.name.split(' ')[0]}</span>
+                    {color === c.id && <span className="text-xs">✓</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Light Color Palettes */}
+            <div className="space-y-1.5">
+              <div className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Light Themes</div>
+              <div className="grid grid-cols-3 gap-2.5">
+                {Object.values(NOTE_COLORS).filter(c => c.isLight).map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => { setColor(c.id); setShowColorPickerModal(false); }}
+                    className={`h-10 rounded-2xl border-2 transition transform hover:scale-105 flex flex-col items-center justify-center gap-0.5 text-slate-900 ${
+                      color === c.id ? 'border-amber-500 scale-105 ring-2 ring-amber-500/50' : 'border-slate-300'
+                    }`}
+                    style={{ backgroundColor: c.hex }}
+                  >
+                    <span className="text-[10px] font-extrabold">{c.name.split(' ')[0]}</span>
+                    {color === c.id && <span className="text-xs">✓</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Hex Color Input */}
+            <div className="pt-2 border-t border-slate-800 space-y-2">
+              <div className="text-[11px] font-bold text-slate-400">Custom Color Hex:</div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={customHex}
+                  onChange={(e) => setCustomHex(e.target.value)}
+                  placeholder="#1e293b"
+                  className="flex-1 bg-slate-800 text-white text-xs px-3 py-2 rounded-xl border border-slate-700 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (customHex.trim()) {
+                      setColor(customHex.trim())
+                      setShowColorPickerModal(false)
+                    }
+                  }}
+                  className="px-4 py-2 bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl shadow transition"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

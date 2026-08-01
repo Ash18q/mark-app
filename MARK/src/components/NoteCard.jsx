@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { NOTE_COLORS, DEFAULT_COLOR } from '../utils/noteColors'
+import { getTheme, DEFAULT_COLOR } from '../utils/noteColors'
 
 function formatDate(dateStr) {
   if (!dateStr) return ''
@@ -25,15 +24,13 @@ function FormattedText({ text }) {
     return <div className="rich-note-content" dangerouslySetInnerHTML={{ __html: text }} />
   }
 
-  // Parse simple markdown **bold** and *italic*
   return <span>{text}</span>
 }
 
 export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggleArchive, viewMode = 'grid' }) {
   const [showMenu, setShowMenu] = useState(false)
 
-  const colorKey = note.color && NOTE_COLORS[note.color] ? note.color : DEFAULT_COLOR
-  const theme = NOTE_COLORS[colorKey]
+  const theme = getTheme(note.color)
 
   const isChecklist = note.type === 'checklist' || (Array.isArray(note.checklist_items) && note.checklist_items.length > 0)
   const isTable = note.type === 'table' || (note.table_data && Array.isArray(note.table_data.rows))
