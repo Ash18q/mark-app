@@ -62,3 +62,78 @@
     display: none;
   }
 }
+
+/* ── TipTap Table & Rich Text Styling ── */
+.ProseMirror {
+  outline: none !important;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: rgba(255, 255, 255, 0.4);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.mark-tiptap-table,
+.ProseMirror table {
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+  overflow: hidden;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.mark-tiptap-table td,
+.mark-tiptap-table th,
+.ProseMirror table td,
+.ProseMirror table th {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-sizing: border-box;
+  min-width: 1em;
+  padding: 6px 8px;
+  position: relative;
+  vertical-align: top;
+}
+
+.mark-tiptap-table th,
+.ProseMirror table th {
+  background-color: rgba(255, 255, 255, 0.15);
+  font-weight: bold;
+  text-align: left;
+}
+
+.mark-tiptap-table .selectedCell:after,
+.ProseMirror table .selectedCell:after {
+  background: rgba(200, 200, 255, 0.2);
+  content: "";
+  left: 0; right: 0; top: 0; bottom: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.ProseMirror ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+}
+
+.ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.25rem;
+}
+
+.ProseMirror h1 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ProseMirror h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-top: 0.4rem;
+  margin-bottom: 0.4rem;
+}
