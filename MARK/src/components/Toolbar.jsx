@@ -1,10 +1,9 @@
-import { useState } from 'react'
-import ColorPicker from './ColorPicker'
+import { useState, useRef } from 'react'
 
 export default function Toolbar({ editor, onTableFormat }) {
-  const [showTextColorModal, setShowTextColorModal] = useState(false)
-  const [showHighlightModal, setShowHighlightModal] = useState(false)
   const [showTableFormatModal, setShowTableFormatModal] = useState(false)
+  const textColorRef = useRef(null)
+  const highlightColorRef = useRef(null)
 
   if (!editor) return null
 
@@ -81,27 +80,41 @@ export default function Toolbar({ editor, onTableFormat }) {
 
       <div className="h-4 w-px bg-slate-700 mx-0.5" />
 
-      {/* ── Text Font Color Button (A ▼) ── */}
-      <button
-        type="button"
-        onClick={() => { setShowTextColorModal(true); setShowHighlightModal(false); }}
+      {/* ── Text Font Color (A ▼) — Native OS color picker, never loses selection ── */}
+      <label
         className="px-2.5 py-1.5 font-bold rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1 cursor-pointer"
         title="Text Font Color"
       >
         <span className="font-extrabold text-amber-300 text-sm">A</span>
         <span className="text-[9px]">▼</span>
-      </button>
+        <input
+          ref={textColorRef}
+          type="color"
+          defaultValue="#ffffff"
+          className="sr-only"
+          onChange={(e) => {
+            editor.chain().focus().setColor(e.target.value).run()
+          }}
+        />
+      </label>
 
-      {/* ── Highlight Fill Color Button (✏️ Pencil / Fill ▼) ── */}
-      <button
-        type="button"
-        onClick={() => { setShowHighlightModal(true); setShowTextColorModal(false); }}
+      {/* ── Text Highlight Background (✏️ ▼) — Native OS color picker, never loses selection ── */}
+      <label
         className="px-2.5 py-1.5 font-bold rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1 cursor-pointer"
-        title="Text Background Highlight Color"
+        title="Text Highlight Background Fill"
       >
         <span className="text-sm">✏️</span>
         <span className="text-[9px]">▼</span>
-      </button>
+        <input
+          ref={highlightColorRef}
+          type="color"
+          defaultValue="#ffff00"
+          className="sr-only"
+          onChange={(e) => {
+            editor.chain().focus().setHighlight({ color: e.target.value }).run()
+          }}
+        />
+      </label>
 
       <div className="h-4 w-px bg-slate-700 mx-0.5" />
 
@@ -234,42 +247,6 @@ export default function Toolbar({ editor, onTableFormat }) {
         🧹 Clear
       </button>
 
-      {/* ── Text Color Modal Popup (Positioned Centrally so never cut off) ── */}
-      {showTextColorModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <ColorPicker
-            title="Text Font Color"
-            onChange={(hex) => {
-              if (hex) {
-                editor.chain().focus().setColor(hex).run()
-              } else {
-                editor.chain().focus().unsetColor().run()
-              }
-              setShowTextColorModal(false)
-            }}
-            onClose={() => setShowTextColorModal(false)}
-          />
-        </div>
-      )}
-
-      {/* ── Text Highlight Background Modal Popup ── */}
-      {showHighlightModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <ColorPicker
-            title="Text Highlight Background Fill"
-            onChange={(hex) => {
-              if (hex) {
-                editor.chain().focus().unsetHighlight().setHighlight({ color: hex }).run()
-              } else {
-                editor.chain().focus().unsetHighlight().run()
-              }
-              setShowHighlightModal(false)
-            }}
-            onClose={() => setShowHighlightModal(false)}
-          />
-        </div>
-      )}
-
       {/* ── Format as Table Excel Styles Modal ── */}
       {showTableFormatModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
@@ -288,113 +265,32 @@ export default function Toolbar({ editor, onTableFormat }) {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              {/* Classic Blue */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (!editor.isActive('table')) {
-                    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-                  }
-                  onTableFormat && onTableFormat('table-classic-blue')
-                  setShowTableFormatModal(false)
-                }}
-                className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-blue-500/50 text-left space-y-1 transition transform hover:scale-105"
-              >
-                <div className="h-3 bg-blue-700 rounded font-bold text-[9px] text-white px-1 flex items-center">Header</div>
-                <div className="h-2 bg-blue-900/30 rounded" />
-                <div className="h-2 bg-blue-900/10 rounded" />
-                <span className="text-[10px] font-bold text-blue-300 block pt-1">Classic Blue</span>
-              </button>
-
-              {/* Emerald Green */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (!editor.isActive('table')) {
-                    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-                  }
-                  onTableFormat && onTableFormat('table-emerald-green')
-                  setShowTableFormatModal(false)
-                }}
-                className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-emerald-500/50 text-left space-y-1 transition transform hover:scale-105"
-              >
-                <div className="h-3 bg-emerald-700 rounded font-bold text-[9px] text-white px-1 flex items-center">Header</div>
-                <div className="h-2 bg-emerald-900/30 rounded" />
-                <div className="h-2 bg-emerald-900/10 rounded" />
-                <span className="text-[10px] font-bold text-emerald-300 block pt-1">Emerald Green</span>
-              </button>
-
-              {/* Warm Amber */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (!editor.isActive('table')) {
-                    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-                  }
-                  onTableFormat && onTableFormat('table-warm-amber')
-                  setShowTableFormatModal(false)
-                }}
-                className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-amber-500/50 text-left space-y-1 transition transform hover:scale-105"
-              >
-                <div className="h-3 bg-amber-700 rounded font-bold text-[9px] text-white px-1 flex items-center">Header</div>
-                <div className="h-2 bg-amber-900/30 rounded" />
-                <div className="h-2 bg-amber-900/10 rounded" />
-                <span className="text-[10px] font-bold text-amber-300 block pt-1">Warm Amber</span>
-              </button>
-
-              {/* Crimson Header */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (!editor.isActive('table')) {
-                    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-                  }
-                  onTableFormat && onTableFormat('table-crimson-red')
-                  setShowTableFormatModal(false)
-                }}
-                className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-red-500/50 text-left space-y-1 transition transform hover:scale-105"
-              >
-                <div className="h-3 bg-red-700 rounded font-bold text-[9px] text-white px-1 flex items-center">Header</div>
-                <div className="h-2 bg-red-900/30 rounded" />
-                <div className="h-2 bg-red-900/10 rounded" />
-                <span className="text-[10px] font-bold text-red-300 block pt-1">Crimson Red</span>
-              </button>
-
-              {/* Royal Purple */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (!editor.isActive('table')) {
-                    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-                  }
-                  onTableFormat && onTableFormat('table-royal-purple')
-                  setShowTableFormatModal(false)
-                }}
-                className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-purple-500/50 text-left space-y-1 transition transform hover:scale-105"
-              >
-                <div className="h-3 bg-purple-700 rounded font-bold text-[9px] text-white px-1 flex items-center">Header</div>
-                <div className="h-2 bg-purple-900/30 rounded" />
-                <div className="h-2 bg-purple-900/10 rounded" />
-                <span className="text-[10px] font-bold text-purple-300 block pt-1">Royal Purple</span>
-              </button>
-
-              {/* Dark Charcoal */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (!editor.isActive('table')) {
-                    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-                  }
-                  onTableFormat && onTableFormat('table-dark-charcoal')
-                  setShowTableFormatModal(false)
-                }}
-                className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-zinc-500/50 text-left space-y-1 transition transform hover:scale-105"
-              >
-                <div className="h-3 bg-zinc-800 rounded font-bold text-[9px] text-white px-1 flex items-center">Header</div>
-                <div className="h-2 bg-white/10 rounded" />
-                <div className="h-2 bg-white/5 rounded" />
-                <span className="text-[10px] font-bold text-zinc-300 block pt-1">Dark Charcoal</span>
-              </button>
+              {[
+                { label: 'Classic Blue',   cls: 'table-classic-blue',   hdr: 'bg-blue-700',    border: 'border-blue-500/50',   text: 'text-blue-300',    r1: 'bg-blue-900/30',    r2: 'bg-blue-900/10' },
+                { label: 'Emerald Green',  cls: 'table-emerald-green',  hdr: 'bg-emerald-700', border: 'border-emerald-500/50',text: 'text-emerald-300', r1: 'bg-emerald-900/30', r2: 'bg-emerald-900/10' },
+                { label: 'Warm Amber',     cls: 'table-warm-amber',     hdr: 'bg-amber-700',   border: 'border-amber-500/50',  text: 'text-amber-300',   r1: 'bg-amber-900/30',   r2: 'bg-amber-900/10' },
+                { label: 'Crimson Red',    cls: 'table-crimson-red',    hdr: 'bg-red-700',     border: 'border-red-500/50',    text: 'text-red-300',     r1: 'bg-red-900/30',     r2: 'bg-red-900/10' },
+                { label: 'Royal Purple',   cls: 'table-royal-purple',   hdr: 'bg-purple-700',  border: 'border-purple-500/50', text: 'text-purple-300',  r1: 'bg-purple-900/30',  r2: 'bg-purple-900/10' },
+                { label: 'Dark Charcoal',  cls: 'table-dark-charcoal',  hdr: 'bg-zinc-800',    border: 'border-zinc-500/50',   text: 'text-zinc-300',    r1: 'bg-white/10',       r2: 'bg-white/5' },
+              ].map(({ label, cls, hdr, border, text, r1, r2 }) => (
+                <button
+                  key={cls}
+                  type="button"
+                  onClick={() => {
+                    if (!editor.isActive('table')) {
+                      editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+                    }
+                    onTableFormat && onTableFormat(cls)
+                    setShowTableFormatModal(false)
+                  }}
+                  className={`p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border ${border} text-left space-y-1 transition transform hover:scale-105`}
+                >
+                  <div className={`h-3 ${hdr} rounded font-bold text-[9px] text-white px-1 flex items-center`}>Header</div>
+                  <div className={`h-2 ${r1} rounded`} />
+                  <div className={`h-2 ${r2} rounded`} />
+                  <span className={`text-[10px] font-bold ${text} block pt-1`}>{label}</span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
