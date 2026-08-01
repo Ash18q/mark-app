@@ -34,6 +34,7 @@ export default function NoteEditor({
   const [isPinned, setIsPinned] = useState(note?.is_pinned || false)
   const [showOptions, setShowOptions] = useState(false)
   const [showNoteBgPicker, setShowNoteBgPicker] = useState(false)
+  const [tableFormat, setTableFormat] = useState('')
 
   const titleInputRef = useRef(null)
   const theme = getTheme(color)
@@ -48,7 +49,7 @@ export default function NoteEditor({
       TextStyle,
       FontFamily,
       Color,
-      Highlight.configure({ multicolors: true }),
+      Highlight.configure({ multicolor: true }),
       Underline,
       Table.configure({
         resizable: true,
@@ -224,7 +225,7 @@ export default function NoteEditor({
 
         {/* ── MS EXCEL-STYLE RIBBON TOOLBAR ── */}
         <div className="p-2 border-b border-white/10 bg-black/15 shrink-0">
-          <Toolbar editor={editor} />
+          <Toolbar editor={editor} onTableFormat={(cls) => setTableFormat(cls)} />
         </div>
 
         {/* ── Editor Body Area ── */}
@@ -241,7 +242,7 @@ export default function NoteEditor({
           />
 
           {/* TipTap Rich Editor Canvas */}
-          <div className="bg-black/20 rounded-2xl border border-white/15 p-3 min-h-[220px] shadow-inner overflow-x-auto">
+          <div className={`bg-black/20 rounded-2xl border border-white/15 p-3 min-h-[220px] shadow-inner overflow-x-auto ${tableFormat}`}>
             <EditorContent editor={editor} />
           </div>
 

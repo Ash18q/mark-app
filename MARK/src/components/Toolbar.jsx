@@ -1,40 +1,12 @@
 import { useState } from 'react'
 import ColorPicker from './ColorPicker'
 
-export default function Toolbar({ editor }) {
+export default function Toolbar({ editor, onTableFormat }) {
   const [showTextColorModal, setShowTextColorModal] = useState(false)
   const [showHighlightModal, setShowHighlightModal] = useState(false)
   const [showTableFormatModal, setShowTableFormatModal] = useState(false)
 
   if (!editor) return null
-
-  // Table Preset Styles (Format as Table - Excel Style)
-  const applyTableStyle = (headerBg, rowBgAlt, borderHex) => {
-    if (!editor.isActive('table')) {
-      // Insert a styled table if none exists
-      editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-    }
-    
-    // Apply styling to table elements
-    setTimeout(() => {
-      const tableEl = document.querySelector('.ProseMirror table')
-      if (tableEl) {
-        tableEl.style.border = `1px solid ${borderHex}`
-        const ths = tableEl.querySelectorAll('th')
-        ths.forEach(th => {
-          th.style.backgroundColor = headerBg
-          th.style.color = '#ffffff'
-          th.style.border = `1px solid ${borderHex}`
-        })
-        const rows = tableEl.querySelectorAll('tr')
-        rows.forEach((tr, index) => {
-          if (index > 0 && index % 2 === 0) {
-            tr.style.backgroundColor = rowBgAlt
-          }
-        })
-      }
-    }, 50)
-  }
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-2xl bg-slate-900 border border-slate-700 text-white text-xs shadow-xl relative">
@@ -320,7 +292,10 @@ export default function Toolbar({ editor }) {
               <button
                 type="button"
                 onClick={() => {
-                  applyTableStyle('#1e3a8a', 'rgba(30, 58, 138, 0.15)', '#3b82f6')
+                  if (!editor.isActive('table')) {
+                    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+                  }
+                  onTableFormat && onTableFormat('table-classic-blue')
                   setShowTableFormatModal(false)
                 }}
                 className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-blue-500/50 text-left space-y-1 transition transform hover:scale-105"
@@ -335,7 +310,10 @@ export default function Toolbar({ editor }) {
               <button
                 type="button"
                 onClick={() => {
-                  applyTableStyle('#15803d', 'rgba(21, 128, 61, 0.15)', '#22c55e')
+                  if (!editor.isActive('table')) {
+                    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+                  }
+                  onTableFormat && onTableFormat('table-emerald-green')
                   setShowTableFormatModal(false)
                 }}
                 className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-emerald-500/50 text-left space-y-1 transition transform hover:scale-105"
@@ -350,7 +328,10 @@ export default function Toolbar({ editor }) {
               <button
                 type="button"
                 onClick={() => {
-                  applyTableStyle('#b45309', 'rgba(180, 83, 9, 0.15)', '#f59e0b')
+                  if (!editor.isActive('table')) {
+                    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+                  }
+                  onTableFormat && onTableFormat('table-warm-amber')
                   setShowTableFormatModal(false)
                 }}
                 className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-amber-500/50 text-left space-y-1 transition transform hover:scale-105"
@@ -365,7 +346,10 @@ export default function Toolbar({ editor }) {
               <button
                 type="button"
                 onClick={() => {
-                  applyTableStyle('#b91c1c', 'rgba(185, 28, 28, 0.15)', '#ef4444')
+                  if (!editor.isActive('table')) {
+                    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+                  }
+                  onTableFormat && onTableFormat('table-crimson-red')
                   setShowTableFormatModal(false)
                 }}
                 className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-red-500/50 text-left space-y-1 transition transform hover:scale-105"
@@ -380,7 +364,10 @@ export default function Toolbar({ editor }) {
               <button
                 type="button"
                 onClick={() => {
-                  applyTableStyle('#6b21a8', 'rgba(107, 33, 168, 0.15)', '#a855f7')
+                  if (!editor.isActive('table')) {
+                    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+                  }
+                  onTableFormat && onTableFormat('table-royal-purple')
                   setShowTableFormatModal(false)
                 }}
                 className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-purple-500/50 text-left space-y-1 transition transform hover:scale-105"
@@ -395,7 +382,10 @@ export default function Toolbar({ editor }) {
               <button
                 type="button"
                 onClick={() => {
-                  applyTableStyle('#18181b', 'rgba(255, 255, 255, 0.05)', '#71717a')
+                  if (!editor.isActive('table')) {
+                    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+                  }
+                  onTableFormat && onTableFormat('table-dark-charcoal')
                   setShowTableFormatModal(false)
                 }}
                 className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-zinc-500/50 text-left space-y-1 transition transform hover:scale-105"

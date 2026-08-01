@@ -148,3 +148,34 @@
   margin-top: 0.4rem;
   margin-bottom: 0.4rem;
 }
+
+/* ── Format Table Preset Styles ── */
+/* Classic Blue */
+.table-classic-blue .ProseMirror table { border: 2px solid #3b82f6 !important; }
+.table-classic-blue .ProseMirror table th { background-color: #1e3a8a !important; color: #fff !important; border: 1px solid #3b82f6 !important; }
+.table-classic-blue .ProseMirror table tr:nth-child(even) td { background-color: rgba(30,58,138,0.15) !important; }
+
+/* Emerald Green */
+.table-emerald-green .ProseMirror table { border: 2px solid #22c55e !important; }
+.table-emerald-green .ProseMirror table th { background-color: #15803d !important; color: #fff !important; border: 1px solid #22c55e !important; }
+.table-emerald-green .ProseMirror table tr:nth-child(even) td { background-color: rgba(21,128,61,0.15) !important; }
+
+/* Warm Amber */
+.table-warm-amber .ProseMirror table { border: 2px solid #f59e0b !important; }
+.table-warm-amber .ProseMirror table th { background-color: #b45309 !important; color: #fff !important; border: 1px solid #f59e0b !important; }
+.table-warm-amber .ProseMirror table tr:nth-child(even) td { background-color: rgba(180,83,9,0.15) !important; }
+
+/* Crimson Red */
+.table-crimson-red .ProseMirror table { border: 2px solid #ef4444 !important; }
+.table-crimson-red .ProseMirror table th { background-color: #b91c1c !important; color: #fff !important; border: 1px solid #ef4444 !important; }
+.table-crimson-red .ProseMirror table tr:nth-child(even) td { background-color: rgba(185,28,28,0.15) !important; }
+
+/* Royal Purple */
+.table-royal-purple .ProseMirror table { border: 2px solid #a855f7 !important; }
+.table-royal-purple .ProseMirror table th { background-color: #6b21a8 !important; color: #fff !important; border: 1px solid #a855f7 !important; }
+.table-royal-purple .ProseMirror table tr:nth-child(even) td { background-color: rgba(107,33,168,0.15) !important; }
+
+/* Dark Charcoal */
+.table-dark-charcoal .ProseMirror table { border: 2px solid #71717a !important; }
+.table-dark-charcoal .ProseMirror table th { background-color: #18181b !important; color: #fff !important; border: 1px solid #71717a !important; }
+.table-dark-charcoal .ProseMirror table tr:nth-child(even) td { background-color: rgba(255,255,255,0.05) !important; }
