@@ -43,6 +43,7 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggle
   return (
     <div
       onClick={() => onEdit(note)}
+      style={{ backgroundColor: theme.hex }}
       className={`group relative rounded-2xl p-4 shadow-sm border ${theme.border} hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden ${theme.text} ${theme.bg} ${
         note.is_pinned ? 'ring-2 ring-amber-400/60' : ''
       } ${viewMode === 'list' ? 'min-h-[100px]' : 'min-h-[140px] max-h-[320px]'}`}

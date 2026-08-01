@@ -11,6 +11,8 @@ import { Highlight } from '@tiptap/extension-highlight'
 import { Underline } from '@tiptap/extension-underline'
 import { Placeholder } from '@tiptap/extension-placeholder'
 
+import { FontFamily } from '@tiptap/extension-font-family'
+
 import Toolbar from './Toolbar'
 import ColorPicker from './ColorPicker'
 import { NOTE_COLORS, DEFAULT_COLOR, getTheme } from '../utils/noteColors'
@@ -44,6 +46,7 @@ export default function NoteEditor({
         orderedList: { keepMarks: true }
       }),
       TextStyle,
+      FontFamily,
       Color,
       Highlight.configure({ multicolors: true }),
       Underline,
@@ -107,7 +110,7 @@ export default function NoteEditor({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-      <div className={`w-full max-w-2xl ${theme.bg} ${theme.text} rounded-3xl shadow-2xl overflow-hidden border ${theme.border} flex flex-col max-h-[94vh] transition-colors duration-300 relative`}>
+      <div style={{ backgroundColor: theme.hex }} className={`w-full max-w-2xl ${theme.bg} ${theme.text} rounded-3xl shadow-2xl overflow-hidden border ${theme.border} flex flex-col max-h-[94vh] transition-colors duration-300 relative`}>
         
         {/* ── Top Header Navigation Bar ── */}
         <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-black/25 shrink-0">

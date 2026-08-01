@@ -2,24 +2,54 @@ import { useState } from 'react'
 import ColorPicker from './ColorPicker'
 
 export default function Toolbar({ editor }) {
-  const [showTextColor, setShowTextColor] = useState(false)
-  const [showHighlightColor, setShowHighlightColor] = useState(false)
+  const [showTextColorModal, setShowTextColorModal] = useState(false)
+  const [showHighlightModal, setShowHighlightModal] = useState(false)
+  const [showTableFormatModal, setShowTableFormatModal] = useState(false)
 
   if (!editor) return null
 
+  // Table Preset Styles (Format as Table - Excel Style)
+  const applyTableStyle = (headerBg, rowBgAlt, borderHex) => {
+    if (!editor.isActive('table')) {
+      // Insert a styled table if none exists
+      editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+    }
+    
+    // Apply styling to table elements
+    setTimeout(() => {
+      const tableEl = document.querySelector('.ProseMirror table')
+      if (tableEl) {
+        tableEl.style.border = `1px solid ${borderHex}`
+        const ths = tableEl.querySelectorAll('th')
+        ths.forEach(th => {
+          th.style.backgroundColor = headerBg
+          th.style.color = '#ffffff'
+          th.style.border = `1px solid ${borderHex}`
+        })
+        const rows = tableEl.querySelectorAll('tr')
+        rows.forEach((tr, index) => {
+          if (index > 0 && index % 2 === 0) {
+            tr.style.backgroundColor = rowBgAlt
+          }
+        })
+      }
+    }, 50)
+  }
+
   return (
-    <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-2xl bg-slate-900 border border-slate-700 text-white text-xs shadow-xl">
+    <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-2xl bg-slate-900 border border-slate-700 text-white text-xs shadow-xl relative">
       
       {/* ── Font Family Dropdown ── */}
       <select
         onChange={(e) => {
-          if (e.target.value) {
-            editor.chain().focus().setFontFamily(e.target.value).run()
+          const val = e.target.value
+          if (val) {
+            editor.chain().focus().setFontFamily(val).run()
           } else {
             editor.chain().focus().unsetFontFamily().run()
           }
         }}
-        className="bg-slate-800 text-white text-xs px-2 py-1 rounded-xl border border-slate-700 focus:outline-none cursor-pointer"
+        className="bg-slate-800 text-white text-xs px-2.5 py-1.5 rounded-xl border border-slate-700 focus:outline-none cursor-pointer font-medium"
       >
         <option value="">Font Family</option>
         <option value="Arial">Arial</option>
@@ -35,10 +65,10 @@ export default function Toolbar({ editor }) {
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`px-2.5 py-1 font-extrabold rounded-lg transition cursor-pointer ${
+          className={`px-2.5 py-1.5 font-extrabold rounded-lg transition cursor-pointer ${
             editor.isActive('bold') ? 'bg-amber-400 text-slate-950 shadow-2xs' : 'hover:bg-slate-700 text-white'
           }`}
-          title="Bold (Ctrl+B)"
+          title="Bold (B)"
         >
           B
         </button>
@@ -46,10 +76,10 @@ export default function Toolbar({ editor }) {
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`px-2.5 py-1 italic rounded-lg transition cursor-pointer font-serif ${
+          className={`px-2.5 py-1.5 italic rounded-lg transition cursor-pointer font-serif ${
             editor.isActive('italic') ? 'bg-amber-400 text-slate-950 shadow-2xs' : 'hover:bg-slate-700 text-white'
           }`}
-          title="Italic (Ctrl+I)"
+          title="Italic (I)"
         >
           I
         </button>
@@ -57,10 +87,10 @@ export default function Toolbar({ editor }) {
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={`px-2.5 py-1 underline rounded-lg transition cursor-pointer ${
+          className={`px-2.5 py-1.5 underline rounded-lg transition cursor-pointer ${
             editor.isActive('underline') ? 'bg-amber-400 text-slate-950 shadow-2xs' : 'hover:bg-slate-700 text-white'
           }`}
-          title="Underline (Ctrl+U)"
+          title="Underline (U)"
         >
           U
         </button>
@@ -68,7 +98,7 @@ export default function Toolbar({ editor }) {
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleStrike().run()}
-          className={`px-2 py-1 line-through rounded-lg transition cursor-pointer ${
+          className={`px-2 py-1.5 line-through rounded-lg transition cursor-pointer ${
             editor.isActive('strike') ? 'bg-amber-400 text-slate-950 shadow-2xs' : 'hover:bg-slate-700 text-white'
           }`}
           title="Strikethrough"
@@ -79,65 +109,27 @@ export default function Toolbar({ editor }) {
 
       <div className="h-4 w-px bg-slate-700 mx-0.5" />
 
-      {/* ── Text Color Picker Dropdown ── */}
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => { setShowTextColor(!showTextColor); setShowHighlightColor(false); }}
-          className="px-2.5 py-1 font-bold rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1 cursor-pointer"
-          title="Text Font Color"
-        >
-          <span className="font-extrabold text-amber-300">A</span>
-          <span className="text-[9px]">▼</span>
-        </button>
+      {/* ── Text Font Color Button (A ▼) ── */}
+      <button
+        type="button"
+        onClick={() => { setShowTextColorModal(true); setShowHighlightModal(false); }}
+        className="px-2.5 py-1.5 font-bold rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1 cursor-pointer"
+        title="Text Font Color"
+      >
+        <span className="font-extrabold text-amber-300 text-sm">A</span>
+        <span className="text-[9px]">▼</span>
+      </button>
 
-        {showTextColor && (
-          <div className="absolute left-0 top-8 z-50">
-            <ColorPicker
-              title="Text Color"
-              onChange={(hex) => {
-                if (hex) {
-                  editor.chain().focus().setColor(hex).run()
-                } else {
-                  editor.chain().focus().unsetColor().run()
-                }
-                setShowTextColor(false)
-              }}
-              onClose={() => setShowTextColor(false)}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* ── Highlight / Cell Fill Color Dropdown ── */}
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => { setShowHighlightColor(!showHighlightColor); setShowTextColor(false); }}
-          className="px-2.5 py-1 font-bold rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1 cursor-pointer"
-          title="Highlight Fill Color"
-        >
-          <span>🖍️</span>
-          <span className="text-[9px]">▼</span>
-        </button>
-
-        {showHighlightColor && (
-          <div className="absolute left-0 top-8 z-50">
-            <ColorPicker
-              title="Highlight Fill Color"
-              onChange={(hex) => {
-                if (hex) {
-                  editor.chain().focus().toggleHighlight({ color: hex }).run()
-                } else {
-                  editor.chain().focus().unsetHighlight().run()
-                }
-                setShowHighlightColor(false)
-              }}
-              onClose={() => setShowHighlightColor(false)}
-            />
-          </div>
-        )}
-      </div>
+      {/* ── Highlight Fill Color Button (✏️ Pencil / Fill ▼) ── */}
+      <button
+        type="button"
+        onClick={() => { setShowHighlightModal(true); setShowTextColorModal(false); }}
+        className="px-2.5 py-1.5 font-bold rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1 cursor-pointer"
+        title="Text Background Highlight Color"
+      >
+        <span className="text-sm">✏️</span>
+        <span className="text-[9px]">▼</span>
+      </button>
 
       <div className="h-4 w-px bg-slate-700 mx-0.5" />
 
@@ -198,10 +190,20 @@ export default function Toolbar({ editor }) {
         <button
           type="button"
           onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
-          className="px-2 py-1 font-bold rounded-lg hover:bg-emerald-600 transition cursor-pointer bg-emerald-700 text-white"
+          className="px-2 py-1 font-bold rounded-lg hover:bg-emerald-600 transition cursor-pointer bg-emerald-700 text-white flex items-center gap-1"
           title="Insert Table"
         >
-          📊 Table
+          <span>📊 Table</span>
+        </button>
+
+        {/* Format As Table Button (Excel Style) */}
+        <button
+          type="button"
+          onClick={() => setShowTableFormatModal(!showTableFormatModal)}
+          className="px-2 py-1 font-bold rounded-lg hover:bg-indigo-600 transition cursor-pointer bg-indigo-700 text-white flex items-center gap-1 text-[11px]"
+          title="Format as Table Styles"
+        >
+          <span>Format Table ▼</span>
         </button>
 
         {editor.isActive('table') && (
@@ -259,6 +261,155 @@ export default function Toolbar({ editor }) {
       >
         🧹 Clear
       </button>
+
+      {/* ── Text Color Modal Popup (Positioned Centrally so never cut off) ── */}
+      {showTextColorModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <ColorPicker
+            title="Text Font Color"
+            onChange={(hex) => {
+              if (hex) {
+                editor.chain().focus().setColor(hex).run()
+              } else {
+                editor.chain().focus().unsetColor().run()
+              }
+              setShowTextColorModal(false)
+            }}
+            onClose={() => setShowTextColorModal(false)}
+          />
+        </div>
+      )}
+
+      {/* ── Text Highlight Background Modal Popup ── */}
+      {showHighlightModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <ColorPicker
+            title="Text Highlight Background Fill"
+            onChange={(hex) => {
+              if (hex) {
+                editor.chain().focus().setHighlight({ color: hex }).run()
+              } else {
+                editor.chain().focus().unsetHighlight().run()
+              }
+              setShowHighlightModal(false)
+            }}
+            onClose={() => setShowHighlightModal(false)}
+          />
+        </div>
+      )}
+
+      {/* ── Format as Table Excel Styles Modal ── */}
+      {showTableFormatModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-slate-900 text-white rounded-3xl p-5 border border-slate-700 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📊</span>
+                <h3 className="font-extrabold text-sm text-slate-100">Format as Table Styles</h3>
+              </div>
+              <button
+                onClick={() => setShowTableFormatModal(false)}
+                className="text-slate-400 hover:text-white p-1 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {/* Classic Blue */}
+              <button
+                type="button"
+                onClick={() => {
+                  applyTableStyle('#1e3a8a', 'rgba(30, 58, 138, 0.15)', '#3b82f6')
+                  setShowTableFormatModal(false)
+                }}
+                className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-blue-500/50 text-left space-y-1 transition transform hover:scale-105"
+              >
+                <div className="h-3 bg-blue-700 rounded font-bold text-[9px] text-white px-1 flex items-center">Header</div>
+                <div className="h-2 bg-blue-900/30 rounded" />
+                <div className="h-2 bg-blue-900/10 rounded" />
+                <span className="text-[10px] font-bold text-blue-300 block pt-1">Classic Blue</span>
+              </button>
+
+              {/* Emerald Green */}
+              <button
+                type="button"
+                onClick={() => {
+                  applyTableStyle('#15803d', 'rgba(21, 128, 61, 0.15)', '#22c55e')
+                  setShowTableFormatModal(false)
+                }}
+                className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-emerald-500/50 text-left space-y-1 transition transform hover:scale-105"
+              >
+                <div className="h-3 bg-emerald-700 rounded font-bold text-[9px] text-white px-1 flex items-center">Header</div>
+                <div className="h-2 bg-emerald-900/30 rounded" />
+                <div className="h-2 bg-emerald-900/10 rounded" />
+                <span className="text-[10px] font-bold text-emerald-300 block pt-1">Emerald Green</span>
+              </button>
+
+              {/* Warm Amber */}
+              <button
+                type="button"
+                onClick={() => {
+                  applyTableStyle('#b45309', 'rgba(180, 83, 9, 0.15)', '#f59e0b')
+                  setShowTableFormatModal(false)
+                }}
+                className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-amber-500/50 text-left space-y-1 transition transform hover:scale-105"
+              >
+                <div className="h-3 bg-amber-700 rounded font-bold text-[9px] text-white px-1 flex items-center">Header</div>
+                <div className="h-2 bg-amber-900/30 rounded" />
+                <div className="h-2 bg-amber-900/10 rounded" />
+                <span className="text-[10px] font-bold text-amber-300 block pt-1">Warm Amber</span>
+              </button>
+
+              {/* Crimson Header */}
+              <button
+                type="button"
+                onClick={() => {
+                  applyTableStyle('#b91c1c', 'rgba(185, 28, 28, 0.15)', '#ef4444')
+                  setShowTableFormatModal(false)
+                }}
+                className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-red-500/50 text-left space-y-1 transition transform hover:scale-105"
+              >
+                <div className="h-3 bg-red-700 rounded font-bold text-[9px] text-white px-1 flex items-center">Header</div>
+                <div className="h-2 bg-red-900/30 rounded" />
+                <div className="h-2 bg-red-900/10 rounded" />
+                <span className="text-[10px] font-bold text-red-300 block pt-1">Crimson Red</span>
+              </button>
+
+              {/* Royal Purple */}
+              <button
+                type="button"
+                onClick={() => {
+                  applyTableStyle('#6b21a8', 'rgba(107, 33, 168, 0.15)', '#a855f7')
+                  setShowTableFormatModal(false)
+                }}
+                className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-purple-500/50 text-left space-y-1 transition transform hover:scale-105"
+              >
+                <div className="h-3 bg-purple-700 rounded font-bold text-[9px] text-white px-1 flex items-center">Header</div>
+                <div className="h-2 bg-purple-900/30 rounded" />
+                <div className="h-2 bg-purple-900/10 rounded" />
+                <span className="text-[10px] font-bold text-purple-300 block pt-1">Royal Purple</span>
+              </button>
+
+              {/* Dark Charcoal */}
+              <button
+                type="button"
+                onClick={() => {
+                  applyTableStyle('#18181b', 'rgba(255, 255, 255, 0.05)', '#71717a')
+                  setShowTableFormatModal(false)
+                }}
+                className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-zinc-500/50 text-left space-y-1 transition transform hover:scale-105"
+              >
+                <div className="h-3 bg-zinc-800 rounded font-bold text-[9px] text-white px-1 flex items-center">Header</div>
+                <div className="h-2 bg-white/10 rounded" />
+                <div className="h-2 bg-white/5 rounded" />
+                <span className="text-[10px] font-bold text-zinc-300 block pt-1">Dark Charcoal</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

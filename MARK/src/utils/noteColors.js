@@ -191,8 +191,8 @@ export function getTheme(colorId) {
     return NOTE_COLORS[colorId]
   }
 
-  // If colorId is a custom hex code
-  if (colorId && colorId.startsWith('#')) {
+  // If colorId is a hex color (e.g. '#1e293b')
+  if (colorId && (colorId.startsWith('#') || colorId.startsWith('rgb'))) {
     return {
       id: colorId,
       name: 'Custom',
