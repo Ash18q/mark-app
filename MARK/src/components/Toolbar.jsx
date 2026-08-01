@@ -287,8 +287,7 @@ export default function Toolbar({ editor }) {
             title="Text Highlight Background Fill"
             onChange={(hex) => {
               if (hex) {
-                editor.chain().focus().unsetHighlight().run()
-                editor.chain().focus().setHighlight({ color: hex }).run()
+                editor.chain().focus().unsetHighlight().setHighlight({ color: hex }).run()
               } else {
                 editor.chain().focus().unsetHighlight().run()
               }
