@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { NOTE_COLORS, DEFAULT_COLOR } from '../utils/noteColors'
 
 function formatDate(dateStr) {
   if (!dateStr) return ''
@@ -15,25 +16,44 @@ function formatDate(dateStr) {
   }
 }
 
+// Simple HTML/Markdown renderer for text notes
+function FormattedText({ text }) {
+  if (!text) return <span className="italic opacity-50">Empty note...</span>
+
+  // If text contains HTML tags (like <b>, <i>, <u>, <span>), render dangerously or parse
+  if (/<[a-z][\s\S]*>/i.test(text)) {
+    return <div className="rich-note-content" dangerouslySetInnerHTML={{ __html: text }} />
+  }
+
+  // Parse simple markdown **bold** and *italic*
+  return <span>{text}</span>
+}
+
 export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggleArchive, viewMode = 'grid' }) {
   const [showMenu, setShowMenu] = useState(false)
 
+  const colorKey = note.color && NOTE_COLORS[note.color] ? note.color : DEFAULT_COLOR
+  const theme = NOTE_COLORS[colorKey]
+
   const isChecklist = note.type === 'checklist' || (Array.isArray(note.checklist_items) && note.checklist_items.length > 0)
+  const isTable = note.type === 'table' || (note.table_data && Array.isArray(note.table_data.rows))
+
   const checklistItems = Array.isArray(note.checklist_items) ? note.checklist_items : []
+  const tableData = note.table_data || { headers: [], rows: [] }
   const tagsList = note.tags ? note.tags.split(',').map(t => t.trim()).filter(Boolean) : []
 
   return (
     <div
       onClick={() => onEdit(note)}
-      className={`group relative rounded-2xl p-4 shadow-sm border border-amber-900/20 hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden text-[#eceebf] bg-[#434522] ${
+      className={`group relative rounded-2xl p-4 shadow-sm border ${theme.border} hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden ${theme.text} ${theme.bg} ${
         note.is_pinned ? 'ring-2 ring-amber-400/60' : ''
       } ${viewMode === 'list' ? 'min-h-[100px]' : 'min-h-[140px] max-h-[320px]'}`}
     >
       {/* ── Top Header: Title & Pin/Menu ── */}
       <div>
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-bold text-base text-[#f5f7d2] leading-snug line-clamp-2 break-words">
-            {note.title || (isChecklist ? 'Checklist' : 'Untitled Note')}
+          <h3 className={`font-bold text-base ${theme.title} leading-snug line-clamp-2 break-words`}>
+            {note.title || (isTable ? 'Table Grid' : isChecklist ? 'Checklist' : 'Untitled Note')}
           </h3>
           
           <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -45,7 +65,7 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggle
             <div className="relative">
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="p-1 rounded-lg hover:bg-white/10 text-amber-200/70 hover:text-white transition opacity-80 sm:opacity-0 group-hover:opacity-100 cursor-pointer"
+                className="p-1 rounded-lg hover:bg-white/10 opacity-80 sm:opacity-0 group-hover:opacity-100 transition cursor-pointer text-xs"
                 title="Options"
               >
                 ⋮
@@ -82,29 +102,59 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggle
           </div>
         </div>
 
-        {/* ── Note Content Preview ── */}
-        {isChecklist ? (
-          <div className="space-y-1 mb-3 text-xs text-[#dce0ab] overflow-hidden line-clamp-5">
+        {/* ── Content View ── */}
+        {isTable ? (
+          /* Table Grid Preview */
+          <div className="mb-3 overflow-x-auto no-scrollbar max-h-36 border border-white/10 rounded-xl bg-black/20 p-1.5 text-[11px]">
+            <table className="w-full text-left border-collapse">
+              {tableData.headers && tableData.headers.length > 0 && (
+                <thead>
+                  <tr className="border-b border-white/15">
+                    {tableData.headers.slice(0, 4).map((h, i) => (
+                      <th key={i} className="p-1 font-extrabold truncate max-w-[80px]">
+                        {h || `Col ${i + 1}`}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+              )}
+              <tbody>
+                {(tableData.rows || []).slice(0, 3).map((row, rIdx) => (
+                  <tr key={rIdx} className="border-b border-white/5 last:border-0">
+                    {(row || []).slice(0, 4).map((cell, cIdx) => (
+                      <td key={cIdx} className="p-1 truncate max-w-[80px] opacity-90">
+                        {cell || '-'}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : isChecklist ? (
+          /* Checklist Preview */
+          <div className="space-y-1 mb-3 text-xs opacity-90 overflow-hidden line-clamp-5">
             {checklistItems.slice(0, 5).map((item, idx) => (
               <div key={item.id || idx} className="flex items-center gap-2 truncate">
-                <span className={`text-xs ${item.completed ? 'text-amber-400' : 'text-amber-200/60'}`}>
+                <span className="text-xs shrink-0">
                   {item.completed ? '☑' : '☐'}
                 </span>
-                <span className={`truncate ${item.completed ? 'line-through text-amber-200/50' : 'text-[#f0f2cc]'}`}>
+                <span className={`truncate ${item.completed ? 'line-through opacity-60' : ''}`}>
                   {item.text || 'Item'}
                 </span>
               </div>
             ))}
             {checklistItems.length > 5 && (
-              <div className="text-[10px] text-amber-200/50 italic pt-0.5">
+              <div className="text-[10px] opacity-60 italic pt-0.5">
                 +{checklistItems.length - 5} more items...
               </div>
             )}
           </div>
         ) : (
-          <p className="text-xs text-[#e1e4b8] leading-relaxed whitespace-pre-line line-clamp-5 mb-3 break-words">
-            {note.content || <span className="italic opacity-50">Empty note...</span>}
-          </p>
+          /* Text Preview */
+          <div className="text-xs leading-relaxed line-clamp-5 mb-3 break-words opacity-90">
+            <FormattedText text={note.content} />
+          </div>
         )}
       </div>
 
@@ -115,7 +165,7 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggle
           {tagsList.map((tag) => (
             <span
               key={tag}
-              className="bg-black/25 text-[#f7f8d6] font-semibold px-2 py-0.5 rounded-md text-[10px] truncate max-w-[100px]"
+              className="bg-black/25 text-white/90 font-semibold px-2 py-0.5 rounded-md text-[10px] truncate max-w-[100px]"
             >
               {tag}
             </span>
@@ -123,7 +173,7 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggle
         </div>
 
         {/* Date */}
-        <span className="text-[#c8cc96] font-medium text-[10px] whitespace-nowrap ml-auto">
+        <span className="opacity-75 font-medium text-[10px] whitespace-nowrap ml-auto">
           {formatDate(note.updated_at || note.created_at)}
         </span>
       </div>

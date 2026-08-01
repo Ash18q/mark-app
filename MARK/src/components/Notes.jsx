@@ -132,21 +132,27 @@ export default function Notes() {
           <p className="text-xs text-gray-500 max-w-xs mx-auto mb-5">
             {searchQuery || selectedTag
               ? 'Try adjusting your search terms or filters.'
-              : 'Keep track of your thoughts, ideas, and daily checklists.'}
+              : 'Keep track of your thoughts, ideas, checklists, and excel tables.'}
           </p>
           {!showArchived && (
-            <div className="flex justify-center gap-2">
+            <div className="flex flex-wrap justify-center gap-2">
               <button
                 onClick={() => setEditorState({ isOpen: true, note: null, initialType: 'text' })}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition"
+                className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition"
               >
                 + New Note
               </button>
               <button
                 onClick={() => setEditorState({ isOpen: true, note: null, initialType: 'checklist' })}
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md transition"
+                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md transition"
               >
                 + New Checklist
+              </button>
+              <button
+                onClick={() => setEditorState({ isOpen: true, note: null, initialType: 'table' })}
+                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition"
+              >
+                + New Table
               </button>
             </div>
           )}
@@ -166,7 +172,7 @@ export default function Notes() {
           <div
             className={
               viewMode === 'grid'
-                ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5'
+                ? 'grid grid-cols-2 gap-3'
                 : 'space-y-3'
             }
           >
@@ -197,7 +203,7 @@ export default function Notes() {
           <div
             className={
               viewMode === 'grid'
-                ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5'
+                ? 'grid grid-cols-2 gap-3'
                 : 'space-y-3'
             }
           >
@@ -240,6 +246,16 @@ export default function Notes() {
             >
               <span>📋 Checklist</span>
             </button>
+
+            <button
+              onClick={() => {
+                setIsFabOpen(false)
+                setEditorState({ isOpen: true, note: null, initialType: 'table' })
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-full shadow-xl hover:bg-emerald-700 transition cursor-pointer"
+            >
+              <span>📊 Table Grid</span>
+            </button>
           </div>
         )}
 
@@ -251,7 +267,7 @@ export default function Notes() {
               ? 'bg-gray-800 rotate-45 scale-105'
               : 'bg-gradient-to-br from-amber-500 to-amber-600 hover:scale-105'
           }`}
-          title="Create Note or Checklist"
+          title="Create Note, Checklist, or Table"
         >
           +
         </button>

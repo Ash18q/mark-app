@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { NOTE_COLORS, DEFAULT_COLOR } from '../utils/noteColors'
 
 export default function NoteEditor({
   note = null,
@@ -11,24 +12,80 @@ export default function NoteEditor({
   const [title, setTitle] = useState(note?.title || '')
   const [content, setContent] = useState(note?.content || '')
   const [type, setType] = useState(note?.type || initialType)
+  const [color, setColor] = useState(note?.color || DEFAULT_COLOR)
+
+  // Checklist state
   const [checklistItems, setChecklistItems] = useState(
     Array.isArray(note?.checklist_items) ? note.checklist_items : []
   )
+  const [newItemText, setNewItemText] = useState('')
+
+  // Table state (Excel Grid)
+  const [tableData, setTableData] = useState(() => {
+    if (note?.table_data && Array.isArray(note.table_data.headers) && Array.isArray(note.table_data.rows)) {
+      return note.table_data
+    }
+    return {
+      headers: ['Item', 'Quantity / Note', 'Status'],
+      rows: [
+        ['Example 1', '10', 'Done'],
+        ['Example 2', '5', 'Pending']
+      ]
+    }
+  })
+
+  // Tags state
   const [tags, setTags] = useState(
     note?.tags ? note.tags.split(',').map(t => t.trim()).filter(Boolean) : []
   )
   const [tagInput, setTagInput] = useState('')
   const [isPinned, setIsPinned] = useState(note?.is_pinned || false)
   const [showOptions, setShowOptions] = useState(false)
-  const [newItemText, setNewItemText] = useState('')
+  const [showColorPicker, setShowColorPicker] = useState(false)
 
+  // Ref for title focus & text area selection formatting
   const titleInputRef = useRef(null)
+  const textareaRef = useRef(null)
+
+  const theme = NOTE_COLORS[color] || NOTE_COLORS.olive
 
   useEffect(() => {
     if (titleInputRef.current) {
       titleInputRef.current.focus()
     }
   }, [])
+
+  // ─── Formatting Helpers for Rich Text ───
+  const applyFormatting = (prefix, suffix = prefix) => {
+    const el = textareaRef.current
+    if (!el) return
+
+    const start = el.selectionStart
+    const end = el.selectionEnd
+    const selectedText = content.substring(start, end)
+
+    let replacement = ''
+    if (prefix.startsWith('<') && prefix.endsWith('>')) {
+      // HTML tag format
+      replacement = `${prefix}${selectedText || 'text'}${suffix}`
+    } else {
+      // Markdown format
+      replacement = `${prefix}${selectedText || 'text'}${suffix}`
+    }
+
+    const newContent = content.substring(0, start) + replacement + content.substring(end)
+    setContent(newContent)
+
+    // Re-focus and set selection
+    setTimeout(() => {
+      el.focus()
+      el.setSelectionRange(start + prefix.length, start + prefix.length + (selectedText ? selectedText.length : 4))
+    }, 50)
+  }
+
+  const applyColorFormat = (hexColor) => {
+    applyFormatting(`<font color="${hexColor}">`, `</font>`)
+  }
 
   // ─── Checklist Helper Functions ───
   const toggleChecklistItem = (id) => {
@@ -55,6 +112,58 @@ export default function NoteEditor({
     setNewItemText('')
   }
 
+  // ─── Table (Excel Grid) Helper Functions ───
+  const updateTableHeader = (colIdx, val) => {
+    setTableData(prev => {
+      const newHeaders = [...prev.headers]
+      newHeaders[colIdx] = val
+      return { ...prev, headers: newHeaders }
+    })
+  }
+
+  const updateTableCell = (rowIdx, colIdx, val) => {
+    setTableData(prev => {
+      const newRows = prev.rows.map((row, r) => {
+        if (r !== rowIdx) return row
+        const newRow = [...row]
+        newRow[colIdx] = val
+        return newRow
+      })
+      return { ...prev, rows: newRows }
+    })
+  }
+
+  const addTableRow = () => {
+    setTableData(prev => {
+      const emptyRow = new Array(prev.headers.length).fill('')
+      return { ...prev, rows: [...prev.rows, emptyRow] }
+    })
+  }
+
+  const addTableColumn = () => {
+    setTableData(prev => {
+      const newHeaders = [...prev.headers, `Col ${prev.headers.length + 1}`]
+      const newRows = prev.rows.map(row => [...row, ''])
+      return { headers: newHeaders, rows: newRows }
+    })
+  }
+
+  const deleteTableRow = (rowIdx) => {
+    if (tableData.rows.length <= 1) return
+    setTableData(prev => ({
+      ...prev,
+      rows: prev.rows.filter((_, r) => r !== rowIdx)
+    }))
+  }
+
+  const deleteTableColumn = (colIdx) => {
+    if (tableData.headers.length <= 1) return
+    setTableData(prev => ({
+      headers: prev.headers.filter((_, c) => c !== colIdx),
+      rows: prev.rows.map(row => row.filter((_, c) => c !== colIdx))
+    }))
+  }
+
   // ─── Tag Helper Functions ───
   const handleAddTag = (tagToAdd) => {
     const trimmed = tagToAdd.trim().replace(/^#/, '')
@@ -75,7 +184,9 @@ export default function NoteEditor({
       title: title.trim(),
       content: content.trim(),
       type,
+      color,
       checklist_items: checklistItems,
+      table_data: tableData,
       tags: tags.join(', '),
       is_pinned: isPinned
     })
@@ -88,50 +199,94 @@ export default function NoteEditor({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-      <div className="w-full max-w-lg bg-[#4a4d22] text-[#f4f6d8] rounded-3xl shadow-2xl overflow-hidden border border-amber-900/30 flex flex-col max-h-[90vh]">
+      <div className={`w-full max-w-xl ${theme.bg} ${theme.text} rounded-3xl shadow-2xl overflow-hidden border ${theme.border} flex flex-col max-h-[92vh] transition-colors duration-300`}>
         
         {/* ── Top Header Navigation Bar ── */}
-        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-[#3e401b]">
+        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-black/20">
           {/* Back Button */}
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-xl hover:bg-white/10 text-amber-200 transition cursor-pointer"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-xl hover:bg-white/10 opacity-90 transition cursor-pointer"
             title="Back / Cancel"
           >
             ‹
           </button>
 
-          {/* Type Switcher / Actions */}
-          <div className="flex items-center gap-1.5 bg-black/20 p-1 rounded-xl">
+          {/* Type Switcher */}
+          <div className="flex items-center gap-1 bg-black/30 p-1 rounded-xl">
             <button
               onClick={() => setType('text')}
-              className={`px-3 py-1 text-xs font-bold rounded-lg transition ${
+              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition ${
                 type === 'text'
-                  ? 'bg-amber-400 text-gray-900 shadow-2xs'
-                  : 'text-amber-200/70 hover:text-white'
+                  ? 'bg-amber-400 text-gray-950 shadow-2xs'
+                  : 'opacity-70 hover:opacity-100'
               }`}
             >
               📝 Note
             </button>
             <button
               onClick={() => setType('checklist')}
-              className={`px-3 py-1 text-xs font-bold rounded-lg transition ${
+              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition ${
                 type === 'checklist'
-                  ? 'bg-amber-400 text-gray-900 shadow-2xs'
-                  : 'text-amber-200/70 hover:text-white'
+                  ? 'bg-amber-400 text-gray-950 shadow-2xs'
+                  : 'opacity-70 hover:opacity-100'
               }`}
             >
               📋 Checklist
             </button>
+            <button
+              onClick={() => setType('table')}
+              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition ${
+                type === 'table'
+                  ? 'bg-amber-400 text-gray-950 shadow-2xs'
+                  : 'opacity-70 hover:opacity-100'
+              }`}
+            >
+              📊 Table
+            </button>
           </div>
 
-          {/* Right Header Buttons */}
+          {/* Right Action Controls */}
           <div className="flex items-center gap-1.5">
+            {/* Color Palette Button */}
+            <div className="relative">
+              <button
+                onClick={() => setShowColorPicker(!showColorPicker)}
+                className="w-7 h-7 rounded-full border-2 border-white/40 shadow-inner transition transform hover:scale-105 cursor-pointer flex items-center justify-center text-xs"
+                style={{ backgroundColor: theme.hex }}
+                title="Change Note Color"
+              >
+                🎨
+              </button>
+
+              {/* Color Picker Dropdown */}
+              {showColorPicker && (
+                <>
+                  <div className="fixed inset-0 z-20" onClick={() => setShowColorPicker(false)} />
+                  <div className="absolute right-0 top-9 z-30 bg-gray-900/95 backdrop-blur border border-gray-700 p-2.5 rounded-2xl shadow-2xl grid grid-cols-4 gap-2 animate-in fade-in zoom-in-95 duration-100">
+                    {Object.values(NOTE_COLORS).map(c => (
+                      <button
+                        key={c.id}
+                        onClick={() => { setColor(c.id); setShowColorPicker(false); }}
+                        className={`w-7 h-7 rounded-full border-2 transition transform hover:scale-110 flex items-center justify-center text-[10px] ${
+                          color === c.id ? 'border-amber-400 scale-110 ring-2 ring-amber-400/50' : 'border-white/20'
+                        }`}
+                        style={{ backgroundColor: c.hex }}
+                        title={c.name}
+                      >
+                        {color === c.id ? '✓' : ''}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
             {/* Pin Toggle Button */}
             <button
               onClick={() => setIsPinned(!isPinned)}
               className={`p-1.5 rounded-full transition cursor-pointer ${
-                isPinned ? 'bg-amber-400 text-gray-900 font-bold' : 'hover:bg-white/10 text-amber-200'
+                isPinned ? 'bg-amber-400 text-gray-900 font-bold' : 'hover:bg-white/10 opacity-80'
               }`}
               title={isPinned ? 'Unpin Note' : 'Pin Note'}
             >
@@ -142,7 +297,7 @@ export default function NoteEditor({
             <div className="relative">
               <button
                 onClick={() => setShowOptions(!showOptions)}
-                className="p-1.5 rounded-full hover:bg-white/10 text-amber-200 transition cursor-pointer"
+                className="p-1.5 rounded-full hover:bg-white/10 opacity-80 transition cursor-pointer"
                 title="Options"
               >
                 ⋮
@@ -163,7 +318,7 @@ export default function NoteEditor({
                       onClick={() => { onClose(); setShowOptions(false); }}
                       className="w-full text-left px-4 py-2 hover:bg-amber-50 text-gray-700"
                     >
-                      Discard Change
+                      Discard Changes
                     </button>
                     {note?.id && (
                       <>
@@ -201,19 +356,61 @@ export default function NoteEditor({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Note title"
-            className="w-full bg-transparent text-xl font-extrabold text-[#f9fae2] placeholder-[#b5b88c] focus:outline-none border-b border-white/10 pb-2"
+            className={`w-full bg-transparent text-xl font-extrabold ${theme.title} placeholder-white/40 focus:outline-none border-b border-white/10 pb-2`}
           />
 
-          {/* ── Content View: Text vs Checklist ── */}
+          {/* ── RICH TEXT FORMATTING TOOLBAR (For Text Notes) ── */}
+          {type === 'text' && (
+            <div className="flex flex-wrap items-center gap-1 p-1.5 rounded-xl bg-black/25 border border-white/10 text-xs">
+              <button
+                type="button"
+                onClick={() => applyFormatting('<b>', '</b>')}
+                className="px-2 py-1 font-extrabold rounded hover:bg-white/15 cursor-pointer"
+                title="Bold"
+              >
+                B
+              </button>
+              <button
+                type="button"
+                onClick={() => applyFormatting('<i>', '</i>')}
+                className="px-2 py-1 italic rounded hover:bg-white/15 cursor-pointer"
+                title="Italic"
+              >
+                I
+              </button>
+              <button
+                type="button"
+                onClick={() => applyFormatting('<u>', '</u>')}
+                className="px-2 py-1 underline rounded hover:bg-white/15 cursor-pointer"
+                title="Underline"
+              >
+                U
+              </button>
+              
+              <div className="h-4 w-px bg-white/20 mx-1" />
+
+              {/* Text Color Presets */}
+              <span className="text-[10px] opacity-70 px-1">Color:</span>
+              <button type="button" onClick={() => applyColorFormat('#f5f7d2')} className="w-4 h-4 rounded-full bg-[#f5f7d2] border border-white/30 hover:scale-110 transition" title="Yellow" />
+              <button type="button" onClick={() => applyColorFormat('#ffffff')} className="w-4 h-4 rounded-full bg-white border border-white/30 hover:scale-110 transition" title="White" />
+              <button type="button" onClick={() => applyColorFormat('#fca5a5')} className="w-4 h-4 rounded-full bg-red-300 border border-white/30 hover:scale-110 transition" title="Red" />
+              <button type="button" onClick={() => applyColorFormat('#86efac')} className="w-4 h-4 rounded-full bg-green-300 border border-white/30 hover:scale-110 transition" title="Green" />
+              <button type="button" onClick={() => applyColorFormat('#93c5fd')} className="w-4 h-4 rounded-full bg-blue-300 border border-white/30 hover:scale-110 transition" title="Blue" />
+              <button type="button" onClick={() => applyColorFormat('#fdba74')} className="w-4 h-4 rounded-full bg-orange-300 border border-white/30 hover:scale-110 transition" title="Orange" />
+            </div>
+          )}
+
+          {/* ── Content View: Text / Checklist / Table ── */}
           {type === 'text' ? (
             <textarea
+              ref={textareaRef}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Type your note content here..."
+              placeholder="Type your note content here... (Supports Bold, Italic, Colors)"
               rows={8}
-              className="w-full bg-transparent text-sm text-[#e8eaa8] placeholder-[#a6a97b] focus:outline-none resize-none leading-relaxed"
+              className="w-full bg-transparent text-sm leading-relaxed placeholder-white/40 focus:outline-none resize-none"
             />
-          ) : (
+          ) : type === 'checklist' ? (
             <div className="space-y-2.5">
               {/* Existing Checklist Items */}
               {checklistItems.map((item, index) => (
@@ -223,7 +420,7 @@ export default function NoteEditor({
                     className={`w-5 h-5 rounded border flex items-center justify-center text-xs font-bold transition shrink-0 ${
                       item.completed
                         ? 'bg-amber-400 border-amber-400 text-gray-900'
-                        : 'border-amber-200/50 hover:border-amber-400 text-transparent'
+                        : 'border-white/40 hover:border-amber-400 text-transparent'
                     }`}
                   >
                     ✓
@@ -240,12 +437,12 @@ export default function NoteEditor({
                     }}
                     placeholder="List item..."
                     className={`w-full bg-transparent text-sm focus:outline-none ${
-                      item.completed ? 'line-through text-amber-200/50' : 'text-[#f5f7d0]'
+                      item.completed ? 'line-through opacity-50' : ''
                     }`}
                   />
                   <button
                     onClick={() => removeChecklistItem(item.id)}
-                    className="text-amber-200/50 hover:text-red-300 text-xs p-1 opacity-60 group-hover:opacity-100 transition"
+                    className="opacity-50 hover:opacity-100 hover:text-red-300 text-xs p-1 transition"
                   >
                     ✕
                   </button>
@@ -254,7 +451,7 @@ export default function NoteEditor({
 
               {/* Add New Checklist Item Input */}
               <div className="flex items-center gap-2 pt-1 border-t border-white/10">
-                <span className="w-5 h-5 rounded border border-dashed border-amber-200/40 flex items-center justify-center text-xs text-amber-200/50">
+                <span className="w-5 h-5 rounded border border-dashed border-white/30 flex items-center justify-center text-xs opacity-60">
                   +
                 </span>
                 <input
@@ -271,8 +468,94 @@ export default function NoteEditor({
                     if (newItemText.trim()) addChecklistItem(newItemText)
                   }}
                   placeholder="Add item..."
-                  className="w-full bg-transparent text-sm text-[#f5f7d0] placeholder-[#9fa277] focus:outline-none"
+                  className="w-full bg-transparent text-sm placeholder-white/40 focus:outline-none"
                 />
+              </div>
+            </div>
+          ) : (
+            /* ── TABLE / EXCEL GRID EDITOR ── */
+            <div className="space-y-3">
+              <div className="overflow-x-auto no-scrollbar border border-white/15 rounded-2xl bg-black/25 p-2">
+                <table className="w-full text-left border-collapse min-w-[300px]">
+                  {/* Table Header */}
+                  <thead>
+                    <tr className="border-b border-white/20">
+                      {tableData.headers.map((header, cIdx) => (
+                        <th key={cIdx} className="p-1.5 group relative">
+                          <div className="flex items-center justify-between gap-1">
+                            <input
+                              type="text"
+                              value={header}
+                              onChange={(e) => updateTableHeader(cIdx, e.target.value)}
+                              placeholder={`Col ${cIdx + 1}`}
+                              className="w-full bg-transparent font-black text-xs text-amber-300 focus:outline-none"
+                            />
+                            {tableData.headers.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => deleteTableColumn(cIdx)}
+                                className="text-red-300/60 hover:text-red-300 text-[10px] opacity-0 group-hover:opacity-100 transition px-1"
+                                title="Delete Column"
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                        </th>
+                      ))}
+                      <th className="w-8"></th>
+                    </tr>
+                  </thead>
+
+                  {/* Table Rows */}
+                  <tbody>
+                    {tableData.rows.map((row, rIdx) => (
+                      <tr key={rIdx} className="border-b border-white/10 group last:border-0">
+                        {row.map((cell, cIdx) => (
+                          <td key={cIdx} className="p-1.5">
+                            <input
+                              type="text"
+                              value={cell}
+                              onChange={(e) => updateTableCell(rIdx, cIdx, e.target.value)}
+                              placeholder="..."
+                              className="w-full bg-transparent text-xs text-white/90 focus:outline-none focus:bg-white/10 rounded px-1 py-0.5"
+                            />
+                          </td>
+                        ))}
+                        <td className="p-1 text-center">
+                          {tableData.rows.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => deleteTableRow(rIdx)}
+                              className="text-red-300/60 hover:text-red-300 text-xs opacity-0 group-hover:opacity-100 transition"
+                              title="Delete Row"
+                            >
+                              🗑️
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Table Action Controls: Add Row & Add Column */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={addTableRow}
+                  className="px-3 py-1.5 bg-black/30 hover:bg-black/40 text-xs font-bold rounded-xl border border-white/10 transition cursor-pointer flex items-center gap-1"
+                >
+                  <span>➕ Add Row</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={addTableColumn}
+                  className="px-3 py-1.5 bg-black/30 hover:bg-black/40 text-xs font-bold rounded-xl border border-white/10 transition cursor-pointer flex items-center gap-1"
+                >
+                  <span>➕ Add Column</span>
+                </button>
               </div>
             </div>
           )}
@@ -280,16 +563,16 @@ export default function NoteEditor({
           {/* ── Tags Input Section ── */}
           <div className="pt-3 border-t border-white/10 space-y-2">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs text-amber-200/70 font-semibold">Tags:</span>
+              <span className="text-xs font-semibold opacity-75">Tags:</span>
               {tags.map((tag) => (
                 <span
                   key={tag}
-                  className="bg-black/30 text-[#f5f7d2] text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5"
+                  className="bg-black/30 text-white text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5"
                 >
                   <span>#{tag}</span>
                   <button
                     onClick={() => handleRemoveTag(tag)}
-                    className="text-amber-300/60 hover:text-red-300 text-xs font-bold"
+                    className="opacity-70 hover:opacity-100 text-xs font-bold"
                   >
                     ✕
                   </button>
@@ -309,7 +592,7 @@ export default function NoteEditor({
                   }
                 }}
                 placeholder="Add tag (e.g. Portfolio, Best AI)..."
-                className="w-full bg-black/20 text-xs text-[#f5f7d0] placeholder-[#8f9266] px-3 py-2 rounded-xl focus:outline-none border border-white/10"
+                className="w-full bg-black/20 text-xs text-white placeholder-white/40 px-3 py-2 rounded-xl focus:outline-none border border-white/10"
               />
 
               {/* Tag Suggestions Dropdown */}
