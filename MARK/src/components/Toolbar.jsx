@@ -1,5 +1,17 @@
 import { useState } from 'react'
 
+// Calculate safe fixed position for a floating picker that stays within viewport
+function calcPickerPos(e) {
+  const rect = e.currentTarget.getBoundingClientRect()
+  const PICKER_W = 270
+  let left = rect.left
+  if (left + PICKER_W > window.innerWidth - 8) {
+    left = window.innerWidth - PICKER_W - 8
+  }
+  if (left < 8) left = 8
+  return { top: rect.bottom + 6, left }
+}
+
 // ── Excel-Style 10×6 Theme Color Grid ──
 const THEME_COLOR_GRID = [
   ['#000000','#ffffff','#1e293b','#1e3a8a','#0284c7','#15803d','#eab308','#c2410c','#b91c1c','#6b21a8'],
@@ -22,9 +34,8 @@ const SWATCH_COLORS = [
   '#000000','#1e293b','#18181b','#ffffff','#fef3c7','#e0f2fe','#f0fdf4','#fdf4ff',
 ]
 
-// ── Floating Excel-Style Color Picker ──
-// Uses onMouseDown + e.preventDefault() on ALL elements to preserve editor text selection!
-function FloatingColorPicker({ label, onSelect, onClose, showNoFill = true }) {
+// Floating Excel-Style Color Picker — uses fixed position so it never overflows viewport
+function FloatingColorPicker({ label, pos, onSelect, onClose, showNoFill = true }) {
   const [customHex, setCustomHex] = useState('')
 
   return (
@@ -35,10 +46,10 @@ function FloatingColorPicker({ label, onSelect, onClose, showNoFill = true }) {
         onMouseDown={(e) => e.preventDefault()}
         onClick={onClose}
       />
-      {/* Picker panel */}
+      {/* Picker panel – fixed-positioned so it stays on screen */}
       <div
-        className="absolute right-0 top-full mt-1.5 z-50 bg-[#0f172a] border border-slate-700 rounded-2xl shadow-2xl overflow-hidden"
-        style={{ width: '270px' }}
+        className="bg-[#0f172a] border border-slate-700 rounded-2xl shadow-2xl overflow-hidden"
+        style={{ position: 'fixed', top: pos.top, left: pos.left, width: '270px', zIndex: 9999 }}
         onMouseDown={(e) => e.preventDefault()}
       >
         {/* Header */}
@@ -151,11 +162,12 @@ function SwatchRow({ colors, selected, onSelect }) {
   )
 }
 
-export default function Toolbar({ editor, onTableFormat }) {
+export default function Toolbar({ editor, onTableFormat, onCustomTableFormat }) {
   const [showTextColorPicker,  setShowTextColorPicker]  = useState(false)
   const [showHighlightPicker,  setShowHighlightPicker]  = useState(false)
   const [showTableFormatModal, setShowTableFormatModal] = useState(false)
   const [showCustomTable,      setShowCustomTable]      = useState(false)
+  const [pickerPos,            setPickerPos]            = useState({ top: 0, left: 0 })
   const [customTable, setCustomTable] = useState({
     headerBg: '#1e3a8a',
     rowBg:    '#1e293b',
@@ -163,25 +175,6 @@ export default function Toolbar({ editor, onTableFormat }) {
   })
 
   if (!editor) return null
-
-  const applyCustomTableStyle = () => {
-    setTimeout(() => {
-      document.querySelectorAll('.ProseMirror table').forEach(tbl => {
-        tbl.style.borderColor = customTable.headerBg + '88'
-        tbl.querySelectorAll('th').forEach(th => {
-          th.style.backgroundColor = customTable.headerBg
-          th.style.color = '#fff'
-        })
-        const rows = tbl.querySelectorAll('tr')
-        rows.forEach((tr, i) => {
-          if (i === 0) return // header
-          tr.querySelectorAll('td').forEach(td => {
-            td.style.backgroundColor = i === rows.length - 1 ? customTable.footerBg : customTable.rowBg
-          })
-        })
-      })
-    }, 30)
-  }
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-2xl bg-slate-900 border border-slate-700 text-white text-xs shadow-xl">
@@ -226,7 +219,11 @@ export default function Toolbar({ editor, onTableFormat }) {
         <button
           type="button"
           onMouseDown={(e) => e.preventDefault()} // keeps editor selection alive!
-          onClick={() => { setShowTextColorPicker(v => !v); setShowHighlightPicker(false) }}
+          onClick={(e) => {
+            setPickerPos(calcPickerPos(e))
+            setShowTextColorPicker(v => !v)
+            setShowHighlightPicker(false)
+          }}
           className="px-2.5 py-1.5 font-bold rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1 cursor-pointer"
           title="Text Color"
         >
@@ -236,6 +233,7 @@ export default function Toolbar({ editor, onTableFormat }) {
         {showTextColorPicker && (
           <FloatingColorPicker
             label="Text Color"
+            pos={pickerPos}
             showNoFill
             onSelect={(hex) => {
               hex ? editor.chain().focus().setColor(hex).run()
@@ -252,7 +250,11 @@ export default function Toolbar({ editor, onTableFormat }) {
         <button
           type="button"
           onMouseDown={(e) => e.preventDefault()} // keeps editor selection alive!
-          onClick={() => { setShowHighlightPicker(v => !v); setShowTextColorPicker(false) }}
+          onClick={(e) => {
+            setPickerPos(calcPickerPos(e))
+            setShowHighlightPicker(v => !v)
+            setShowTextColorPicker(false)
+          }}
           className="px-2.5 py-1.5 font-bold rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1 cursor-pointer"
           title="Highlight Fill"
         >
@@ -262,6 +264,7 @@ export default function Toolbar({ editor, onTableFormat }) {
         {showHighlightPicker && (
           <FloatingColorPicker
             label="Highlight Fill"
+            pos={pickerPos}
             showNoFill
             onSelect={(hex) => {
               hex ? editor.chain().focus().setHighlight({ color: hex }).run()
@@ -467,8 +470,9 @@ export default function Toolbar({ editor, onTableFormat }) {
                   if (!editor.isActive('table')) {
                     editor.chain().focus().insertTable({ rows: 4, cols: 3, withHeaderRow: true }).run()
                   }
-                  applyCustomTableStyle()
+                  onCustomTableFormat && onCustomTableFormat(customTable)
                   setShowCustomTable(false)
+                  setShowTableFormatModal(false)
                 }}
                 className="w-full py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm rounded-2xl transition cursor-pointer shadow-lg"
               >

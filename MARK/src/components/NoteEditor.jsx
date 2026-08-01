@@ -35,6 +35,7 @@ export default function NoteEditor({
   const [showOptions, setShowOptions] = useState(false)
   const [showNoteBgPicker, setShowNoteBgPicker] = useState(false)
   const [tableFormat, setTableFormat] = useState('')
+  const [customTableColors, setCustomTableColors] = useState(null)
 
   const titleInputRef = useRef(null)
   const theme = getTheme(color)
@@ -225,7 +226,11 @@ export default function NoteEditor({
 
         {/* ── MS EXCEL-STYLE RIBBON TOOLBAR ── */}
         <div className="p-2 border-b border-white/10 bg-black/15 shrink-0">
-          <Toolbar editor={editor} onTableFormat={(cls) => setTableFormat(cls)} />
+          <Toolbar
+            editor={editor}
+            onTableFormat={(cls) => { setTableFormat(cls); setCustomTableColors(null) }}
+            onCustomTableFormat={(colors) => { setTableFormat('table-custom'); setCustomTableColors(colors) }}
+          />
         </div>
 
         {/* ── Editor Body Area ── */}
@@ -242,7 +247,14 @@ export default function NoteEditor({
           />
 
           {/* TipTap Rich Editor Canvas */}
-          <div className={`bg-black/20 rounded-2xl border border-white/15 p-3 min-h-[220px] shadow-inner overflow-x-auto ${tableFormat}`}>
+          <div
+            className={`bg-black/20 rounded-2xl border border-white/15 p-3 min-h-[220px] shadow-inner overflow-x-auto ${tableFormat}`}
+            style={customTableColors ? {
+              '--tbl-header': customTableColors.headerBg,
+              '--tbl-row': customTableColors.rowBg,
+              '--tbl-footer': customTableColors.footerBg,
+            } : {}}
+          >
             <EditorContent editor={editor} />
           </div>
 

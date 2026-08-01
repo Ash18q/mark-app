@@ -189,3 +189,9 @@
 .table-rose-pink .ProseMirror table { border: 2px solid #f43f5e !important; }
 .table-rose-pink .ProseMirror table th { background-color: #be185d !important; color: #fff !important; border: 1px solid #f43f5e !important; }
 .table-rose-pink .ProseMirror table tr:nth-child(even) td { background-color: rgba(190,24,93,0.15) !important; }
+
+/* Custom Table — reads CSS variables set via inline style on editor container */
+.table-custom .ProseMirror table { border: 2px solid var(--tbl-header, #3b82f6) !important; border-collapse: collapse !important; }
+.table-custom .ProseMirror table th { background-color: var(--tbl-header, #1e3a8a) !important; color: #fff !important; border: 1px solid var(--tbl-header, #3b82f6) !important; }
+.table-custom .ProseMirror table td { background-color: var(--tbl-row, transparent) !important; border: 1px solid var(--tbl-header, #3b82f6) !important; }
+.table-custom .ProseMirror table tr:last-child td { background-color: var(--tbl-footer, var(--tbl-header, #1e3a8a)) !important; color: #fff !important; }
