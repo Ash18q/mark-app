@@ -179,3 +179,13 @@
 .table-dark-charcoal .ProseMirror table { border: 2px solid #71717a !important; }
 .table-dark-charcoal .ProseMirror table th { background-color: #18181b !important; color: #fff !important; border: 1px solid #71717a !important; }
 .table-dark-charcoal .ProseMirror table tr:nth-child(even) td { background-color: rgba(255,255,255,0.05) !important; }
+
+/* Ocean Teal */
+.table-ocean-teal .ProseMirror table { border: 2px solid #14b8a6 !important; }
+.table-ocean-teal .ProseMirror table th { background-color: #0f766e !important; color: #fff !important; border: 1px solid #14b8a6 !important; }
+.table-ocean-teal .ProseMirror table tr:nth-child(even) td { background-color: rgba(15,118,110,0.15) !important; }
+
+/* Rose Pink */
+.table-rose-pink .ProseMirror table { border: 2px solid #f43f5e !important; }
+.table-rose-pink .ProseMirror table th { background-color: #be185d !important; color: #fff !important; border: 1px solid #f43f5e !important; }
+.table-rose-pink .ProseMirror table tr:nth-child(even) td { background-color: rgba(190,24,93,0.15) !important; }
