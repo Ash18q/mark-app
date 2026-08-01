@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { getTheme, DEFAULT_COLOR } from '../utils/noteColors'
 
 function formatDate(dateStr) {

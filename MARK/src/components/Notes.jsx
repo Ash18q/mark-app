@@ -5,7 +5,9 @@ import NoteCard from './NoteCard'
 import NoteEditor from './NoteEditor'
 
 export default function Notes() {
-  const { notes, addNote, updateNote, deleteNote, togglePinNote, toggleArchiveNote, tags: allTags } = useAuth()
+  const { notes = [], addNote, updateNote, deleteNote, togglePinNote, toggleArchiveNote, tags: allTags = [] } = useAuth()
+
+  const safeNotes = Array.isArray(notes) ? notes : []
 
   // State management
   const [searchQuery, setSearchQuery] = useState('')
@@ -30,7 +32,8 @@ export default function Notes() {
 
   // ─── Filter & Sort Logic ───
   const filteredNotes = useMemo(() => {
-    return notes.filter((n) => {
+    return safeNotes.filter((n) => {
+      if (!n) return false
       // Archived filter
       if (showArchived ? !n.is_archived : n.is_archived) return false
 
