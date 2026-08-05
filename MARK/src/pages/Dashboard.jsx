@@ -82,6 +82,45 @@ const MoreTileIcon = ({ className = "w-5 h-5" }) => (
     <path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/>
   </svg>
 )
+const FacebookTileIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} fill="#1877F2" viewBox="0 0 24 24">
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+  </svg>
+)
+const ThreadsTileIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12.001 0C5.373 0 0 5.373 0 12s5.373 12 12.001 12c6.627 0 12-5.373 12-12S18.628 0 12.001 0zm.005 18.72a6.72 6.72 0 0 1-6.72-6.72c0-3.711 3.009-6.72 6.72-6.72s6.72 3.009 6.72 6.72-3.009 6.72-6.72 6.72z"/>
+  </svg>
+)
+const GitHubTileIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </svg>
+)
+const RedditTileIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} fill="#FF4500" viewBox="0 0 24 24">
+    <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.188-.491.96 0 1.743.784 1.743 1.743 0 .548-.258 1.033-.655 1.353.03.203.045.41.045.618 0 3.154-3.662 5.718-8.176 5.718-4.513 0-8.175-2.564-8.175-5.718 0-.204.015-.41.043-.611A1.734 1.734 0 0 1 3.9 11.99c0-.96.783-1.744 1.744-1.744.458 0 .88.182 1.187.49 1.194-.855 2.846-1.417 4.67-1.487l.951-4.463 3.3.693c.038.648.57 1.165 1.258 1.165z"/>
+  </svg>
+)
+const DiscordTileIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} fill="#5865F2" viewBox="0 0 24 24">
+    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .079.009c.12.098.245.195.372.288a.077.077 0 0 1-.006.128c-.598.347-1.22.645-1.873.893a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028z"/>
+  </svg>
+)
+
+function getPlatformTileIcon(p, className = "w-4 h-4") {
+  const name = (p || '').toLowerCase()
+  if (name.includes('youtube') || name === 'yt') return <YouTubeTileIcon className={className} />
+  if (name.includes('instagram') || name === 'insta') return <InstagramTileIcon className={className} />
+  if (name.includes('linkedin')) return <LinkedInTileIcon className={className} />
+  if (name.includes('twitter') || name === 'x') return <XTwitterTileIcon className={className} />
+  if (name.includes('facebook') || name === 'fb') return <FacebookTileIcon className={className} />
+  if (name.includes('threads')) return <ThreadsTileIcon className={className} />
+  if (name.includes('github')) return <GitHubTileIcon className={className} />
+  if (name.includes('reddit')) return <RedditTileIcon className={className} />
+  if (name.includes('discord')) return <DiscordTileIcon className={className} />
+  return <GlobeIcon className={`${className} text-purple-600`} />
+}
 
 // ─── Platform color palette ───────────────────────────────────────────────────
 const PLATFORM_COLORS = {
@@ -854,31 +893,22 @@ function AddLinkTab({ initialUrl, links }) {
     } catch { /* clip fail */ }
   }
 
-  const PLATFORM_TILES = [
-    { id: 'Website', label: 'Website', icon: <GlobeIcon className="w-6 h-6" /> },
-    { id: 'YouTube', label: 'YouTube', icon: <YouTubeTileIcon className="w-6 h-6" /> },
-    { id: 'Instagram', label: 'Instagram', icon: <InstagramTileIcon className="w-6 h-6" /> },
-    { id: 'LinkedIn', label: 'LinkedIn', icon: <LinkedInTileIcon className="w-6 h-6" /> },
-    { id: 'Twitter/X', label: 'X (Twitter)', icon: <XTwitterTileIcon className="w-6 h-6" /> },
-    { id: 'More', label: 'More', icon: <MoreTileIcon className="w-6 h-6" /> },
-  ]
-
   // ── Normal Mode ──────────────────────────────────────────────────────────────
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Top Card: Add New Link ONLY */}
-      <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-6">
+      {/* Top Card: Add New Link ONLY (Tight padding to prevent scrolling to Save Link) */}
+      <div className="bg-white rounded-3xl border border-slate-100 p-4.5 sm:p-5 shadow-sm space-y-3.5">
         {/* Card Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl font-bold">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg font-bold">
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
             </div>
             <div>
-              <h2 className="text-slate-900 font-bold text-lg tracking-tight">Add New Link</h2>
-              <p className="text-slate-400 text-xs mt-0.5">Save, organize &amp; find your links instantly.</p>
+              <h2 className="text-slate-900 font-bold text-base tracking-tight">Add New Link</h2>
+              <p className="text-slate-400 text-[11px]">Save, organize &amp; find your links instantly.</p>
             </div>
           </div>
 
@@ -886,9 +916,9 @@ function AddLinkTab({ initialUrl, links }) {
           <button
             type="button"
             onClick={handlePasteFromClipboard}
-            className="bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold text-xs px-3.5 py-2 rounded-xl border border-purple-100 flex items-center gap-1.5 transition cursor-pointer"
+            className="bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold text-xs px-3 py-1.5 rounded-xl border border-purple-100 flex items-center gap-1.5 transition cursor-pointer"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             <span>Paste from clipboard</span>
@@ -896,14 +926,14 @@ function AddLinkTab({ initialUrl, links }) {
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           {/* URL */}
-          <div className="space-y-1.5">
-            <label htmlFor="link-url" className="block text-xs font-bold text-slate-900 tracking-wide uppercase">
+          <div className="space-y-1">
+            <label htmlFor="link-url" className="block text-[11px] font-bold text-slate-900 tracking-wide uppercase">
               URL
             </label>
-            <div className="relative flex items-center bg-slate-50/70 border border-slate-200/80 rounded-2xl px-4 py-3.5 focus-within:bg-white focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-100 transition shadow-2xs">
-              <svg className="w-5 h-5 text-slate-400 mr-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="relative flex items-center bg-slate-50/70 border border-slate-200/80 rounded-xl px-3.5 py-2.5 focus-within:bg-white focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-100 transition shadow-2xs">
+              <svg className="w-4.5 h-4.5 text-slate-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
               <input
@@ -917,19 +947,19 @@ function AddLinkTab({ initialUrl, links }) {
                   if (d) setPlatform(d)
                 }}
                 placeholder="https://example.com/article"
-                className="w-full bg-transparent text-sm text-slate-800 placeholder-slate-400 focus:outline-none font-medium"
+                className="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none font-medium"
                 required
               />
             </div>
-            <div className="flex items-center justify-between text-xs text-slate-400 pt-0.5">
+            <div className="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
               <span>We'll fetch the title and details automatically.</span>
               <span>{url.length} / 2000</span>
             </div>
           </div>
 
           {/* Tags */}
-          <div className="space-y-1.5">
-            <label htmlFor="link-tag" className="block text-xs font-bold text-slate-900 tracking-wide uppercase">
+          <div className="space-y-1">
+            <label htmlFor="link-tag" className="block text-[11px] font-bold text-slate-900 tracking-wide uppercase">
               Tags
             </label>
             <TagInput
@@ -938,20 +968,21 @@ function AddLinkTab({ initialUrl, links }) {
               onChange={setTag}
               suggestions={tags}
             />
-            <span className="block text-xs text-slate-400 pt-0.5">
+            <span className="block text-[10px] text-slate-400 pt-0.5">
               Add or select tags to keep your links organized.
             </span>
           </div>
 
-          {/* Platform */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-900 tracking-wide uppercase">
+          {/* Platform — 10 Platform Tiles in 5 Columns x 2 Rows Grid */}
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-bold text-slate-900 tracking-wide uppercase">
               Platform
             </label>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
-              {PLATFORM_TILES.map((tile) => {
+
+            <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+              {platformTiles.map((tile) => {
                 const isSelected = (platform || 'Website').toLowerCase() === tile.id.toLowerCase() ||
-                  (tile.id === 'More' && platform && !['website','youtube','instagram','linkedin','twitter/x'].includes(platform.toLowerCase()))
+                  (tile.id === 'More' && platform && !topPlatforms.map(p => p.toLowerCase()).includes(platform.toLowerCase()))
 
                 return (
                   <button
@@ -965,51 +996,52 @@ function AddLinkTab({ initialUrl, links }) {
                         setShowCustomPlatform(false)
                       }
                     }}
-                    className={`rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer relative ${
+                    className={`rounded-xl p-1.5 sm:p-2 flex flex-col items-center justify-center gap-1 transition-all duration-150 cursor-pointer relative ${
                       isSelected
-                        ? 'bg-purple-50/80 border-2 border-purple-600 text-purple-700 font-bold shadow-sm'
+                        ? 'bg-purple-50/80 border-2 border-purple-600 text-purple-700 font-bold shadow-2xs'
                         : 'bg-white border border-slate-200/80 text-slate-700 hover:border-purple-300 shadow-2xs font-medium'
                     }`}
                   >
                     {isSelected && (
-                      <div className="w-4 h-4 bg-purple-600 text-white rounded-full flex items-center justify-center text-[9px] font-bold absolute -top-1 -right-1 shadow-sm">
+                      <div className="w-3.5 h-3.5 bg-purple-600 text-white rounded-full flex items-center justify-center text-[8px] font-bold absolute -top-1 -right-1 shadow-2xs">
                         ✓
                       </div>
                     )}
                     <div className={isSelected ? 'text-purple-600' : 'text-slate-600'}>
                       {tile.icon}
                     </div>
-                    <span className="text-xs truncate max-w-full">{tile.label}</span>
+                    <span className="text-[10px] sm:text-[11px] truncate max-w-full leading-tight">{tile.label}</span>
                   </button>
                 )
               })}
             </div>
 
-            {showCustomPlatform && (
-              <div className="pt-2">
+            {/* Instant dropdown underneath if More is selected or platform is custom */}
+            {(showCustomPlatform || (platform && !topPlatforms.map(p => p.toLowerCase()).includes(platform.toLowerCase()))) && (
+              <div className="pt-1.5 animate-fadeIn">
                 <PlatformInput
                   id="custom-platform-input"
                   value={platform}
                   onChange={setPlatform}
-                  className="input-field text-xs"
+                  className="input-field text-xs py-2 rounded-xl"
                   suggestions={platformSuggestions}
                 />
               </div>
             )}
 
-            <span className="block text-xs text-slate-400 pt-0.5">
+            <span className="block text-[10px] text-slate-400 pt-0.5">
               We'll suggest the platform automatically when possible.
             </span>
           </div>
 
           {/* Alerts */}
           {error && (
-            <div role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-2">
-              <span className="mt-0.5">⚠️</span> {error}
+            <div role="alert" className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2 flex items-start gap-1.5">
+              <span>⚠️</span> {error}
             </div>
           )}
           {success && (
-            <div role="status" className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center gap-2">
+            <div role="status" className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 flex items-center gap-1.5">
               <span>✅</span> Link saved to your library!
             </div>
           )}
