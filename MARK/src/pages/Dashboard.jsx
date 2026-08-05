@@ -806,6 +806,455 @@ function StatCards({ links = [] }) {
   )
 }
 
+// ─── Dedicated Settings Tab Component ─────────────────────────────────────────
+function SettingsTab() {
+  const { user, signOut } = useAuth()
+  const [showEmail, setShowEmail] = useState(false)
+  const [activeSegment, setActiveSegment] = useState('settings')
+
+  // Notification Toggles State
+  const [emailNotif, setEmailNotif] = useState(true)
+  const [securityNotif, setSecurityNotif] = useState(true)
+
+  // Expandable accordions state
+  const [openSection, setOpenSection] = useState(null) // 'profile' | 'password' | null
+
+  // Username state
+  const initialUsername = useMemo(() => {
+    return user?.user_metadata?.username || localStorage.getItem(`mark_username_${user?.id}`) || ''
+  }, [user])
+
+  const [username, setUsername] = useState(initialUsername)
+  const [usernameLoading, setUsernameLoading] = useState(false)
+  const [usernameMsg, setUsernameMsg] = useState({ type: '', text: '' })
+
+  // Password state
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [passwordLoading, setPasswordLoading] = useState(false)
+  const [passwordMsg, setPasswordMsg] = useState({ type: '', text: '' })
+
+  // Email masking helper
+  const maskedEmail = useMemo(() => {
+    const email = user?.email || ''
+    if (!email.includes('@')) return email
+    const [name, domain] = email.split('@')
+    if (name.length <= 2) return `${name}***@${domain}`
+    return `${name.slice(0, 2)}${'*'.repeat(Math.min(name.length - 2, 5))}@${domain}`
+  }, [user])
+
+  // Save Username Handler
+  async function handleSaveUsername(e) {
+    e.preventDefault()
+    setUsernameMsg({ type: '', text: '' })
+    const trimmed = username.trim().toLowerCase().replace(/[^a-z0-9_.]/g, '')
+
+    if (!trimmed) {
+      setUsernameMsg({ type: 'error', text: 'Username cannot be empty.' })
+      return
+    }
+    if (trimmed.length < 3) {
+      setUsernameMsg({ type: 'error', text: 'Username must be at least 3 characters long.' })
+      return
+    }
+
+    setUsernameLoading(true)
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: { username: trimmed }
+      })
+      if (error) throw error
+
+      try { localStorage.setItem(`mark_username_${user?.id}`, trimmed) } catch { /* ignore */ }
+      setUsername(trimmed)
+      setUsernameMsg({ type: 'success', text: `✓ Username set to @${trimmed}!` })
+    } catch (err) {
+      setUsernameMsg({ type: 'error', text: err.message || 'Failed to update username.' })
+    } finally {
+      setUsernameLoading(false)
+    }
+  }
+
+  // Update Password Handler
+  async function handleUpdatePassword(e) {
+    e.preventDefault()
+    setPasswordMsg({ type: '', text: '' })
+
+    if (newPassword.length < 6) {
+      setPasswordMsg({ type: 'error', text: 'Password must be at least 6 characters long.' })
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMsg({ type: 'error', text: 'Passwords do not match.' })
+      return
+    }
+
+    setPasswordLoading(true)
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) throw error
+
+      setNewPassword('')
+      setConfirmPassword('')
+      setPasswordMsg({ type: 'success', text: '✓ Password updated successfully!' })
+    } catch (err) {
+      setPasswordMsg({ type: 'error', text: err.message || 'Failed to update password.' })
+    } finally {
+      setPasswordLoading(false)
+    }
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6 animate-fadeIn pb-12">
+      {/* ── Top Header Banner matching Reference Image ── */}
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+        {/* Subtle Background Pattern */}
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+
+        {/* Top Header Controls */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-sm font-bold">
+              ←
+            </div>
+            <h2 className="font-bold text-lg tracking-tight">Settings</h2>
+          </div>
+          <div className="flex items-center gap-3 text-lg">
+            <span className="cursor-pointer hover:opacity-80">🔍</span>
+            <span className="cursor-pointer hover:opacity-80">🔔</span>
+          </div>
+        </div>
+
+        {/* User Profile Card */}
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h3 className="font-black text-xl tracking-tight">
+              {username ? `@${username}` : (user?.email?.split('@')[0] || 'User')}
+            </h3>
+            <p className="text-blue-100 text-xs mt-0.5 font-medium">
+              {showEmail ? user?.email : maskedEmail}
+            </p>
+            <span className="inline-block mt-2 text-[10px] font-bold bg-white/20 backdrop-blur-md text-white px-2.5 py-0.5 rounded-full border border-white/20">
+              ⚡ Mark v1.0 Active
+            </span>
+          </div>
+
+          <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md border-2 border-white/40 p-1 flex items-center justify-center text-3xl shadow-md flex-shrink-0">
+            👤
+          </div>
+        </div>
+
+        {/* Sub Navigation Segment Pills matching Reference Image */}
+        <div className="flex items-center gap-2 mt-6 pt-4 border-t border-white/15">
+          <button
+            type="button"
+            onClick={() => setActiveSegment('settings')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+              activeSegment === 'settings'
+                ? 'bg-white text-indigo-700 shadow-sm'
+                : 'text-white/80 hover:bg-white/10'
+            }`}
+          >
+            <span>⚙️</span> Settings
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSegment('security')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+              activeSegment === 'security'
+                ? 'bg-white text-indigo-700 shadow-sm'
+                : 'text-white/80 hover:bg-white/10'
+            }`}
+          >
+            <span>🔒</span> Security
+          </button>
+        </div>
+      </div>
+
+      {/* ── Category 1: GENERAL ── */}
+      <div className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm space-y-4">
+        <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+          GENERAL
+        </h4>
+
+        <div className="divide-y divide-slate-100">
+          {/* Edit Profile / Unique Handle Item */}
+          <div className="py-3">
+            <button
+              type="button"
+              onClick={() => setOpenSection(openSection === 'profile' ? null : 'profile')}
+              className="w-full flex items-center justify-between text-left cursor-pointer group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold">
+                  👤
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-800 group-hover:text-blue-600 transition">
+                    Edit Profile Handle
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-medium">
+                    {username ? `@${username}` : 'Set your unique handle (@username)'}
+                  </div>
+                </div>
+              </div>
+              <span className="text-slate-400 text-sm font-bold transition-transform duration-200">
+                {openSection === 'profile' ? '▲' : '›'}
+              </span>
+            </button>
+
+            {/* Expandable Handle Form */}
+            {openSection === 'profile' && (
+              <form onSubmit={handleSaveUsername} className="mt-3.5 pl-12 space-y-3 animate-fadeIn">
+                <div className="relative flex items-center bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-2 focus-within:bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition">
+                  <span className="text-slate-400 font-bold mr-1 text-sm">@</span>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ''))}
+                    placeholder="username (e.g. ashish_18)"
+                    className="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none font-semibold"
+                    required
+                  />
+                </div>
+
+                {usernameMsg.text && (
+                  <div className={`text-xs px-3 py-1.5 rounded-xl border ${
+                    usernameMsg.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700'
+                  }`}>
+                    {usernameMsg.text}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={usernameLoading}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer disabled:opacity-60"
+                >
+                  {usernameLoading ? 'Saving…' : 'Save Handle'}
+                </button>
+              </form>
+            )}
+          </div>
+
+          {/* Bound Email Privacy Item */}
+          <div className="py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-sm font-bold">
+                ✉️
+              </div>
+              <div>
+                <div className="text-xs font-bold text-slate-800">
+                  Bound Account Email
+                </div>
+                <div className="text-[11px] text-slate-500 font-mono">
+                  {showEmail ? user?.email : maskedEmail}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowEmail(!showEmail)}
+              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1"
+            >
+              <span>{showEmail ? '🙈 Hide' : '👁️ Show'}</span>
+            </button>
+          </div>
+
+          {/* Change Password Item */}
+          <div className="py-3">
+            <button
+              type="button"
+              onClick={() => setOpenSection(openSection === 'password' ? null : 'password')}
+              className="w-full flex items-center justify-between text-left cursor-pointer group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-bold">
+                  🔒
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-800 group-hover:text-blue-600 transition">
+                    Change Password
+                  </div>
+                  <div className="text-[11px] text-slate-400">Update your login security credentials</div>
+                </div>
+              </div>
+              <span className="text-slate-400 text-sm font-bold transition-transform duration-200">
+                {openSection === 'password' ? '▲' : '›'}
+              </span>
+            </button>
+
+            {/* Expandable Password Form */}
+            {openSection === 'password' && (
+              <form onSubmit={handleUpdatePassword} className="mt-3.5 pl-12 space-y-3 animate-fadeIn">
+                <div className="space-y-2">
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="New Password (min 6 chars)"
+                      className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:border-blue-500 focus:outline-none font-medium"
+                      required
+                    />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm New Password"
+                    className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:border-blue-500 focus:outline-none font-medium"
+                    required
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-[11px] text-blue-600 font-semibold cursor-pointer hover:underline"
+                  >
+                    {showPassword ? 'Hide characters' : 'Show characters'}
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={passwordLoading}
+                    className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer disabled:opacity-60"
+                  >
+                    {passwordLoading ? 'Updating…' : 'Update Password'}
+                  </button>
+                </div>
+
+                {passwordMsg.text && (
+                  <div className={`text-xs px-3 py-1.5 rounded-xl border ${
+                    passwordMsg.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700'
+                  }`}>
+                    {passwordMsg.text}
+                  </div>
+                )}
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Category 2: NOTIFICATIONS ── */}
+      <div className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm space-y-4">
+        <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+          NOTIFICATIONS
+        </h4>
+
+        <div className="divide-y divide-slate-100">
+          <div className="py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-bold">
+                📲
+              </div>
+              <div>
+                <div className="text-xs font-bold text-slate-800">Email Updates &amp; Activity</div>
+                <div className="text-[11px] text-slate-400">Receive weekly library insights digest</div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setEmailNotif(!emailNotif)}
+              className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
+                emailNotif ? 'bg-blue-600' : 'bg-slate-200'
+              }`}
+            >
+              <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${
+                emailNotif ? 'left-6' : 'left-1'
+              }`} />
+            </button>
+          </div>
+
+          <div className="py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-sm font-bold">
+                🛡️
+              </div>
+              <div>
+                <div className="text-xs font-bold text-slate-800">Security Alerts</div>
+                <div className="text-[11px] text-slate-400 font-medium">Alert on new device logins</div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSecurityNotif(!securityNotif)}
+              className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
+                securityNotif ? 'bg-blue-600' : 'bg-slate-200'
+              }`}
+            >
+              <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${
+                securityNotif ? 'left-6' : 'left-1'
+              }`} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Category 3: ABOUT & SUPPORT ── */}
+      <div className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm space-y-4">
+        <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+          ABOUT &amp; TERMS
+        </h4>
+
+        <div className="divide-y divide-slate-100">
+          <div className="py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-bold">
+                🏢
+              </div>
+              <div>
+                <div className="text-xs font-bold text-slate-800">About Mark App</div>
+                <div className="text-[11px] text-slate-400">Personal Link &amp; Rich Notes Manager</div>
+              </div>
+            </div>
+            <span className="text-xs text-slate-400 font-semibold">v1.0.0</span>
+          </div>
+
+          <div className="py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-sm font-bold">
+                📑
+              </div>
+              <div>
+                <div className="text-xs font-bold text-slate-800">Privacy Policy &amp; Terms</div>
+                <div className="text-[11px] text-slate-400">Data encryption &amp; privacy rights</div>
+              </div>
+            </div>
+            <span className="text-slate-400 text-sm font-bold">›</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Logout Action Card */}
+      <div className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-xl shadow-md shadow-blue-500/20">
+            M
+          </div>
+          <div>
+            <div className="font-bold text-slate-900 text-sm">Account Session</div>
+            <div className="text-[11px] text-slate-400">Active on this device</div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={async () => { await signOut(); window.location.href = '/login' }}
+          className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold px-4 py-2 rounded-2xl text-xs transition cursor-pointer shadow-2xs"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ─── Add Link Form (Tab 1) ────────────────────────────────────────────────────
 function AddLinkTab({ initialUrl = '', links = [] }) {
   const { addLink, tags } = useAuth()
