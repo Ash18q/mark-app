@@ -51,6 +51,38 @@ const XIcon = () => (
   </svg>
 )
 
+// ─── Platform SVG Icons ──────────────────────────────────────────────────────
+const GlobeIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+  </svg>
+)
+const YouTubeTileIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="#FF0000" viewBox="0 0 24 24">
+    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+  </svg>
+)
+const InstagramTileIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="#E4405F" viewBox="0 0 24 24">
+    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+  </svg>
+)
+const LinkedInTileIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="#0A66C2" viewBox="0 0 24 24">
+    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+  </svg>
+)
+const XTwitterTileIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="#000000" viewBox="0 0 24 24">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+)
+const MoreTileIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/>
+  </svg>
+)
+
 // ─── Platform color palette ───────────────────────────────────────────────────
 const PLATFORM_COLORS = {
   youtube: 'bg-red-50 text-red-600 border-red-200',
@@ -246,37 +278,38 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
   }
 
   return (
-    <div ref={ref} className="relative flex-1">
-      {/* Outer Chip Container */}
-      <div
-        className="min-h-[42px] w-full border border-gray-200 rounded-xl px-3 py-1.5 bg-gray-50 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-200 flex flex-wrap items-center gap-1.5 transition cursor-text pr-9"
-        onClick={() => {
-          if (inputRef && inputRef.current) inputRef.current.focus()
-          setOpen(true)
-        }}
-      >
-        {/* Rendered Tag Pills/Chips */}
-        {currentTags.map((tag) => (
+    <div ref={ref} className="relative">
+      <div className="flex flex-wrap items-center gap-2 min-h-[46px] w-full border border-slate-200/80 rounded-2xl px-3.5 py-2 bg-slate-50/70 focus-within:bg-white focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-100 transition shadow-2xs">
+        {/* Rendered Chips matching Screenshot 1 */}
+        {currentTags.map((t) => (
           <span
-            key={tag}
-            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-2xs animate-fadeIn"
+            key={t}
+            className="bg-[#f3f0ff] border border-[#ede9fe] text-[#6d28d9] text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs"
           >
-            <span>🏷️ {tag}</span>
+            <span>{t}</span>
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation()
-                removeTag(tag)
-              }}
-              className="hover:text-indigo-950 font-bold text-xs p-0.5 rounded-full hover:bg-indigo-200/60 transition"
-              title="Remove tag"
+              onClick={() => removeTag(t)}
+              className="text-purple-400 hover:text-purple-700 font-bold leading-none text-sm cursor-pointer"
             >
-              ✕
+              ×
             </button>
           </span>
         ))}
 
-        {/* Typeable Input for Custom Tags */}
+        {/* Add Tag Chip Button */}
+        <button
+          type="button"
+          onClick={() => {
+            if (inputValue.trim()) addTag(inputValue)
+            else setOpen(!open)
+          }}
+          className="bg-purple-50/60 hover:bg-purple-100/60 border border-dashed border-purple-200 text-purple-600 text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1 cursor-pointer transition"
+        >
+          <span>+ Add tag</span>
+        </button>
+
+        {/* Typeable Input */}
         <input
           ref={inputRef}
           id={id}
@@ -294,15 +327,25 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
           }}
           onKeyDown={handleKeyDown}
           onBlur={() => {
-            if (inputValue.trim()) {
-              addTag(inputValue)
-            }
+            if (inputValue.trim()) addTag(inputValue)
           }}
           onFocus={() => setOpen(true)}
-          placeholder={currentTags.length === 0 ? placeholder : 'Add tag…'}
-          className="bg-transparent text-sm text-gray-800 focus:outline-none flex-1 min-w-[100px] py-0.5"
+          placeholder={currentTags.length === 0 ? placeholder : ''}
+          className="bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none flex-1 min-w-[80px] py-1 font-medium"
           autoComplete="off"
         />
+
+        {/* Chevron arrow */}
+        <button
+          type="button"
+          tabIndex={-1}
+          onMouseDown={handleChevronClick}
+          className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 transition"
+        >
+          <svg className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
       </div>
 
       {/* Hidden input to pass form validation if required */}
@@ -524,109 +567,115 @@ function EditModal({ link, tags, onClose, onSave }) {
 }
 
 // ─── Stat Cards ───────────────────────────────────────────────────────────────
-function StatCards({ links }) {
+
+// ─── Library Insights Stat Cards (Screenshot 1 Exact Replica) ────────────────
+function StatCards({ links = [] }) {
   const total = links.length
 
-  const platformCounts = links.reduce((acc, l) => {
-    const p = l.platform || 'Other';
-    acc[p] = (acc[p] || 0) + 1;
-    return acc;
-  }, {});
+  const platformCounts = useMemo(() => {
+    const counts = {}
+    links.forEach((l) => {
+      const p = l.platform || 'Website'
+      counts[p] = (counts[p] || 0) + 1
+    })
+    return counts
+  }, [links])
 
-  const tagCounts = links.reduce((acc, l) => {
-    const t = l.tag || 'No Tag';
-    acc[t] = (acc[t] || 0) + 1;
-    return acc;
-  }, {});
+  const entries = Object.entries(platformCounts).sort((a, b) => b[1] - a[1])
+  const topFour = entries.slice(0, 4)
+  const remainingCount = entries.length > 4 ? entries.length - 4 : 0
 
-  const tagColorClasses = [
-    'text-indigo-600',
-    'text-pink-650',
-    'text-emerald-600',
-    'text-amber-600',
-    'text-sky-600',
-    'text-purple-600',
-    'text-rose-600',
-    'text-teal-600',
-  ];
-
-  function getTagColor(tag) {
-    let hash = 0;
-    for (let i = 0; i < tag.length; i++) {
-      hash = tag.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const index = Math.abs(hash) % tagColorClasses.length;
-    return tagColorClasses[index];
-  }
-
-  const PLATFORM_EMOJIS = {
-    youtube: '▶️',
-    yt: '▶️',
-    instagram: '📸',
-    insta: '📸',
-    threads: '🧵',
-    facebook: '👥',
-    'twitter/x': '🐦',
-    twitter: '🐦',
-    x: '🐦',
-    linkedin: '💼',
-    github: '💻',
-    reddit: '🤖',
-    discord: '💬',
-    default: '🔗'
-  };
-
-  function getPlatformEmoji(p) {
-    return PLATFORM_EMOJIS[p.toLowerCase()] || PLATFORM_EMOJIS.default;
+  function getPlatformIcon(p) {
+    const name = p.toLowerCase()
+    if (name.includes('youtube') || name === 'yt') return <YouTubeTileIcon className="w-4 h-4" />
+    if (name.includes('instagram') || name === 'insta') return <InstagramTileIcon className="w-4 h-4" />
+    if (name.includes('linkedin')) return <LinkedInTileIcon className="w-4 h-4" />
+    if (name.includes('twitter') || name === 'x') return <XTwitterTileIcon className="w-4 h-4" />
+    return <GlobeIcon className="w-4 h-4 text-purple-600" />
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex flex-col gap-4 text-sm text-slate-700">
-      <h3 className="font-bold text-slate-800 text-base border-b border-slate-100 pb-2.5 flex items-center gap-2">
-        <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm shadow-sm">📊</span>
-        <span>Library Insights</span>
-      </h3>
-
-      {/* Total Links */}
-      <div className="flex items-center gap-2 font-medium">
-        <span>🔗</span>
-        <span>Total: <strong className="text-indigo-650 font-extrabold text-base">{total}</strong> links</span>
-      </div>
-
-      {/* Platform Stats */}
-      <div className="flex flex-col gap-1 border-t border-gray-50 pt-3">
-        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Platforms</span>
-        {Object.keys(platformCounts).length === 0 ? (
-          <span className="text-gray-400 text-xs">No platforms yet.</span>
-        ) : (
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium text-gray-600">
-            {Object.entries(platformCounts).map(([platform, count], idx, arr) => (
-              <span key={platform} className="flex items-center gap-1">
-                <span>{getPlatformEmoji(platform)}</span>
-                <span>{platform}: <strong>{count}</strong></span>
-                {idx < arr.length - 1 && <span className="text-gray-300 ml-1.5">|</span>}
-              </span>
-            ))}
+    <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-5">
+      {/* Card Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg font-bold">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
           </div>
-        )}
+          <h3 className="font-bold text-slate-900 text-base">Library Insights</h3>
+        </div>
+        <select className="bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-700 focus:outline-none cursor-pointer">
+          <option>All time</option>
+          <option>This month</option>
+          <option>This week</option>
+        </select>
       </div>
 
-      {/* Tags Stats */}
-      <div className="flex flex-col gap-1 border-t border-gray-50 pt-3">
-        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">📂 Tags</span>
-        <div className="text-xs text-gray-655 leading-relaxed">
-          {Object.keys(tagCounts).length === 0 ? (
-            <span className="text-gray-400">None</span>
+      {/* Total Links Card + Sparkline Graph */}
+      <div className="bg-gradient-to-r from-emerald-50/50 via-emerald-50/20 to-slate-50/40 border border-emerald-100/80 rounded-2xl p-4 flex items-center justify-between relative overflow-hidden">
+        <div>
+          <span className="text-xs font-semibold text-slate-500">Total Links</span>
+          <div className="text-3xl font-black text-slate-900 mt-1 tracking-tight">{total}</div>
+        </div>
+        <div className="w-36 h-10 flex items-center justify-end">
+          <svg className="w-full h-full overflow-visible" viewBox="0 0 140 40">
+            <defs>
+              <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M 0 32 Q 20 30 35 26 T 70 28 T 105 16 T 135 8 L 135 40 L 0 40 Z"
+              fill="url(#chartGrad)"
+            />
+            <path
+              d="M 0 32 Q 20 30 35 26 T 70 28 T 105 16 T 135 8"
+              fill="none"
+              stroke="#10b981"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+            <circle cx="135" cy="8" r="3.5" fill="#10b981" />
+          </svg>
+        </div>
+      </div>
+
+      {/* By Platform Badges */}
+      <div>
+        <span className="text-xs font-bold text-slate-500 block mb-2.5">By Platform</span>
+        <div className="flex flex-wrap items-center gap-2">
+          {topFour.length === 0 ? (
+            <span className="text-xs text-slate-400">No link statistics available yet.</span>
           ) : (
-            Object.entries(tagCounts).map(([tag, count], idx, arr) => (
-              <span key={tag}>
-                <span className={`font-semibold ${getTagColor(tag)}`}>{tag}</span>
-                <span className="text-gray-450 font-medium"> ({count})</span>
-                {idx < arr.length - 1 ? ' | ' : ''}
+            topFour.map(([platform, count]) => (
+              <span key={platform} className="bg-slate-50 border border-slate-200/80 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
+                <span>{getPlatformIcon(platform)}</span>
+                <span>{platform}</span>
+                <span className="text-slate-900 font-bold ml-0.5">{count}</span>
               </span>
             ))
           )}
+          {remainingCount > 0 && (
+            <span className="text-emerald-700 font-bold text-xs hover:underline cursor-pointer px-1">
+              +{remainingCount} more
+            </span>
+          )}
         </div>
+      </div>
+
+      {/* View all analytics link */}
+      <div className="pt-1 text-center">
+        <button
+          type="button"
+          onClick={() => {}}
+          className="text-emerald-700 hover:text-emerald-800 font-bold text-xs inline-flex items-center gap-1.5 transition cursor-pointer hover:underline"
+        >
+          <span>View all analytics</span>
+          <span>→</span>
+        </button>
       </div>
     </div>
   )
@@ -791,57 +840,166 @@ function AddLinkTab({ initialUrl, links }) {
     )
   }
 
+  const [showCustomPlatform, setShowCustomPlatform] = useState(false)
+
+  const handlePasteFromClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText()
+      if (text && text.trim()) {
+        const trimmed = text.trim()
+        setUrl(trimmed)
+        const d = detectPlatform(trimmed)
+        if (d) setPlatform(d)
+      }
+    } catch { /* clip fail */ }
+  }
+
+  const PLATFORM_TILES = [
+    { id: 'Website', label: 'Website', icon: <GlobeIcon className="w-6 h-6" /> },
+    { id: 'YouTube', label: 'YouTube', icon: <YouTubeTileIcon className="w-6 h-6" /> },
+    { id: 'Instagram', label: 'Instagram', icon: <InstagramTileIcon className="w-6 h-6" /> },
+    { id: 'LinkedIn', label: 'LinkedIn', icon: <LinkedInTileIcon className="w-6 h-6" /> },
+    { id: 'Twitter/X', label: 'X (Twitter)', icon: <XTwitterTileIcon className="w-6 h-6" /> },
+    { id: 'More', label: 'More', icon: <MoreTileIcon className="w-6 h-6" /> },
+  ]
+
   // ── Normal Mode ──────────────────────────────────────────────────────────────
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Left Column: Form */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm h-fit overflow-hidden">
+    <div className="flex flex-col gap-6 max-w-2xl mx-auto">
+      {/* Top Card: Add New Link */}
+      <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-6">
         {/* Card Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-5">
-          <h2 className="text-white font-bold text-base flex items-center gap-2">
-            <LinkIcon /> Save a New Link
-          </h2>
-          <p className="text-indigo-200 text-xs mt-0.5">Paste any URL and tag it for quick access later</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl font-bold">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-slate-900 font-bold text-lg tracking-tight">Add New Link</h2>
+              <p className="text-slate-400 text-xs mt-0.5">Save, organize &amp; find your links instantly.</p>
+            </div>
+          </div>
+
+          {/* Paste from clipboard button */}
+          <button
+            type="button"
+            onClick={handlePasteFromClipboard}
+            className="bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold text-xs px-3.5 py-2 rounded-xl border border-purple-100 flex items-center gap-1.5 transition cursor-pointer"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <span>Paste from clipboard</span>
+          </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* URL */}
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="link-url" className="text-sm font-semibold text-slate-600">🌐 URL</label>
-            <input
-              id="link-url"
-              type="url"
-              value={url}
-              onChange={(e) => { setUrl(e.target.value); const d = detectPlatform(e.target.value); if (d) setPlatform(d) }}
-              placeholder="https://example.com/article"
-              className={inputCls}
-              required
-            />
+          <div className="space-y-1.5">
+            <label htmlFor="link-url" className="block text-xs font-bold text-slate-900 tracking-wide uppercase">
+              URL
+            </label>
+            <div className="relative flex items-center bg-slate-50/70 border border-slate-200/80 rounded-2xl px-4 py-3.5 focus-within:bg-white focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-100 transition shadow-2xs">
+              <svg className="w-5 h-5 text-slate-400 mr-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              <input
+                id="link-url"
+                type="url"
+                value={url}
+                onChange={(e) => {
+                  const val = e.target.value
+                  setUrl(val)
+                  const d = detectPlatform(val)
+                  if (d) setPlatform(d)
+                }}
+                placeholder="https://example.com/article"
+                className="w-full bg-transparent text-sm text-slate-800 placeholder-slate-400 focus:outline-none font-medium"
+                required
+              />
+            </div>
+            <div className="flex items-center justify-between text-xs text-slate-400 pt-0.5">
+              <span>We'll fetch the title and details automatically.</span>
+              <span>{url.length} / 2000</span>
+            </div>
           </div>
 
-          {/* Tag + Platform */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="link-tag" className="text-sm font-semibold text-slate-600">🏷️ Tag</label>
-              <TagInput
-                id="link-tag"
-                value={tag}
-                onChange={setTag}
-                suggestions={tags}
-                className={inputCls}
-              />
+          {/* Tags */}
+          <div className="space-y-1.5">
+            <label htmlFor="link-tag" className="block text-xs font-bold text-slate-900 tracking-wide uppercase">
+              Tags
+            </label>
+            <TagInput
+              id="link-tag"
+              value={tag}
+              onChange={setTag}
+              suggestions={tags}
+            />
+            <span className="block text-xs text-slate-400 pt-0.5">
+              Add or select tags to keep your links organized.
+            </span>
+          </div>
+
+          {/* Platform */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-900 tracking-wide uppercase">
+              Platform
+            </label>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+              {PLATFORM_TILES.map((tile) => {
+                const isSelected = (platform || 'Website').toLowerCase() === tile.id.toLowerCase() ||
+                  (tile.id === 'More' && platform && !['website','youtube','instagram','linkedin','twitter/x'].includes(platform.toLowerCase()))
+
+                return (
+                  <button
+                    key={tile.id}
+                    type="button"
+                    onClick={() => {
+                      if (tile.id === 'More') {
+                        setShowCustomPlatform(true)
+                      } else {
+                        setPlatform(tile.id)
+                        setShowCustomPlatform(false)
+                      }
+                    }}
+                    className={`rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer relative ${
+                      isSelected
+                        ? 'bg-purple-50/80 border-2 border-purple-600 text-purple-700 font-bold shadow-sm'
+                        : 'bg-white border border-slate-200/80 text-slate-700 hover:border-purple-300 shadow-2xs font-medium'
+                    }`}
+                  >
+                    {isSelected && (
+                      <div className="w-4 h-4 bg-purple-600 text-white rounded-full flex items-center justify-center text-[9px] font-bold absolute -top-1 -right-1 shadow-sm">
+                        ✓
+                      </div>
+                    )}
+                    <div className={isSelected ? 'text-purple-600' : 'text-slate-600'}>
+                      {tile.icon}
+                    </div>
+                    <span className="text-xs truncate max-w-full">{tile.label}</span>
+                  </button>
+                )
+              })}
             </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="add-platform" className="text-sm font-semibold text-slate-600">📱 Platform</label>
-              <PlatformInput
-                id="add-platform"
-                value={platform}
-                onChange={setPlatform}
-                className={inputCls}
-                suggestions={platformSuggestions}
-              />
-            </div>
+
+            {showCustomPlatform && (
+              <div className="pt-2">
+                <PlatformInput
+                  id="custom-platform-input"
+                  value={platform}
+                  onChange={setPlatform}
+                  className="input-field text-xs"
+                  suggestions={platformSuggestions}
+                />
+              </div>
+            )}
+
+            <span className="block text-xs text-slate-400 pt-0.5">
+              We'll suggest the platform automatically when possible.
+            </span>
           </div>
 
           {/* Alerts */}
@@ -856,23 +1014,28 @@ function AddLinkTab({ initialUrl, links }) {
             </div>
           )}
 
-          {/* Submit */}
+          {/* Save Link Green Button */}
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full py-3 text-sm font-bold"
+            className="w-full bg-[#dcfce7] hover:bg-[#bbf7d0] active:scale-[0.99] text-[#15803d] font-bold py-3.5 rounded-2xl transition border border-[#bbf7d0] flex items-center justify-center gap-2 text-base shadow-xs cursor-pointer disabled:opacity-60"
           >
             {loading ? (
-              <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving…</>
+              <><span className="w-5 h-5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" /> Saving…</>
             ) : (
-              <><span className="text-base">💾</span> Save Link</>
+              <>
+                <svg className="w-5 h-5 text-[#15803d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                <span>Save Link</span>
+              </>
             )}
           </button>
         </form>
       </div>
 
-      {/* Right Column: Compact Stats */}
-      <div className="h-fit">
+      {/* Bottom Card: Library Insights */}
+      <div>
         <StatCards links={links} />
       </div>
     </div>
@@ -2172,47 +2335,38 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/40 to-purple-50/30">
+    <div className="min-h-screen bg-slate-50/60 font-sans">
 
-      {/* ── Header ── */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/60 shadow-sm">
-        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-500/25">
-              <span className="text-white font-black text-sm tracking-tight">M</span>
+      {/* ── Header (Screenshot 1 Exact Replica) ── */}
+      <header className="bg-white border-b border-slate-100 sticky top-0 z-40">
+        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
+          {/* Left Logo + Title */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#9382ff] text-white flex items-center justify-center font-black text-xl shadow-md shadow-purple-500/20">
+              M
             </div>
-            <div className="leading-none">
-              <span className="font-black text-slate-800 text-lg tracking-tight">MARK</span>
-              <span className="block text-[10px] text-slate-400 font-medium -mt-0.5">Link & Note Manager</span>
+            <div>
+              <h1 className="font-bold text-slate-900 text-lg leading-tight tracking-tight">Mark</h1>
+              <p className="text-xs text-slate-400 font-normal">Link &amp; Note Manager</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {activeTab === 'library' && (
-              <button
-                id="export-btn"
-                onClick={() => setIsExportModalOpen(true)}
-                className="flex items-center gap-1.5 text-xs text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-lg transition font-bold cursor-pointer"
-                title="Export links data"
-              >
-                <span>📥</span>
-                <span>Export</span>
-              </button>
-            )}
-            <span className="hidden sm:block text-xs text-slate-400 truncate max-w-[150px]">{user?.email}</span>
-            <button
-              id="logout-btn"
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-xl transition font-medium border border-slate-200 hover:border-red-200"
-            >
-              <LogoutIcon />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
-          </div>
+
+          {/* Right Logout Button */}
+          <button
+            id="logout-btn"
+            onClick={handleLogout}
+            className="w-10 h-10 rounded-2xl border border-slate-200/80 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-600 transition cursor-pointer shadow-2xs"
+            title="Logout"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
         </div>
       </header>
 
       {/* ── Main Content ── */}
-      <main className="max-w-3xl mx-auto px-4 py-6 pb-24">
+      <main className="max-w-3xl mx-auto px-4 py-6 pb-28">
         {activeTab === 'add' && <AddLinkTab initialUrl={sharedUrl} links={links} />}
         {activeTab === 'library' && (
           <LibraryTab
@@ -2235,37 +2389,74 @@ export default function Dashboard() {
         />
       )}
 
-      {/* ── Fixed Bottom Navigation Bar ── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/70 shadow-lg">
-        <div className="max-w-3xl mx-auto grid grid-cols-3 h-16">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              id={`tab-${tab.id}`}
-              onClick={() => setActiveTab(tab.id)}
-              className={`col-span-1 flex flex-col items-center justify-center gap-0.5 h-full text-[10px] sm:text-xs font-semibold transition-all select-none cursor-pointer relative
-                ${activeTab === tab.id
-                  ? 'text-indigo-700'
-                  : 'text-slate-500 hover:text-indigo-600'}`}
-            >
-              {/* Active indicator */}
-              {activeTab === tab.id && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" />
-              )}
-              <span className={`text-xl leading-none transition-transform ${activeTab === tab.id ? 'scale-110' : 'scale-100'}`}>{tab.icon}</span>
-              <span className="truncate font-bold">{tab.label}</span>
-              {tab.id === 'library' && links.length > 0 && (
-                <span className="absolute -top-0.5 right-5 bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center">
-                  {links.length}
-                </span>
-              )}
-              {tab.id === 'notes' && notes && notes.length > 0 && (
-                <span className="absolute -top-0.5 right-5 bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center">
-                  {notes.length}
-                </span>
-              )}
-            </button>
-          ))}
+      {/* ── Bottom Navigation Bar (Screenshot 1 Exact Replica) ── */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-100 shadow-lg py-2.5">
+        <div className="max-w-3xl mx-auto px-4 flex items-center justify-between">
+          {/* Item 1: Add Link */}
+          <button
+            id="tab-add"
+            onClick={() => setActiveTab('add')}
+            className={`px-4 py-2 rounded-2xl flex items-center gap-2 text-xs transition-all duration-150 cursor-pointer ${
+              activeTab === 'add'
+                ? 'bg-[#ecfdf5] border border-[#a7f3d0] text-[#047857] font-bold shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 font-semibold'
+            }`}
+          >
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+              activeTab === 'add' ? 'bg-[#10b981] text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              +
+            </div>
+            <span>Add Link</span>
+          </button>
+
+          {/* Item 2: My Library */}
+          <button
+            id="tab-library"
+            onClick={() => setActiveTab('library')}
+            className={`px-3 py-2 rounded-2xl flex items-center gap-1.5 text-xs font-semibold transition-all duration-150 cursor-pointer ${
+              activeTab === 'library'
+                ? 'text-indigo-700 font-bold bg-indigo-50/80 border border-indigo-100'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <span>My Library</span>
+          </button>
+
+          {/* Item 3: Center Green Analytics Circle */}
+          <button
+            onClick={() => setActiveTab('add')}
+            className="w-11 h-11 rounded-full bg-[#059669] hover:bg-[#047857] text-white flex items-center justify-center text-xl shadow-md shadow-emerald-600/30 hover:scale-105 transition cursor-pointer -mt-4 border-2 border-white"
+            title="Analytics &amp; Insights"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+          </button>
+
+          {/* Item 4: Notes */}
+          <button
+            id="tab-notes"
+            onClick={() => setActiveTab('notes')}
+            className={`px-3 py-2 rounded-2xl flex items-center gap-1.5 text-xs font-semibold transition-all duration-150 cursor-pointer relative ${
+              activeTab === 'notes'
+                ? 'text-indigo-700 font-bold bg-indigo-50/80 border border-indigo-100'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <span>Notes</span>
+            {notes && notes.length > 0 && (
+              <span className="bg-[#059669] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full min-w-[16px] text-center">
+                {notes.length}
+              </span>
+            )}
+          </button>
         </div>
       </nav>
     </div>
