@@ -197,7 +197,7 @@ function SwatchRow({ colors, selected, onSelect }) {
   )
 }
 
-export default function Toolbar({ editor }) {
+export default function Toolbar({ editor, onInsertImage }) {
   const [showTextColorPicker,  setShowTextColorPicker]  = useState(false)
   const [showHighlightPicker,  setShowHighlightPicker]  = useState(false)
   const [showTableFormatModal, setShowTableFormatModal] = useState(false)
@@ -212,6 +212,30 @@ export default function Toolbar({ editor }) {
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-2xl bg-slate-900 border border-slate-700 text-white text-xs shadow-xl">
+
+      {/* Undo / Redo */}
+      <div className="flex items-center gap-0.5 bg-slate-800 rounded-xl p-0.5 border border-slate-700">
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().undo().run()}
+          disabled={!editor.can().undo()}
+          className="px-2 py-1 text-xs font-bold rounded-lg transition cursor-pointer text-slate-200 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
+          title="Undo (Ctrl+Z)"
+        >
+          ↩️
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().redo().run()}
+          disabled={!editor.can().redo()}
+          className="px-2 py-1 text-xs font-bold rounded-lg transition cursor-pointer text-slate-200 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
+          title="Redo (Ctrl+Y)"
+        >
+          ↪️
+        </button>
+      </div>
+
+      <div className="h-4 w-px bg-slate-700" />
 
       {/* Font Family */}
       <select
@@ -332,6 +356,16 @@ export default function Toolbar({ editor }) {
           1. List
         </button>
       </div>
+
+      {/* Image Upload Button */}
+      <button
+        type="button"
+        onClick={() => onInsertImage && onInsertImage()}
+        className="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1 shadow-sm"
+        title="Upload or Insert Image"
+      >
+        <span>🖼️</span> Image
+      </button>
 
       <div className="h-4 w-px bg-slate-700" />
 

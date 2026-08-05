@@ -10,7 +10,7 @@ import { TextStyle } from '@tiptap/extension-text-style'
 import { Highlight } from '@tiptap/extension-highlight'
 import { Underline } from '@tiptap/extension-underline'
 import { Placeholder } from '@tiptap/extension-placeholder'
-
+import { Image } from '@tiptap/extension-image'
 import { FontFamily } from '@tiptap/extension-font-family'
 
 import Toolbar from './Toolbar'
@@ -67,8 +67,13 @@ export default function NoteEditor({
   const [isPinned, setIsPinned] = useState(note?.is_pinned || false)
   const [showOptions, setShowOptions] = useState(false)
   const [showNoteBgPicker, setShowNoteBgPicker] = useState(false)
+  const [freezeTitle, setFreezeTitle] = useState(true)
+  const [saveStatus, setSaveStatus] = useState('saved') // 'saved' | 'saving' | 'unsaved'
+  const [toastMsg, setToastMsg] = useState('')
 
   const titleInputRef = useRef(null)
+  const fileInputRef = useRef(null)
+  const isFirstRender = useRef(true)
   const theme = getTheme(color)
 
   // Initialize TipTap Editor
@@ -83,6 +88,10 @@ export default function NoteEditor({
       Color,
       Highlight.configure({ multicolor: true }),
       Underline,
+      Image.configure({
+        allowBase64: true,
+        inline: true,
+      }),
       Table.configure({
         resizable: true,
         HTMLAttributes: {
@@ -99,7 +108,7 @@ export default function NoteEditor({
     content: note?.content || (initialType === 'table' ? '<table><tr><th>Item</th><th>Quantity</th><th>Status</th></tr><tr><td>Task 1</td><td>10</td><td>Done</td></tr></table>' : ''),
     editorProps: {
       attributes: {
-        class: 'focus:outline-none min-h-[220px] prose dark:prose-invert max-w-none text-sm leading-relaxed p-2'
+        class: 'focus:outline-none min-h-[300px] prose dark:prose-invert max-w-none text-sm sm:text-base leading-relaxed p-2'
       }
     }
   })
@@ -109,6 +118,32 @@ export default function NoteEditor({
       titleInputRef.current.focus()
     }
   }, [])
+
+  // ─── Debounced Autosave Effect ───
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+
+    setSaveStatus('unsaved')
+    const timer = setTimeout(() => {
+      setSaveStatus('saving')
+      const htmlContent = editor ? editor.getHTML() : ''
+      onSave({
+        id: note?.id,
+        title: title.trim(),
+        content: htmlContent,
+        type: editor?.isActive('table') ? 'table' : (note?.type || initialType),
+        color,
+        tags: tags.join(', '),
+        is_pinned: isPinned
+      })
+      setTimeout(() => setSaveStatus('saved'), 350)
+    }, 1200)
+
+    return () => clearTimeout(timer)
+  }, [title, color, tags, isPinned, editor?.getHTML()])
 
   // ─── Tag Helpers ───
   const handleAddTag = (tagToAdd) => {
@@ -123,6 +158,53 @@ export default function NoteEditor({
     setTags(tags.filter(t => t !== tagToRemove))
   }
 
+  // ─── Image Insertion Handler ───
+  const handleInsertImage = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click()
+    }
+  }
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (file && editor) {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result
+        if (dataUrl) {
+          editor.chain().focus().setImage({ src: dataUrl }).run()
+        }
+      }
+      reader.readAsDataURL(file)
+    }
+    e.target.value = ''
+  }
+
+  // ─── Share Note Handler ───
+  const handleShareNote = async () => {
+    const noteText = editor ? editor.getText() : ''
+    const shareText = `${title ? title + '\n\n' : ''}${noteText}`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title || 'MARK Note',
+          text: shareText
+        })
+      } catch (err) {
+        console.log('Share cancelled', err)
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareText)
+        setToastMsg('📋 Note copied to clipboard!')
+        setTimeout(() => setToastMsg(''), 2500)
+      } catch (err) {
+        alert('Could not copy note text.')
+      }
+    }
+  }
+
   // ─── Save Handler ───
   const handleSave = () => {
     const htmlContent = editor ? editor.getHTML() : ''
@@ -135,6 +217,7 @@ export default function NoteEditor({
       tags: tags.join(', '),
       is_pinned: isPinned
     })
+    onClose()
   }
 
   const tagSuggestions = allTags.filter(
@@ -142,28 +225,77 @@ export default function NoteEditor({
   )
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-      <div style={{ backgroundColor: theme.hex }} className={`w-full max-w-2xl ${theme.bg} ${theme.text} rounded-3xl shadow-2xl overflow-hidden border ${theme.border} flex flex-col max-h-[94vh] transition-colors duration-300 relative`}>
+    <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col w-screen h-screen overflow-hidden">
+      <div style={{ backgroundColor: theme.hex }} className={`w-full h-full flex flex-col ${theme.bg} ${theme.text} transition-colors duration-300 relative overflow-hidden`}>
         
-        {/* ── Top Header Navigation Bar ── */}
-        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-black/25 shrink-0">
-          {/* Back Button */}
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-xl hover:bg-white/10 opacity-90 transition cursor-pointer"
-            title="Back / Cancel"
-          >
-            ‹
-          </button>
+        {/* Toast Notification */}
+        {toastMsg && (
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-2xl border border-white/20 animate-in fade-in slide-in-from-top-4">
+            {toastMsg}
+          </div>
+        )}
 
-          {/* Title Header Tag */}
-          <div className="text-xs font-black tracking-wide uppercase opacity-80 flex items-center gap-1.5">
-            <span>📝</span>
-            <span>Rich Note & Table Editor</span>
+        {/* Hidden File Input for Image Upload */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+
+        {/* ── STICKY / FROZEN TOP HEADER BAR ── */}
+        <div className="px-3 sm:px-5 py-2.5 border-b border-white/10 flex items-center justify-between bg-black/30 backdrop-blur-md shrink-0 z-30 shadow-md">
+          {/* Left: Back Button & Title Badge & Autosave */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold hover:bg-white/10 opacity-90 transition cursor-pointer"
+              title="Back / Close"
+            >
+              ‹
+            </button>
+
+            <div className="text-xs font-black tracking-wide uppercase opacity-80 flex items-center gap-1.5 hidden sm:flex">
+              <span>📝</span>
+              <span>Rich Note Editor</span>
+            </div>
+
+            {/* Autosave Status Badge */}
+            <div className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-black/30 border border-white/10">
+              {saveStatus === 'saving' && <span className="text-amber-300 animate-pulse">⏳ Saving...</span>}
+              {saveStatus === 'saved' && <span className="text-emerald-400">💾 Saved</span>}
+              {saveStatus === 'unsaved' && <span className="text-white/60">● Unsaved</span>}
+            </div>
           </div>
 
           {/* Right Controls */}
           <div className="flex items-center gap-1.5">
+
+            {/* Share Button */}
+            <button
+              onClick={handleShareNote}
+              className="px-2.5 py-1.5 rounded-xl bg-black/30 hover:bg-black/50 border border-white/15 text-xs font-bold transition cursor-pointer flex items-center gap-1"
+              title="Share Note"
+            >
+              <span>📤</span>
+              <span className="hidden sm:inline">Share</span>
+            </button>
+
+            {/* Freeze Title Toggle Button */}
+            <button
+              onClick={() => setFreezeTitle(!freezeTitle)}
+              className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
+                freezeTitle
+                  ? 'bg-amber-400/20 border-amber-400 text-amber-300'
+                  : 'bg-black/30 border-white/15 opacity-75 hover:opacity-100'
+              }`}
+              title={freezeTitle ? 'Title is frozen at top' : 'Click to freeze title at top'}
+            >
+              <span>{freezeTitle ? '📌' : '🔓'}</span>
+              <span className="hidden md:inline">{freezeTitle ? 'Title Frozen' : 'Freeze Title'}</span>
+            </button>
+
             {/* Note Card Background Color Picker Button */}
             <div className="relative">
               <button
@@ -215,7 +347,14 @@ export default function NoteEditor({
               {showOptions && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setShowOptions(false)} />
-                  <div className="absolute right-0 top-9 z-20 w-44 bg-white text-gray-800 rounded-2xl shadow-xl border border-gray-100 py-1.5 text-xs font-semibold animate-in fade-in zoom-in-95 duration-100">
+                  <div className="absolute right-0 top-9 z-20 w-48 bg-white text-gray-800 rounded-2xl shadow-xl border border-gray-100 py-1.5 text-xs font-semibold animate-in fade-in zoom-in-95 duration-100">
+                    <button
+                      onClick={() => { setFreezeTitle(!freezeTitle); setShowOptions(false); }}
+                      className="w-full text-left px-4 py-2 hover:bg-amber-50 flex items-center justify-between text-gray-700"
+                    >
+                      <span>Freeze Title</span>
+                      <span>{freezeTitle ? '✓' : ''}</span>
+                    </button>
                     <button
                       onClick={() => { setIsPinned(!isPinned); setShowOptions(false); }}
                       className="w-full text-left px-4 py-2 hover:bg-amber-50 flex items-center justify-between text-gray-700"
@@ -255,26 +394,42 @@ export default function NoteEditor({
           </div>
         </div>
 
-        {/* ── MS EXCEL-STYLE RIBBON TOOLBAR ── */}
-        <div className="p-2 border-b border-white/10 bg-black/15 shrink-0">
-          <Toolbar editor={editor} />
+        {/* ── STICKY / FROZEN MS EXCEL/WORD RIBBON TOOLBAR ── */}
+        <div className="p-2 border-b border-white/10 bg-black/20 shrink-0 z-20 overflow-x-auto">
+          <Toolbar editor={editor} onInsertImage={handleInsertImage} />
         </div>
 
-        {/* ── Editor Body Area ── */}
-        <div className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
+        {/* ── FROZEN TITLE INPUT (When freezeTitle === true) ── */}
+        {freezeTitle && (
+          <div className="px-4 sm:px-8 py-3 border-b border-white/10 bg-black/15 shrink-0 z-10">
+            <input
+              ref={titleInputRef}
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Note title"
+              className={`w-full bg-transparent text-xl sm:text-2xl font-extrabold ${theme.title} placeholder-white/40 focus:outline-none`}
+            />
+          </div>
+        )}
+
+        {/* ── SCROLLABLE EDITOR BODY AREA ── */}
+        <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 max-w-5xl mx-auto w-full">
           
-          {/* Note Title Input */}
-          <input
-            ref={titleInputRef}
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Note title"
-            className={`w-full bg-transparent text-xl font-extrabold ${theme.title} placeholder-white/40 focus:outline-none border-b border-white/10 pb-2`}
-          />
+          {/* UNFROZEN TITLE INPUT (When freezeTitle === false) */}
+          {!freezeTitle && (
+            <input
+              ref={titleInputRef}
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Note title"
+              className={`w-full bg-transparent text-xl sm:text-2xl font-extrabold ${theme.title} placeholder-white/40 focus:outline-none border-b border-white/10 pb-2`}
+            />
+          )}
 
           {/* TipTap Rich Editor Canvas */}
-          <div className="bg-black/20 rounded-2xl border border-white/15 p-3 min-h-[220px] shadow-inner overflow-x-auto">
+          <div className="bg-black/20 rounded-2xl border border-white/15 p-4 sm:p-5 min-h-[350px] shadow-inner overflow-x-auto">
             <EditorContent editor={editor} />
           </div>
 
