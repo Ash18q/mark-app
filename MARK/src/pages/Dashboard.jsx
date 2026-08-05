@@ -2681,7 +2681,7 @@ export default function Dashboard() {
               </span>
             )}
           </button>
-        </div>
+        </nav>
       </div>
     </div>
   )
