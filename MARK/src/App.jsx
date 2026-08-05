@@ -1,8 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { SecurityProvider } from './context/SecurityContext'
 import { LoginPage, SignupPage } from './pages/Auth'
 import Dashboard from './pages/Dashboard'
 import ProtectedRoute from './ProtectedRoute'
+import LockScreen from './components/LockScreen'
 
 // Preserves query params (e.g. ?url=... from Web Share Target) during root redirect
 const RootRedirect = () => {
@@ -13,29 +15,32 @@ const RootRedirect = () => {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login"  element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
+      <SecurityProvider>
+        <LockScreen />
+        <BrowserRouter>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
 
-          {/* Protected routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+            {/* Protected routes */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Root — redirect to dashboard, preserving any share intent query params */}
-          <Route path="/" element={<RootRedirect />} />
+            {/* Root — redirect to dashboard, preserving any share intent query params */}
+            <Route path="/" element={<RootRedirect />} />
 
-          {/* 404 fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+            {/* 404 fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </SecurityProvider>
     </AuthProvider>
   )
 }

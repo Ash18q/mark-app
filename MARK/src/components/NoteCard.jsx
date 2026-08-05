@@ -28,7 +28,7 @@ function FormattedText({ text }) {
   return <span>{text}</span>
 }
 
-export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggleArchive, viewMode = 'grid' }) {
+export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggleArchive, viewMode = 'grid', isGhostMode = false }) {
   const [showMenu, setShowMenu] = useState(false)
 
   const theme = getTheme(note.color)
@@ -39,6 +39,8 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggle
   const checklistItems = Array.isArray(note.checklist_items) ? note.checklist_items : []
   const tableData = note.table_data || { headers: [], rows: [] }
   const tagsList = note.tags ? note.tags.split(',').map(t => t.trim()).filter(Boolean) : []
+
+  const displayTitle = isGhostMode ? '🔒 Private Note' : (note.title || (isTable ? 'Table Grid' : isChecklist ? 'Checklist' : 'Untitled Note'))
 
   return (
     <div
@@ -52,7 +54,7 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggle
       <div>
         <div className="flex items-start justify-between gap-2 mb-2">
           <h3 className={`font-bold text-base ${theme.title} leading-snug line-clamp-2 break-words`}>
-            {note.title || (isTable ? 'Table Grid' : isChecklist ? 'Checklist' : 'Untitled Note')}
+            {displayTitle}
           </h3>
           
           <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>

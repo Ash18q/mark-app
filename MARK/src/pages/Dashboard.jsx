@@ -3,6 +3,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../supabaseClient'
 import Notes from '../components/Notes'
+import Settings from './Settings'
+import { useSecurity } from '../context/SecurityContext'
+import { GhostModeChip, GhostBadgeIcon } from '../components/GhostMode'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_PLATFORMS = [
@@ -1698,7 +1701,7 @@ function InsightsTab({ links = [], notes = [] }) {
         {/* Total Links */}
         <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-2 relative overflow-hidden">
           <span className="text-xs font-semibold text-slate-400">Total Links</span>
-          <div className="text-2xl font-black text-slate-900">{totalLinks}</div>
+          <div className="text-2xl font-black text-slate-900">{isGhostMode ? '🔒 Private' : totalLinks}</div>
           <div className="w-full h-1 bg-emerald-100 rounded-full overflow-hidden">
             <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }} />
           </div>
@@ -2757,7 +2760,7 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
                     <div className="h-4 bg-slate-200 rounded animate-pulse w-4/5 my-0.5" />
                   ) : (
                     <h4 className="text-sm font-semibold text-slate-800 line-clamp-2 leading-snug">
-                      {cardTitle}
+                      {isGhostMode ? '🔒 Link' : cardTitle}
                     </h4>
                   )}
 
@@ -2783,13 +2786,13 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
                   {/* URL Domain link + 3-Dots Action Menu Button */}
                   <div className="flex items-center justify-between gap-1.5 pt-1.5 border-t border-gray-100 relative">
                     <a
-                      href={link.url}
-                      target="_blank"
+                      href={isGhostMode ? '#' : link.url}
+                      target={isGhostMode ? '_self' : '_blank'}
                       rel="noopener noreferrer"
-                      title={link.url}
+                      title={isGhostMode ? 'https://...' : link.url}
                       className="text-[10px] text-gray-400 hover:text-indigo-600 font-medium truncate flex items-center gap-1 min-w-0"
                     >
-                      <span>🌐</span> {getDisplayUrl(link.url)}
+                      <span>🌐</span> {isGhostMode ? 'https://...' : getDisplayUrl(link.url)}
                     </a>
 
                     {/* 3-Dots Menu Button */}
@@ -3063,8 +3066,8 @@ function ExportModal({ data, hasFilters, previews = {}, onClose }) {
 
 // ─── Dashboard Page ───────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const { user, links, notes, deleteLink, updateLink, signOut } = useAuth()
-  const navigate = useNavigate()
+  const { signOut, links, deleteLink, updateLink, notes } = useAuth()
+  const { isGhostMode } = useSecurity()
   const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('add')
 
@@ -3132,6 +3135,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50/60 font-sans">
+      {isGhostMode && <GhostModeChip />}
 
       {/* ── Header (Screenshot 1 Exact Replica) ── */}
       <header className="bg-white border-b border-slate-100 sticky top-0 z-40">
@@ -3173,8 +3177,8 @@ export default function Dashboard() {
           />
         )}
         {activeTab === 'insights' && <InsightsTab links={links} notes={notes} />}
-        {activeTab === 'notes' && <Notes />}
-        {activeTab === 'settings' && <SettingsTab />}
+        {activeTab === 'notes' && <Notes isGhostMode={isGhostMode} />}
+        {activeTab === 'settings' && <Settings />}
       </main>
 
       {/* ── Export Modal ── */}
@@ -3295,10 +3299,19 @@ export default function Dashboard() {
                 ? 'bg-blue-100/90 text-blue-600 font-bold shadow-2xs'
                 : 'text-slate-500 group-hover:text-slate-800'
             }`}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === 'settings' ? 2.5 : 2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === 'settings' ? 2.5 : 2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
+              {isGhostMode ? (
+                <GhostBadgeIcon>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === 'settings' ? 2.5 : 2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === 'settings' ? 2.5 : 2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </GhostBadgeIcon>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === 'settings' ? 2.5 : 2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === 'settings' ? 2.5 : 2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              )}
             </div>
             <span className={`text-[10px] sm:text-[11px] transition-colors leading-tight ${
               activeTab === 'settings' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium group-hover:text-slate-800'

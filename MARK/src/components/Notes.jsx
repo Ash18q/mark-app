@@ -4,7 +4,7 @@ import NoteFilter from './NoteFilter'
 import NoteCard from './NoteCard'
 import NoteEditor from './NoteEditor'
 
-export default function Notes() {
+export default function Notes({ isGhostMode = false }) {
   const { notes = [], addNote, updateNote, deleteNote, togglePinNote, toggleArchiveNote, tags: allTags = [] } = useAuth()
 
   const safeNotes = Array.isArray(notes) ? notes : []
@@ -186,6 +186,7 @@ export default function Notes() {
                 key={note.id}
                 note={note}
                 viewMode={viewMode}
+                isGhostMode={isGhostMode}
                 onEdit={(n) => setEditorState({ isOpen: true, note: n, initialType: n.type || 'text' })}
                 onDelete={(id) => setDeleteConfirmId(id)}
                 onTogglePin={togglePinNote}
@@ -217,6 +218,7 @@ export default function Notes() {
                 key={note.id}
                 note={note}
                 viewMode={viewMode}
+                isGhostMode={isGhostMode}
                 onEdit={(n) => setEditorState({ isOpen: true, note: n, initialType: n.type || 'text' })}
                 onDelete={(id) => setDeleteConfirmId(id)}
                 onTogglePin={togglePinNote}
