@@ -1219,12 +1219,7 @@ function InsightsTab({ links = [], notes = [] }) {
   const topTag = tagStats[0] || ['None', 0]
 
   function getPlatformIcon(name) {
-    const p = name.toLowerCase()
-    if (p.includes('youtube') || p === 'yt') return <YouTubeTileIcon className="w-4 h-4" />
-    if (p.includes('instagram') || p === 'insta') return <InstagramTileIcon className="w-4 h-4" />
-    if (p.includes('linkedin')) return <LinkedInTileIcon className="w-4 h-4" />
-    if (p.includes('twitter') || p === 'x') return <XTwitterTileIcon className="w-4 h-4" />
-    return <GlobeIcon className="w-4 h-4 text-purple-600" />
+    return getPlatformTileIcon(name, "w-4 h-4")
   }
 
   return (
