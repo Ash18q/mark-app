@@ -1033,11 +1033,6 @@ function AddLinkTab({ initialUrl, links }) {
           </button>
         </form>
       </div>
-
-      {/* Library Insights Card underneath (as in reference Image 2) */}
-      <div>
-        <StatCards links={links} />
-      </div>
     </div>
   )
 }
@@ -1046,12 +1041,38 @@ function AddLinkTab({ initialUrl, links }) {
 function InsightsTab({ links = [], notes = [] }) {
   const [timeFilter, setTimeFilter] = useState('All time')
 
-  const totalLinks = links.length
+  // Time-based filtering logic
+  const filteredLinks = useMemo(() => {
+    if (timeFilter === 'All time') return links
+    const now = new Date()
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+    const yesterdayStart = todayStart - 86400000
+
+    return links.filter(l => {
+      const created = new Date(l.created_at || l.updated_at).getTime()
+      if (isNaN(created)) return true
+
+      if (timeFilter === 'Today') {
+        return created >= todayStart
+      } else if (timeFilter === 'Yesterday') {
+        return created >= yesterdayStart && created < todayStart
+      } else if (timeFilter === 'This week') {
+        const oneWeekAgo = now.getTime() - 7 * 86400000
+        return created >= oneWeekAgo
+      } else if (timeFilter === 'This month') {
+        const oneMonthAgo = now.getTime() - 30 * 86400000
+        return created >= oneMonthAgo
+      }
+      return true
+    })
+  }, [links, timeFilter])
+
+  const totalLinks = filteredLinks.length
   const totalNotes = notes.length
 
   const platformStats = useMemo(() => {
     const counts = {}
-    links.forEach((l) => {
+    filteredLinks.forEach((l) => {
       const p = l.platform || 'Website'
       counts[p] = (counts[p] || 0) + 1
     })
@@ -1061,11 +1082,11 @@ function InsightsTab({ links = [], notes = [] }) {
       count,
       percent: totalLinks > 0 ? Math.round((count / totalLinks) * 100) : 0
     }))
-  }, [links, totalLinks])
+  }, [filteredLinks, totalLinks])
 
   const tagStats = useMemo(() => {
     const counts = {}
-    links.forEach((l) => {
+    filteredLinks.forEach((l) => {
       if (l.tag) {
         l.tag.split(',').forEach(t => {
           const trimmed = t.trim()
@@ -1074,7 +1095,7 @@ function InsightsTab({ links = [], notes = [] }) {
       }
     })
     return Object.entries(counts).sort((a, b) => b[1] - a[1])
-  }, [links])
+  }, [filteredLinks])
 
   const topPlatform = platformStats[0] || { name: 'None', count: 0, percent: 0 }
   const topTag = tagStats[0] || ['None', 0]
@@ -1102,14 +1123,17 @@ function InsightsTab({ links = [], notes = [] }) {
           </div>
         </div>
 
+        {/* Time Category Selector */}
         <select
           value={timeFilter}
           onChange={(e) => setTimeFilter(e.target.value)}
           className="bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer self-start sm:self-auto"
         >
-          <option>All time</option>
-          <option>This month</option>
-          <option>This week</option>
+          <option value="All time">📅 All time</option>
+          <option value="Today">⚡ Today</option>
+          <option value="Yesterday">🕒 Yesterday</option>
+          <option value="This week">🗓️ This week</option>
+          <option value="This month">📊 This month</option>
         </select>
       </div>
 
@@ -2665,7 +2689,7 @@ export default function Dashboard() {
           <button
             id="tab-notes"
             onClick={() => setActiveTab('notes')}
-            className={`px-3 py-2 rounded-2xl flex items-center gap-1.5 text-xs transition-all duration-150 cursor-pointer relative ${
+            className={`px-3 py-2 rounded-2xl flex items-center gap-1.5 text-xs transition-all duration-150 cursor-pointer ${
               activeTab === 'notes'
                 ? 'bg-slate-100 text-slate-900 font-bold shadow-2xs'
                 : 'text-slate-600 hover:text-slate-900 font-medium'
@@ -2675,11 +2699,6 @@ export default function Dashboard() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
             <span>Notes</span>
-            {notes && notes.length > 0 && (
-              <span className="bg-[#b45309] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full min-w-[16px] text-center">
-                {notes.length}
-              </span>
-            )}
           </button>
         </nav>
       </div>
