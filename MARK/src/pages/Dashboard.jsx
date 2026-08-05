@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { supabase } from '../supabaseClient'
 import Notes from '../components/Notes'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -1259,6 +1260,19 @@ function InsightsTab({ links = [], notes = [] }) {
       percent: totalLinks > 0 ? Math.round((count / totalLinks) * 100) : 0
     }))
   }, [filteredLinks, totalLinks])
+
+  const tagStats = useMemo(() => {
+    const counts = {}
+    filteredLinks.forEach((l) => {
+      if (l.tag) {
+        l.tag.split(',').forEach(t => {
+          const trimmed = t.trim()
+          if (trimmed) counts[trimmed] = (counts[trimmed] || 0) + 1
+        })
+      }
+    })
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])
+  }, [filteredLinks])
 
   const topPlatform = platformStats[0] || { name: 'None', count: 0, percent: 0 }
   const topTag = tagStats[0] || ['None', 0]
