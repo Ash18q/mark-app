@@ -7,7 +7,7 @@ function MarkLogo({ size = 44 }) {
   return (
     <div
       style={{ width: size, height: size }}
-      className="rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30"
+      className="rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30"
     >
       <span style={{ fontSize: size * 0.45 }} className="text-white font-black tracking-tighter select-none">M</span>
     </div>
