@@ -167,7 +167,8 @@ function platformColor(p = '') {
 // ─── Platform auto-detection helper ─────────────────────────────────────────
 function detectPlatform(url) {
   try {
-    const host = new URL(url).hostname.toLowerCase()
+    const clean = extractUrlFromString(url)
+    const host = new URL(clean).hostname.toLowerCase()
     if (host.includes('youtube.com') || host.includes('youtu.be')) return 'YouTube'
     if (host.includes('instagram.com')) return 'Instagram'
     if (host.includes('pinterest.com') || host.includes('pin.it')) return 'Pinterest'
@@ -183,6 +184,17 @@ function detectPlatform(url) {
     if (host.includes('discord.com') || host.includes('discord.gg')) return 'Discord'
   } catch { /* invalid url */ }
   return ''
+}
+
+// ─── Smart URL Cleaner (Extracts pure http/https URL from shared text) ────────
+function extractUrlFromString(text) {
+  if (!text) return ''
+  const trimmed = text.trim()
+  const match = trimmed.match(/(https?:\/\/[^\s]+)/i)
+  if (match) return match[1]
+  const wwwMatch = trimmed.match(/(www\.[^\s]+)/i)
+  if (wwwMatch) return 'https://' + wwwMatch[1]
+  return trimmed
 }
 
 // ─── Platform Autocomplete Input (Interactive Pill Chips + Custom Typeable) ──
@@ -796,9 +808,9 @@ function StatCards({ links = [] }) {
 // ─── Add Link Form (Tab 1) ────────────────────────────────────────────────────
 function AddLinkTab({ initialUrl = '', links = [] }) {
   const { addLink, tags } = useAuth()
-  const [url, setUrl] = useState(initialUrl)
+  const [url, setUrl] = useState(() => extractUrlFromString(initialUrl))
   const [tag, setTag] = useState('')
-  const [platform, setPlatform] = useState(() => detectPlatform(initialUrl))
+  const [platform, setPlatform] = useState(() => detectPlatform(extractUrlFromString(initialUrl)))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -809,14 +821,14 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
 
   // Dynamic platform suggestions: defaults + any user-saved custom platforms
   const platformSuggestions = useMemo(() => {
-    const defaults = ['YouTube', 'Instagram', 'Threads', 'Facebook', 'Twitter/X', 'LinkedIn', 'GitHub', 'Reddit', 'Discord']
+    const defaults = ['YouTube', 'Instagram', 'Pinterest', 'Threads', 'Rednote', 'Snapchat', 'Telegram', 'Facebook', 'Twitter/X', 'LinkedIn', 'GitHub', 'Reddit', 'Discord']
     const existing = [...new Set(safeLinks.map(l => l.platform).filter(Boolean))]
     return [...new Set([...defaults, ...existing])]
   }, [safeLinks])
 
   // Dynamically compute user's top 10 most frequently saved platforms from analytics history
   const topPlatforms = useMemo(() => {
-    const defaultList = ['Website', 'YouTube', 'Instagram', 'LinkedIn', 'Twitter/X', 'Telegram', 'Snapchat', 'Threads', 'Rednote', 'Facebook']
+    const defaultList = ['Website', 'YouTube', 'Instagram', 'Pinterest', 'Threads', 'Rednote', 'Snapchat', 'Telegram', 'Facebook', 'Twitter/X']
     const counts = {}
     safeLinks.forEach(l => {
       if (l.platform) {
@@ -841,12 +853,13 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
   // Sync url + auto-detect platform when initialUrl changes
   // Also re-reads window.location.href at effect time as extra safety net
   useEffect(() => {
-    const effectiveUrl = initialUrl || (() => {
+    const raw = initialUrl || (() => {
       try {
         const parsed = new URL(window.location.href)
         return parsed.searchParams.get('url') || parsed.searchParams.get('text') || parsed.searchParams.get('link') || ''
       } catch { return '' }
     })()
+    const effectiveUrl = extractUrlFromString(raw)
     if (effectiveUrl) {
       setUrl(effectiveUrl)
       const detected = detectPlatform(effectiveUrl)
@@ -923,7 +936,16 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
                 id="qs-url"
                 type="url"
                 value={url}
-                onChange={(e) => { setUrl(e.target.value); const d = detectPlatform(e.target.value); if (d) setPlatform(d) }}
+                onChange={(e) => {
+                  const cleaned = extractUrlFromString(e.target.value)
+                  setUrl(cleaned)
+                  const d = detectPlatform(cleaned)
+                  if (d) setPlatform(d)
+                }}
+                onBlur={(e) => {
+                  const cleaned = extractUrlFromString(e.target.value)
+                  if (cleaned !== url) setUrl(cleaned)
+                }}
                 className={`${inputCls} text-xs`}
                 placeholder="https://example.com"
                 required
@@ -954,17 +976,51 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
               />
             </div>
 
-            {/* Platform selector */}
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="qs-platform" className="text-sm font-semibold text-gray-700">📱 Platform</label>
-              <PlatformInput
-                id="qs-platform"
-                value={platform}
-                onChange={setPlatform}
-                className={inputCls}
-                suggestions={platformSuggestions}
-                onSelectComplete={() => {}}
-              />
+            {/* Platform — 10 Top Shortcut Tiles + Fixed Tag-like Platform Autocomplete Input */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                📱 Platform
+              </label>
+
+              {/* 10 Shortcut Platform Tiles */}
+              <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                {platformTiles.map((tile) => {
+                  const isSelected = (platform || 'Website').toLowerCase() === tile.id.toLowerCase()
+
+                  return (
+                    <button
+                      key={tile.id}
+                      type="button"
+                      onClick={() => setPlatform(tile.id)}
+                      className={`rounded-xl p-1.5 flex flex-col items-center justify-center gap-1 transition-all duration-150 cursor-pointer relative ${
+                        isSelected
+                          ? 'bg-purple-50/80 border-2 border-purple-600 text-purple-700 font-bold shadow-2xs'
+                          : 'bg-white border border-slate-200/80 text-slate-700 hover:border-purple-300 shadow-2xs font-medium'
+                      }`}
+                    >
+                      {isSelected && (
+                        <div className="w-3.5 h-3.5 bg-purple-600 text-white rounded-full flex items-center justify-center text-[8px] font-bold absolute -top-1 -right-1 shadow-2xs">
+                          ✓
+                        </div>
+                      )}
+                      <div className={isSelected ? 'text-purple-600' : 'text-slate-600'}>
+                        {tile.icon}
+                      </div>
+                      <span className="text-[10px] truncate max-w-full leading-tight">{tile.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Fixed Tag-like Platform Autocomplete Input below tiles */}
+              <div className="pt-0.5">
+                <PlatformInput
+                  id="qs-platform"
+                  value={platform}
+                  onChange={setPlatform}
+                  suggestions={platformSuggestions}
+                />
+              </div>
             </div>
 
             {/* Error */}
