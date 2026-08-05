@@ -161,7 +161,7 @@ function detectPlatform(url) {
 }
 
 // ─── Smart Platform Input (select + custom fallback) ─────────────────────────
-function PlatformInput({ id = 'platform-input', value, onChange, className = '', suggestions = DEFAULT_PLATFORMS }) {
+function PlatformInput({ id = 'platform-input', value, onChange, className = '', suggestions = DEFAULT_PLATFORMS, onSelectComplete }) {
   const isCustom = value !== '' && !suggestions.includes(value)
   const [customMode, setCustomMode] = useState(isCustom)
   const [customText, setCustomText] = useState(isCustom ? value : '')
@@ -184,6 +184,7 @@ function PlatformInput({ id = 'platform-input', value, onChange, className = '',
       setCustomMode(false)
       setCustomText('')
       onChange(selected)
+      if (onSelectComplete) onSelectComplete()
     }
   }
 
@@ -880,6 +881,7 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
                 onChange={setPlatform}
                 className={inputCls}
                 suggestions={platformSuggestions}
+                onSelectComplete={() => {}}
               />
             </div>
 
@@ -917,7 +919,7 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg font-bold">
-              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
             </div>
@@ -948,7 +950,7 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
               URL
             </label>
             <div className="relative flex items-center bg-slate-50/70 border border-slate-200/80 rounded-xl px-3.5 py-2.5 focus-within:bg-white focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-100 transition shadow-2xs">
-              <svg className="w-4.5 h-4.5 text-slate-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-slate-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
               <input
@@ -1037,7 +1039,8 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
                 <PlatformInput
                   id="custom-platform-input"
                   value={platform}
-                  onChange={setPlatform}
+                  onChange={(val) => { setPlatform(val); setShowCustomPlatform(false) }}
+                  onSelectComplete={() => setShowCustomPlatform(false)}
                   className="input-field text-xs py-2 rounded-xl"
                   suggestions={platformSuggestions}
                 />
