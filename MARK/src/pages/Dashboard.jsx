@@ -88,15 +88,27 @@ const FacebookTileIcon = ({ className = "w-4 h-4" }) => (
   </svg>
 )
 const ThreadsTileIcon = ({ className = "w-4 h-4" }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12.186 24h-.007c-3.582-.022-6.366-1.212-8.277-3.537-1.782-2.168-2.586-5.228-2.39-9.095.276-5.462 4.14-9.843 9.4-10.655 5.29-.816 10.306 2.378 12.023 7.653.257.79-.176 1.637-.966 1.894-.79.256-1.637-.176-1.894-.966-1.314-4.037-5.15-6.48-9.196-5.856-4.043.624-7.01 3.99-7.22 8.187-.152 3.01.468 5.378 1.841 7.042 1.442 1.752 3.58 2.65 6.353 2.667 3.528.022 6.136-1.34 7.75-4.045 1.15-1.927 1.48-4.48 1.48-6.04 0-.46-.03-.94-.09-1.42-.11-.82-.77-1.46-1.6-1.46-.81 0-1.48.62-1.6 1.43-.09.61-.26 1.25-.52 1.9-.76 1.88-2.45 2.82-4.47 2.82-1.69 0-3.03-.68-3.77-1.92-.68-1.14-.76-2.58-.22-3.85.58-1.36 1.77-2.22 3.26-2.36 1.68-.16 3.12.44 3.95 1.64.44.63.68 1.41.68 2.25 0 .83-.24 1.62-.68 2.25-.83 1.2-2.27 1.8-3.95 1.64-1.49-.14-2.68-1-3.26-2.36-.54-1.27-.46-2.71.22-3.85.74-1.24 2.08-1.92 3.77-1.92 2.02 0 3.71.94 4.47 2.82.26.65.43 1.29.52 1.9.12.81.79 1.43 1.6 1.43.83 0 1.49-.64 1.6-1.46.06-.48.09-.96.09-1.42 0-1.56-.33-4.113-1.48-6.04C18.322 1.34 15.714-.022 12.186 0z"/>
+  <svg className={className} viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="5" fill="#000000"/>
+    <path fill="#FFFFFF" d="M12.186 19.5h-.007c-2.985-.018-5.305-1.01-6.898-2.948-1.485-1.807-2.155-4.357-1.992-7.579.23-4.552 3.45-8.203 7.833-8.879 4.408-.68 8.588 1.982 10.019 6.378.214.658-.147 1.364-.805 1.578-.658.213-1.364-.147-1.578-.805-1.095-3.364-4.292-5.4-7.663-4.88-3.37.52-5.842 3.325-6.017 6.823-.127 2.508.39 4.482 1.534 5.868 1.202 1.46 2.983 2.208 5.294 2.223 2.94.018 5.113-1.117 6.458-3.371.958-1.606 1.233-3.733 1.233-5.033 0-.383-.025-.783-.075-1.183-.092-.683-.642-1.217-1.333-1.217-.675 0-1.233.517-1.333 1.192-.075.508-.217 1.042-.433 1.583-.633 1.567-2.042 2.35-3.725 2.35-1.408 0-2.525-.567-3.142-1.6-.567-.95-.633-2.15-.183-3.208.483-1.133 1.475-1.85 2.717-1.967 1.4-.133 2.6.367 3.292 1.367.367.525.567 1.175.567 1.875 0 .692-.2 1.35-.567 1.875-.692 1-1.892 1.5-3.292 1.367-1.242-.117-2.234-.834-2.717-1.967-.45-1.058-.384-2.258.183-3.208.617-1.033 1.734-1.6 3.142-1.6 1.683 0 3.092.783 3.725 2.35.216.541.358 1.075.433 1.583.1 1.35.034 3.425-.925 5.033-1.65 2.775-4.325 4.15-7.95 4.125z"/>
   </svg>
 )
 const RednoteTileIcon = ({ className = "w-4 h-4" }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none">
-    <rect width="24" height="24" rx="6" fill="#FF2442"/>
-    <path fill="#FFFFFF" d="M6.5 6h11A1.5 1.5 0 0119 7.5v9a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 015 16.5v-9A1.5 1.5 0 016.5 6zm2.5 3v6m3-6v6m3-6v6"/>
-    <path stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" d="M8 12h8"/>
+    <rect width="24" height="24" rx="5" fill="#FF2442"/>
+    <text x="12" y="15.5" fill="#FFFFFF" fontSize="8" fontWeight="900" fontFamily="system-ui, -apple-system, sans-serif" textAnchor="middle">小红书</text>
+  </svg>
+)
+const SnapchatTileIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="5" fill="#FFFC00"/>
+    <path d="M12 4.5c-2.4 0-4.1 1.7-4.1 3.9 0 .8.1 1.6.4 2.2-.5.2-1.1.5-1.5.5-.3 0-.5-.1-.7-.3-.2-.2-.2-.5-.1-.8.2-.5.1-1.1-.3-1.5-.4-.4-1-.5-1.5-.2-.5.3-.8.9-.7 1.5.2 1.3 1.2 2.3 2.5 2.5-.1.4-.2.8-.2 1.2 0 1.5.9 2.8 2.2 3.4-.4.4-.9.9-1.6.9-.5 0-1-.1-1.4-.4-.3-.2-.7-.2-1 0-.3.2-.4.6-.2.9.4.7 1.1 1.2 1.9 1.4.3.1.6.1.9.1 1.3 0 2.5-.6 3.4-1.6.9 1 2.1 1.6 3.4 1.6.3 0 .6 0 .9-.1.8-.2 1.5-.7 1.9-1.4.2-.3.1-.7-.2-.9-.3-.2-.7-.2-1 0-.4.3-.9.4-1.4.4-.7 0-1.2-.5-1.6-.9 1.3-.6 2.2-1.9 2.2-3.4 0-.4-.1-.8-.2-1.2 1.3-.2 2.3-1.2 2.5-2.5.1-.6-.2-1.2-.7-1.5-.5-.3-1.1-.2-1.5.2-.4.4-.5 1-.3 1.5.1.3.1.6-.1.8-.2.2-.4.3-.7.3-.4 0-1-.3-1.5-.5.3-.6.4-1.4.4-2.2 0-2.2-1.7-3.9-4.1-3.9z" fill="#FFFFFF" stroke="#000000" strokeWidth="1.2" strokeLinejoin="round"/>
+  </svg>
+)
+const TelegramTileIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="12" fill="#229ED9"/>
+    <path fillRule="evenodd" clipRule="evenodd" d="M5.463 11.849c4.986-2.172 8.312-3.606 9.977-4.301 4.744-1.972 5.731-2.315 6.373-2.326.141-.003.456.032.66.198.172.14.22.329.243.461.023.133.051.435.029.672-.25 2.63-1.332 9.011-1.884 11.962-.234 1.25-.694 1.669-1.139 1.71-.968.089-1.703-.639-2.641-1.253-1.467-.961-2.296-1.558-3.719-2.496-1.644-1.085-.578-1.681.359-2.654.245-.255 4.5-4.125 4.583-4.48.01-.044.02-.21-.077-.296-.098-.086-.242-.057-.346-.033-.148.034-2.508 1.594-7.078 4.68-.669.46-1.275.687-1.817.675-.598-.013-1.748-.337-2.605-.616-1.051-.341-1.887-.522-1.814-1.102.038-.302.454-.613 1.248-.933z" fill="#FFFFFF"/>
   </svg>
 )
 const GitHubTileIcon = ({ className = "w-4 h-4" }) => (
@@ -124,6 +136,8 @@ function getPlatformTileIcon(p, className = "w-4 h-4") {
   if (name.includes('facebook') || name === 'fb') return <FacebookTileIcon className={className} />
   if (name.includes('threads')) return <ThreadsTileIcon className={className} />
   if (name.includes('rednote') || name.includes('xiaohongshu')) return <RednoteTileIcon className={className} />
+  if (name.includes('snapchat') || name === 'snap') return <SnapchatTileIcon className={className} />
+  if (name.includes('telegram') || name === 'tg') return <TelegramTileIcon className={className} />
   if (name.includes('github')) return <GitHubTileIcon className={className} />
   if (name.includes('reddit')) return <RedditTileIcon className={className} />
   if (name.includes('discord')) return <DiscordTileIcon className={className} />
@@ -799,7 +813,7 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
 
   // Dynamically compute user's top 10 most frequently saved platforms from analytics history
   const topPlatforms = useMemo(() => {
-    const defaultList = ['Website', 'YouTube', 'Instagram', 'LinkedIn', 'Twitter/X', 'Threads', 'Rednote', 'Facebook', 'GitHub', 'Discord']
+    const defaultList = ['Website', 'YouTube', 'Instagram', 'LinkedIn', 'Twitter/X', 'Telegram', 'Snapchat', 'Threads', 'Rednote', 'Facebook']
     const counts = {}
     safeLinks.forEach(l => {
       if (l.platform) {
