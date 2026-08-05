@@ -88,8 +88,15 @@ const FacebookTileIcon = ({ className = "w-4 h-4" }) => (
   </svg>
 )
 const ThreadsTileIcon = ({ className = "w-4 h-4" }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M12.001 0C5.373 0 0 5.373 0 12s5.373 12 12.001 12c6.627 0 12-5.373 12-12S18.628 0 12.001 0zm.005 18.72a6.72 6.72 0 0 1-6.72-6.72c0-3.711 3.009-6.72 6.72-6.72s6.72 3.009 6.72 6.72-3.009 6.72-6.72 6.72z"/>
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12.186 24h-.007c-3.582-.022-6.366-1.212-8.277-3.537-1.782-2.168-2.586-5.228-2.39-9.095.276-5.462 4.14-9.843 9.4-10.655 5.29-.816 10.306 2.378 12.023 7.653.257.79-.176 1.637-.966 1.894-.79.256-1.637-.176-1.894-.966-1.314-4.037-5.15-6.48-9.196-5.856-4.043.624-7.01 3.99-7.22 8.187-.152 3.01.468 5.378 1.841 7.042 1.442 1.752 3.58 2.65 6.353 2.667 3.528.022 6.136-1.34 7.75-4.045 1.15-1.927 1.48-4.48 1.48-6.04 0-.46-.03-.94-.09-1.42-.11-.82-.77-1.46-1.6-1.46-.81 0-1.48.62-1.6 1.43-.09.61-.26 1.25-.52 1.9-.76 1.88-2.45 2.82-4.47 2.82-1.69 0-3.03-.68-3.77-1.92-.68-1.14-.76-2.58-.22-3.85.58-1.36 1.77-2.22 3.26-2.36 1.68-.16 3.12.44 3.95 1.64.44.63.68 1.41.68 2.25 0 .83-.24 1.62-.68 2.25-.83 1.2-2.27 1.8-3.95 1.64-1.49-.14-2.68-1-3.26-2.36-.54-1.27-.46-2.71.22-3.85.74-1.24 2.08-1.92 3.77-1.92 2.02 0 3.71.94 4.47 2.82.26.65.43 1.29.52 1.9.12.81.79 1.43 1.6 1.43.83 0 1.49-.64 1.6-1.46.06-.48.09-.96.09-1.42 0-1.56-.33-4.113-1.48-6.04C18.322 1.34 15.714-.022 12.186 0z"/>
+  </svg>
+)
+const RednoteTileIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="6" fill="#FF2442"/>
+    <path fill="#FFFFFF" d="M6.5 6h11A1.5 1.5 0 0119 7.5v9a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 015 16.5v-9A1.5 1.5 0 016.5 6zm2.5 3v6m3-6v6m3-6v6"/>
+    <path stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" d="M8 12h8"/>
   </svg>
 )
 const GitHubTileIcon = ({ className = "w-4 h-4" }) => (
@@ -116,6 +123,7 @@ function getPlatformTileIcon(p, className = "w-4 h-4") {
   if (name.includes('twitter') || name === 'x') return <XTwitterTileIcon className={className} />
   if (name.includes('facebook') || name === 'fb') return <FacebookTileIcon className={className} />
   if (name.includes('threads')) return <ThreadsTileIcon className={className} />
+  if (name.includes('rednote') || name.includes('xiaohongshu')) return <RednoteTileIcon className={className} />
   if (name.includes('github')) return <GitHubTileIcon className={className} />
   if (name.includes('reddit')) return <RedditTileIcon className={className} />
   if (name.includes('discord')) return <DiscordTileIcon className={className} />
@@ -160,69 +168,128 @@ function detectPlatform(url) {
   return ''
 }
 
-// ─── Smart Platform Input (select + custom fallback) ─────────────────────────
-function PlatformInput({ id = 'platform-input', value, onChange, className = '', suggestions = DEFAULT_PLATFORMS, onSelectComplete }) {
-  const isCustom = value !== '' && !suggestions.includes(value)
-  const [customMode, setCustomMode] = useState(isCustom)
-  const [customText, setCustomText] = useState(isCustom ? value : '')
+// ─── Platform Autocomplete Input (Interactive Pill Chips + Custom Typeable) ──
+function PlatformInput({ id = 'link-platform', value = '', onChange, suggestions = DEFAULT_PLATFORMS, className = '' }) {
+  const [open, setOpen] = useState(false)
+  const [inputValue, setInputValue] = useState('')
+  const ref = useRef(null)
 
-  // sync when value changes externally (e.g. auto-detect)
+  const filtered = useMemo(() => {
+    if (!inputValue.trim()) return suggestions
+    const q = inputValue.trim().toLowerCase()
+    return suggestions.filter((s) => s.toLowerCase().includes(q))
+  }, [suggestions, inputValue])
+
   useEffect(() => {
-    if (value && suggestions.includes(value)) {
-      setCustomMode(false)
-      setCustomText('')
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false)
+      }
     }
-  }, [value, suggestions])
+    document.addEventListener('mousedown', handler)
+    document.addEventListener('touchstart', handler)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      document.removeEventListener('touchstart', handler)
+    }
+  }, [])
 
-  function handleSelectChange(e) {
-    const selected = e.target.value
-    if (selected === '__custom__') {
-      setCustomMode(true)
-      setCustomText('')
-      onChange('')
-    } else {
-      setCustomMode(false)
-      setCustomText('')
-      onChange(selected)
-      if (onSelectComplete) onSelectComplete()
-    }
+  function selectPlatform(p) {
+    const trimmed = (p || '').trim()
+    onChange(trimmed)
+    setInputValue('')
+    setOpen(false)
   }
 
-  function handleCustomChange(e) {
-    setCustomText(e.target.value)
-    onChange(e.target.value)
+  function handleKeyDown(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (inputValue.trim()) {
+        selectPlatform(inputValue.trim())
+      }
+    }
   }
-
-  const selectValue = customMode ? '__custom__' : (value || '')
 
   return (
-    <div className="flex flex-col gap-2">
-      <select
-        id={id}
-        value={selectValue}
-        onChange={handleSelectChange}
-        required={!customMode}
-        className={className}
-      >
-        <option value="" disabled>Select a platform…</option>
-        {suggestions.map((p) => (
-          <option key={p} value={p}>{p}</option>
-        ))}
-        <option value="__custom__">✏️ Custom / Other</option>
-      </select>
+    <div ref={ref} className="relative">
+      <div className="flex items-center gap-2 min-h-[38px] w-full border border-slate-200/80 rounded-xl px-3 py-1 bg-slate-50/70 focus-within:bg-white focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-100 transition shadow-2xs">
+        {/* Selected Platform Badge */}
+        {value ? (
+          <span className="bg-purple-50 border border-purple-200 text-purple-800 text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-2xs">
+            {getPlatformTileIcon(value, "w-3.5 h-3.5")}
+            <span>{value}</span>
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              className="text-purple-400 hover:text-purple-700 font-bold ml-0.5 text-xs cursor-pointer"
+            >
+              ×
+            </button>
+          </span>
+        ) : null}
 
-      {customMode && (
+        {/* Input */}
         <input
-          id={`${id}-custom`}
+          id={id}
           type="text"
-          value={customText}
-          onChange={handleCustomChange}
-          placeholder="Type platform name…"
+          value={inputValue}
+          onChange={(e) => {
+            setInputValue(e.target.value)
+            setOpen(true)
+          }}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setOpen(true)}
+          placeholder={value ? 'Type to change platform…' : 'Add or select platform…'}
+          className="bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none flex-1 min-w-[100px] py-1 font-medium"
           autoComplete="off"
-          required
-          autoFocus
-          className={className}
         />
+
+        {/* Chevron arrow */}
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="text-slate-400 hover:text-slate-600 p-0.5 rounded-md transition cursor-pointer"
+        >
+          <svg className={`w-3.5 h-3.5 transition-transform duration-150 ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Autocomplete Dropdown List */}
+      {open && (
+        <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white border border-slate-200 rounded-xl shadow-xl max-h-44 overflow-y-auto p-1.5 space-y-0.5 animate-fadeIn">
+          {filtered.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => selectPlatform(s)}
+              className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center justify-between cursor-pointer ${
+                (value || '').toLowerCase() === s.toLowerCase()
+                  ? 'bg-purple-50 text-purple-700 font-bold'
+                  : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                {getPlatformTileIcon(s, "w-3.5 h-3.5")}
+                <span>{s}</span>
+              </div>
+              {(value || '').toLowerCase() === s.toLowerCase() && <span className="text-purple-600 font-bold">✓</span>}
+            </button>
+          ))}
+
+          {/* If typing something custom not in suggestions */}
+          {inputValue.trim() && !suggestions.some(s => s.toLowerCase() === inputValue.trim().toLowerCase()) && (
+            <button
+              type="button"
+              onClick={() => selectPlatform(inputValue.trim())}
+              className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 transition flex items-center justify-between cursor-pointer border border-purple-200"
+            >
+              <span>➕ Save platform "{inputValue.trim()}"</span>
+              <span className="text-[10px] text-purple-500 font-semibold">Press Enter</span>
+            </button>
+          )}
+        </div>
       )}
     </div>
   )
@@ -730,9 +797,9 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
     return [...new Set([...defaults, ...existing])]
   }, [safeLinks])
 
-  // Dynamically compute user's top 9 most frequently saved platforms from analytics history
+  // Dynamically compute user's top 10 most frequently saved platforms from analytics history
   const topPlatforms = useMemo(() => {
-    const defaultList = ['Website', 'YouTube', 'Instagram', 'LinkedIn', 'Twitter/X', 'Facebook', 'Threads', 'GitHub', 'Reddit']
+    const defaultList = ['Website', 'YouTube', 'Instagram', 'LinkedIn', 'Twitter/X', 'Threads', 'Rednote', 'Facebook', 'GitHub', 'Discord']
     const counts = {}
     safeLinks.forEach(l => {
       if (l.platform) {
@@ -742,18 +809,16 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
     })
     const sortedUserPlatforms = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
     const combined = [...new Set([...sortedUserPlatforms, ...defaultList])]
-    return combined.slice(0, 9)
+    return combined.slice(0, 10)
   }, [safeLinks])
 
-  // Build 10 tiles list (9 top dynamic platforms + 1 More tile)
+  // Build 10 tiles list (Exact 10 top dynamic shortcut platforms)
   const platformTiles = useMemo(() => {
-    const tiles = topPlatforms.map(p => ({
+    return topPlatforms.map(p => ({
       id: p,
       label: p === 'Twitter/X' ? 'X (Twitter)' : p,
       icon: getPlatformTileIcon(p, "w-4 h-4")
     }))
-    tiles.push({ id: 'More', label: 'More', icon: <MoreTileIcon className="w-4 h-4 text-slate-600" /> })
-    return tiles
   }, [topPlatforms])
 
   // Sync url + auto-detect platform when initialUrl changes
@@ -990,29 +1055,22 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
             </span>
           </div>
 
-          {/* Platform — 10 Platform Tiles in 5 Columns x 2 Rows Grid */}
+          {/* Platform — 10 Top Shortcut Tiles + Fixed Tag-like Platform Autocomplete Input */}
           <div className="space-y-1.5">
             <label className="block text-[11px] font-bold text-slate-900 tracking-wide uppercase">
               Platform
             </label>
 
+            {/* 10 Shortcut Platform Tiles */}
             <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
               {platformTiles.map((tile) => {
-                const isSelected = (platform || 'Website').toLowerCase() === tile.id.toLowerCase() ||
-                  (tile.id === 'More' && platform && !topPlatforms.map(p => p.toLowerCase()).includes(platform.toLowerCase()))
+                const isSelected = (platform || 'Website').toLowerCase() === tile.id.toLowerCase()
 
                 return (
                   <button
                     key={tile.id}
                     type="button"
-                    onClick={() => {
-                      if (tile.id === 'More') {
-                        setShowCustomPlatform(true)
-                      } else {
-                        setPlatform(tile.id)
-                        setShowCustomPlatform(false)
-                      }
-                    }}
+                    onClick={() => setPlatform(tile.id)}
                     className={`rounded-xl p-1.5 sm:p-2 flex flex-col items-center justify-center gap-1 transition-all duration-150 cursor-pointer relative ${
                       isSelected
                         ? 'bg-purple-50/80 border-2 border-purple-600 text-purple-700 font-bold shadow-2xs'
@@ -1033,19 +1091,15 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
               })}
             </div>
 
-            {/* Instant dropdown underneath if More is selected or platform is custom */}
-            {(showCustomPlatform || (platform && !topPlatforms.map(p => p.toLowerCase()).includes(platform.toLowerCase()))) && (
-              <div className="pt-1.5 animate-fadeIn">
-                <PlatformInput
-                  id="custom-platform-input"
-                  value={platform}
-                  onChange={(val) => { setPlatform(val); setShowCustomPlatform(false) }}
-                  onSelectComplete={() => setShowCustomPlatform(false)}
-                  className="input-field text-xs py-2 rounded-xl"
-                  suggestions={platformSuggestions}
-                />
-              </div>
-            )}
+            {/* Fixed Tag-like Platform Autocomplete Input below tiles */}
+            <div className="pt-0.5">
+              <PlatformInput
+                id="link-platform"
+                value={platform}
+                onChange={setPlatform}
+                suggestions={platformSuggestions}
+              />
+            </div>
 
             <span className="block text-[10px] text-slate-400 pt-0.5">
               We'll suggest the platform automatically when possible.
