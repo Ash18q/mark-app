@@ -698,30 +698,18 @@ function StatCards({ links = [] }) {
             ))
           )}
           {remainingCount > 0 && (
-            <span className="text-emerald-700 font-bold text-xs hover:underline cursor-pointer px-1">
+            <span className="text-emerald-700 font-bold text-xs cursor-pointer px-1">
               +{remainingCount} more
             </span>
           )}
         </div>
-      </div>
-
-      {/* View all analytics link */}
-      <div className="pt-1 text-center">
-        <button
-          type="button"
-          onClick={() => {}}
-          className="text-emerald-700 hover:text-emerald-800 font-bold text-xs inline-flex items-center gap-1.5 transition cursor-pointer hover:underline"
-        >
-          <span>View all analytics</span>
-          <span>→</span>
-        </button>
       </div>
     </div>
   )
 }
 
 // ─── Add Link Form (Tab 1) ────────────────────────────────────────────────────
-function AddLinkTab({ initialUrl, links }) {
+function AddLinkTab({ initialUrl = '', links = [] }) {
   const { addLink, tags } = useAuth()
   const [url, setUrl] = useState(initialUrl)
   const [tag, setTag] = useState('')
@@ -729,14 +717,43 @@ function AddLinkTab({ initialUrl, links }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [showCustomPlatform, setShowCustomPlatform] = useState(false)
   const tagInputRef = useRef(null)
+
+  const safeLinks = links || []
 
   // Dynamic platform suggestions: defaults + any user-saved custom platforms
   const platformSuggestions = useMemo(() => {
     const defaults = ['YouTube', 'Instagram', 'Threads', 'Facebook', 'Twitter/X', 'LinkedIn', 'GitHub', 'Reddit', 'Discord']
-    const existing = [...new Set(links.map(l => l.platform).filter(Boolean))]
+    const existing = [...new Set(safeLinks.map(l => l.platform).filter(Boolean))]
     return [...new Set([...defaults, ...existing])]
-  }, [links])
+  }, [safeLinks])
+
+  // Dynamically compute user's top 9 most frequently saved platforms from analytics history
+  const topPlatforms = useMemo(() => {
+    const defaultList = ['Website', 'YouTube', 'Instagram', 'LinkedIn', 'Twitter/X', 'Facebook', 'Threads', 'GitHub', 'Reddit']
+    const counts = {}
+    safeLinks.forEach(l => {
+      if (l.platform) {
+        const p = l.platform.trim()
+        if (p) counts[p] = (counts[p] || 0) + 1
+      }
+    })
+    const sortedUserPlatforms = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
+    const combined = [...new Set([...sortedUserPlatforms, ...defaultList])]
+    return combined.slice(0, 9)
+  }, [safeLinks])
+
+  // Build 10 tiles list (9 top dynamic platforms + 1 More tile)
+  const platformTiles = useMemo(() => {
+    const tiles = topPlatforms.map(p => ({
+      id: p,
+      label: p === 'Twitter/X' ? 'X (Twitter)' : p,
+      icon: getPlatformTileIcon(p, "w-4 h-4")
+    }))
+    tiles.push({ id: 'More', label: 'More', icon: <MoreTileIcon className="w-4 h-4 text-slate-600" /> })
+    return tiles
+  }, [topPlatforms])
 
   // Sync url + auto-detect platform when initialUrl changes
   // Also re-reads window.location.href at effect time as extra safety net
@@ -787,6 +804,18 @@ function AddLinkTab({ initialUrl, links }) {
   }
 
   const inputCls = 'input-field'
+
+  const handlePasteFromClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText()
+      if (text && text.trim()) {
+        const trimmed = text.trim()
+        setUrl(trimmed)
+        const d = detectPlatform(trimmed)
+        if (d) setPlatform(d)
+      }
+    } catch { /* clip fail */ }
+  }
 
   // ── Quick-Save Popup Mode (shared URL detected) ──────────────────────────────
   if (isPopupMode) {
@@ -877,20 +906,6 @@ function AddLinkTab({ initialUrl, links }) {
         </div>
       </div>
     )
-  }
-
-  const [showCustomPlatform, setShowCustomPlatform] = useState(false)
-
-  const handlePasteFromClipboard = async () => {
-    try {
-      const text = await navigator.clipboard.readText()
-      if (text && text.trim()) {
-        const trimmed = text.trim()
-        setUrl(trimmed)
-        const d = detectPlatform(trimmed)
-        if (d) setPlatform(d)
-      }
-    } catch { /* clip fail */ }
   }
 
   // ── Normal Mode ──────────────────────────────────────────────────────────────
