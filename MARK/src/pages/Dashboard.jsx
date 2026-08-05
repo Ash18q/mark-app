@@ -865,8 +865,8 @@ function AddLinkTab({ initialUrl, links }) {
 
   // ── Normal Mode ──────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col gap-6 max-w-2xl mx-auto">
-      {/* Top Card: Add New Link */}
+    <div className="max-w-2xl mx-auto">
+      {/* Top Card: Add New Link ONLY */}
       <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-6">
         {/* Card Header */}
         <div className="flex items-center justify-between">
@@ -1033,10 +1033,221 @@ function AddLinkTab({ initialUrl, links }) {
           </button>
         </form>
       </div>
+    </div>
+  )
+}
 
-      {/* Bottom Card: Library Insights */}
-      <div>
-        <StatCards links={links} />
+// ─── Dedicated Insights Tab Component ──────────────────────────────────────────
+function InsightsTab({ links = [], notes = [] }) {
+  const [timeFilter, setTimeFilter] = useState('All time')
+
+  const totalLinks = links.length
+  const totalNotes = notes.length
+
+  const platformStats = useMemo(() => {
+    const counts = {}
+    links.forEach((l) => {
+      const p = l.platform || 'Website'
+      counts[p] = (counts[p] || 0) + 1
+    })
+    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1])
+    return entries.map(([name, count]) => ({
+      name,
+      count,
+      percent: totalLinks > 0 ? Math.round((count / totalLinks) * 100) : 0
+    }))
+  }, [links, totalLinks])
+
+  const tagStats = useMemo(() => {
+    const counts = {}
+    links.forEach((l) => {
+      if (l.tag) {
+        l.tag.split(',').forEach(t => {
+          const trimmed = t.trim()
+          if (trimmed) counts[trimmed] = (counts[trimmed] || 0) + 1
+        })
+      }
+    })
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])
+  }, [links])
+
+  const topPlatform = platformStats[0] || { name: 'None', count: 0, percent: 0 }
+  const topTag = tagStats[0] || ['None', 0]
+
+  function getPlatformIcon(name) {
+    const p = name.toLowerCase()
+    if (p.includes('youtube') || p === 'yt') return <YouTubeTileIcon className="w-4 h-4" />
+    if (p.includes('instagram') || p === 'insta') return <InstagramTileIcon className="w-4 h-4" />
+    if (p.includes('linkedin')) return <LinkedInTileIcon className="w-4 h-4" />
+    if (p.includes('twitter') || p === 'x') return <XTwitterTileIcon className="w-4 h-4" />
+    return <GlobeIcon className="w-4 h-4 text-purple-600" />
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-6 animate-fadeIn pb-6">
+      {/* Header Banner */}
+      <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl font-bold shadow-2xs">
+            📈
+          </div>
+          <div>
+            <h2 className="text-slate-900 font-bold text-lg tracking-tight">Library Insights &amp; Analytics</h2>
+            <p className="text-slate-400 text-xs mt-0.5">Comprehensive analysis of your saved links, platforms &amp; notes.</p>
+          </div>
+        </div>
+
+        <select
+          value={timeFilter}
+          onChange={(e) => setTimeFilter(e.target.value)}
+          className="bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer self-start sm:self-auto"
+        >
+          <option>All time</option>
+          <option>This month</option>
+          <option>This week</option>
+        </select>
+      </div>
+
+      {/* 4 Summary Stat Cards Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        {/* Total Links */}
+        <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-2 relative overflow-hidden">
+          <span className="text-xs font-semibold text-slate-400">Total Links</span>
+          <div className="text-2xl font-black text-slate-900">{totalLinks}</div>
+          <div className="w-full h-1 bg-emerald-100 rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }} />
+          </div>
+        </div>
+
+        {/* Top Platform */}
+        <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-2">
+          <span className="text-xs font-semibold text-slate-400">Top Platform</span>
+          <div className="text-lg font-bold text-slate-900 truncate flex items-center gap-1.5">
+            {getPlatformIcon(topPlatform.name)}
+            <span className="truncate">{topPlatform.name}</span>
+          </div>
+          <div className="text-[11px] text-emerald-600 font-semibold">{topPlatform.count} links ({topPlatform.percent}%)</div>
+        </div>
+
+        {/* Top Tag */}
+        <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-2">
+          <span className="text-xs font-semibold text-slate-400">Top Tag</span>
+          <div className="text-lg font-bold text-purple-700 truncate">
+            #{topTag[0]}
+          </div>
+          <div className="text-[11px] text-purple-600 font-semibold">{topTag[1]} tagged links</div>
+        </div>
+
+        {/* Total Notes */}
+        <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-2">
+          <span className="text-xs font-semibold text-slate-400">Notes &amp; Tables</span>
+          <div className="text-2xl font-black text-slate-900">{totalNotes}</div>
+          <div className="text-[11px] text-amber-600 font-semibold">Rich Documents</div>
+        </div>
+      </div>
+
+      {/* Main Chart & Total Growth Card */}
+      <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+            <span>📊</span> Link Growth Trend
+          </h3>
+          <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+            ↑ Active Collection
+          </span>
+        </div>
+
+        <div className="bg-gradient-to-r from-emerald-50/40 via-emerald-50/10 to-slate-50/30 border border-emerald-100/80 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <span className="text-xs text-slate-500 font-medium">Accumulated Resources</span>
+            <div className="text-3xl font-black text-slate-900 mt-1">{totalLinks} Saved URLs</div>
+            <p className="text-xs text-slate-400 mt-1">Organized across {platformStats.length} platform categories</p>
+          </div>
+          
+          <div className="w-full sm:w-64 h-16">
+            <svg className="w-full h-full overflow-visible" viewBox="0 0 200 40">
+              <defs>
+                <linearGradient id="insightsGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M 0 34 Q 30 30 50 24 T 100 26 T 150 14 T 200 6 L 200 40 L 0 40 Z"
+                fill="url(#insightsGrad)"
+              />
+              <path
+                d="M 0 34 Q 30 30 50 24 T 100 26 T 150 14 T 200 6"
+                fill="none"
+                stroke="#10b981"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+              <circle cx="200" cy="6" r="4" fill="#10b981" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Platform Breakdown Progress Bars */}
+      <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-4">
+        <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+          <span>📱</span> Platform Distribution
+        </h3>
+
+        {platformStats.length === 0 ? (
+          <div className="text-center py-8 text-xs text-slate-400">No platform data available yet.</div>
+        ) : (
+          <div className="space-y-3.5">
+            {platformStats.map((item) => (
+              <div key={item.name} className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs font-semibold">
+                  <div className="flex items-center gap-2 text-slate-800">
+                    {getPlatformIcon(item.name)}
+                    <span>{item.name}</span>
+                  </div>
+                  <div className="text-slate-500 font-bold">
+                    <span>{item.count} links</span>
+                    <span className="text-slate-400 font-normal ml-2">({item.percent}%)</span>
+                  </div>
+                </div>
+
+                {/* Progress Bar Track */}
+                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-emerald-500 to-purple-500 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.max(item.percent, 4)}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Tag Cloud Breakdown */}
+      <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-4">
+        <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+          <span>🏷️</span> Tags Breakdown
+        </h3>
+
+        {tagStats.length === 0 ? (
+          <div className="text-center py-8 text-xs text-slate-400">No tags added yet.</div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {tagStats.map(([t, cnt]) => (
+              <span
+                key={t}
+                className="bg-[#f3f0ff] border border-[#ede9fe] text-[#6d28d9] px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-2xs"
+              >
+                <span>#{t}</span>
+                <span className="bg-purple-200/80 text-purple-800 text-[10px] font-bold px-1.5 py-0.2 rounded-md">
+                  {cnt}
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -2376,6 +2587,7 @@ export default function Dashboard() {
             onFilteredChange={(data, hasFilters, previews) => setLibraryState({ data, hasFilters, previews })}
           />
         )}
+        {activeTab === 'insights' && <InsightsTab links={links} notes={notes} />}
         {activeTab === 'notes' && <Notes />}
       </main>
 
@@ -2389,14 +2601,14 @@ export default function Dashboard() {
         />
       )}
 
-      {/* ── Bottom Navigation Bar (Screenshot 1 Exact Replica) ── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-100 shadow-lg py-2.5">
-        <div className="max-w-3xl mx-auto px-4 flex items-center justify-between">
-          {/* Item 1: Add Link */}
+      {/* ── Bottom Navigation Bar (4 Dedicated Labeled Sections) ── */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-100 shadow-lg py-2">
+        <div className="max-w-3xl mx-auto px-3 grid grid-cols-4 h-14 items-center">
+          {/* Section 1: Add Link */}
           <button
             id="tab-add"
             onClick={() => setActiveTab('add')}
-            className={`px-4 py-2 rounded-2xl flex items-center gap-2 text-xs transition-all duration-150 cursor-pointer ${
+            className={`col-span-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-1.5 px-2 rounded-2xl text-xs transition-all duration-150 cursor-pointer ${
               activeTab === 'add'
                 ? 'bg-[#ecfdf5] border border-[#a7f3d0] text-[#047857] font-bold shadow-2xs'
                 : 'text-slate-600 hover:text-slate-900 font-semibold'
@@ -2407,50 +2619,59 @@ export default function Dashboard() {
             }`}>
               +
             </div>
-            <span>Add Link</span>
+            <span className="text-[11px] sm:text-xs">Add Link</span>
           </button>
 
-          {/* Item 2: My Library */}
+          {/* Section 2: My Library */}
           <button
             id="tab-library"
             onClick={() => setActiveTab('library')}
-            className={`px-3 py-2 rounded-2xl flex items-center gap-1.5 text-xs font-semibold transition-all duration-150 cursor-pointer ${
+            className={`col-span-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-1.5 px-2 rounded-2xl text-xs font-semibold transition-all duration-150 cursor-pointer ${
               activeTab === 'library'
-                ? 'text-indigo-700 font-bold bg-indigo-50/80 border border-indigo-100'
+                ? 'bg-indigo-50/80 border border-indigo-100 text-indigo-700 font-bold shadow-2xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
-            <span>My Library</span>
+            <span className="text-[11px] sm:text-xs">My Library</span>
           </button>
 
-          {/* Item 3: Center Green Analytics Circle */}
+          {/* Section 3: Insights */}
           <button
-            onClick={() => setActiveTab('add')}
-            className="w-11 h-11 rounded-full bg-[#059669] hover:bg-[#047857] text-white flex items-center justify-center text-xl shadow-md shadow-emerald-600/30 hover:scale-105 transition cursor-pointer -mt-4 border-2 border-white"
-            title="Analytics &amp; Insights"
+            id="tab-insights"
+            onClick={() => setActiveTab('insights')}
+            className={`col-span-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-1.5 px-2 rounded-2xl text-xs transition-all duration-150 cursor-pointer ${
+              activeTab === 'insights'
+                ? 'bg-[#ecfdf5] border border-[#a7f3d0] text-[#047857] font-bold shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 font-semibold'
+            }`}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+              activeTab === 'insights' ? 'bg-[#059669] text-white' : 'bg-emerald-100 text-emerald-700'
+            }`}>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+            <span className="text-[11px] sm:text-xs">Insights</span>
           </button>
 
-          {/* Item 4: Notes */}
+          {/* Section 4: Notes */}
           <button
             id="tab-notes"
             onClick={() => setActiveTab('notes')}
-            className={`px-3 py-2 rounded-2xl flex items-center gap-1.5 text-xs font-semibold transition-all duration-150 cursor-pointer relative ${
+            className={`col-span-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-1.5 px-2 rounded-2xl text-xs font-semibold transition-all duration-150 cursor-pointer relative ${
               activeTab === 'notes'
-                ? 'text-indigo-700 font-bold bg-indigo-50/80 border border-indigo-100'
+                ? 'bg-amber-50/80 border border-amber-200/80 text-amber-800 font-bold shadow-2xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
-            <span>Notes</span>
+            <span className="text-[11px] sm:text-xs">Notes</span>
             {notes && notes.length > 0 && (
               <span className="bg-[#059669] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full min-w-[16px] text-center">
                 {notes.length}
