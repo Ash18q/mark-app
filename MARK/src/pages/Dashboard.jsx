@@ -1604,6 +1604,7 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
 
 // ─── Dedicated Insights Tab Component ──────────────────────────────────────────
 function InsightsTab({ links = [], notes = [] }) {
+  const { isGhostMode } = useSecurity()
   const [timeFilter, setTimeFilter] = useState('All time')
 
   // Time-based filtering logic
@@ -1712,24 +1713,24 @@ function InsightsTab({ links = [], notes = [] }) {
           <span className="text-xs font-semibold text-slate-400">Top Platform</span>
           <div className="text-lg font-bold text-slate-900 truncate flex items-center gap-1.5">
             {getPlatformIcon(topPlatform.name)}
-            <span className="truncate">{topPlatform.name}</span>
+            <span className="truncate">{isGhostMode ? '🔒' : topPlatform.name}</span>
           </div>
-          <div className="text-[11px] text-emerald-600 font-semibold">{topPlatform.count} links ({topPlatform.percent}%)</div>
+          <div className="text-[11px] text-emerald-600 font-semibold">{isGhostMode ? '🔒 Locked' : `${topPlatform.count} links (${topPlatform.percent}%)`}</div>
         </div>
 
         {/* Top Tag */}
         <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-2">
           <span className="text-xs font-semibold text-slate-400">Top Tag</span>
           <div className="text-lg font-bold text-purple-700 truncate">
-            #{topTag[0]}
+            {isGhostMode ? '🔒' : `#${topTag[0]}`}
           </div>
-          <div className="text-[11px] text-purple-600 font-semibold">{topTag[1]} tagged links</div>
+          <div className="text-[11px] text-purple-600 font-semibold">{isGhostMode ? '🔒 Locked' : `${topTag[1]} tagged links`}</div>
         </div>
 
         {/* Total Notes */}
         <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-2">
           <span className="text-xs font-semibold text-slate-400">Notes &amp; Tables</span>
-          <div className="text-2xl font-black text-slate-900">{totalNotes}</div>
+          <div className="text-2xl font-black text-slate-900">{isGhostMode ? '🔒 Private' : totalNotes}</div>
           <div className="text-[11px] text-amber-600 font-semibold">Rich Documents</div>
         </div>
       </div>
@@ -2230,6 +2231,7 @@ function getPresetDates(preset) {
 // ─── My Library Table (Tab 2) ─────────────────────────────────────────────────
 function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
   const { tags } = useAuth()
+  const { isGhostMode } = useSecurity()
 
   // Distinct lists (parsing comma-separated multi-tags)
   const availableTags = useMemo(() => {
@@ -2681,7 +2683,7 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
                 className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col group hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
               >
                 {/* 1. Top: Thumbnail (160px) */}
-                <div className="relative w-full h-[160px] bg-slate-100 overflow-hidden">
+                <div className={`relative w-full h-[160px] bg-slate-100 overflow-hidden ${isGhostMode ? 'filter blur-md' : ''}`}>
                   {isLoading ? (
                     <div className="w-full h-full bg-gray-200 animate-pulse flex items-center justify-center">
                       <span className="text-2xl opacity-40">🖼️</span>
@@ -2760,7 +2762,7 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
                     <div className="h-4 bg-slate-200 rounded animate-pulse w-4/5 my-0.5" />
                   ) : (
                     <h4 className="text-sm font-semibold text-slate-800 line-clamp-2 leading-snug">
-                      {isGhostMode ? '🔒 Link' : cardTitle}
+                      {isGhostMode ? '🔒 Private Link' : cardTitle}
                     </h4>
                   )}
 

@@ -104,7 +104,11 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggle
         </div>
 
         {/* ── Content View ── */}
-        {isTable ? (
+        {isGhostMode ? (
+          <div className="text-xs italic opacity-75 mb-3 py-2 font-medium">
+            🔒 This note is locked in Ghost Mode
+          </div>
+        ) : isTable ? (
           /* Table Grid Preview */
           <div className="mb-3 overflow-x-auto no-scrollbar max-h-36 border border-white/10 rounded-xl bg-black/20 p-1.5 text-[11px]">
             <table className="w-full text-left border-collapse">
