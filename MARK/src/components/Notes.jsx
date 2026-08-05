@@ -96,14 +96,14 @@ export default function Notes() {
   }
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-5 pb-20">
       
       {/* ── Header Title & Search/Filter Controls ── */}
       <div className="flex items-center justify-between mb-2">
-        <h1 className="text-xl font-black text-gray-800 tracking-tight flex items-center gap-2">
-          <span>📝</span>
+        <h1 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+          <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center text-base shadow-sm">📝</span>
           <span>Notes & Checklists</span>
-          <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">
+          <span className="text-xs bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-bold">
             {filteredNotes.length}
           </span>
         </h1>
@@ -127,35 +127,37 @@ export default function Notes() {
 
       {/* ── Empty State ── */}
       {filteredNotes.length === 0 && (
-        <div className="text-center py-16 px-4 bg-white/60 backdrop-blur rounded-3xl border border-gray-200/80 shadow-2xs">
-          <span className="text-5xl mb-3 block opacity-80">📝</span>
-          <h3 className="text-base font-bold text-gray-800 mb-1">
-            {showArchived ? 'No archived notes' : searchQuery || selectedTag ? 'No matching notes found' : 'No notes created yet'}
+        <div className="text-center py-16 px-4 bg-white rounded-3xl border border-slate-100 shadow-sm">
+          <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-inner">
+            📝
+          </div>
+          <h3 className="text-base font-bold text-slate-800 mb-1">
+            {showArchived ? 'No archived notes' : searchQuery || selectedTag ? 'No matching notes found' : 'No notes yet'}
           </h3>
-          <p className="text-xs text-gray-500 max-w-xs mx-auto mb-5">
+          <p className="text-xs text-slate-500 max-w-xs mx-auto mb-6 leading-relaxed">
             {searchQuery || selectedTag
               ? 'Try adjusting your search terms or filters.'
-              : 'Keep track of your thoughts, ideas, checklists, and excel tables.'}
+              : 'Create your first note, checklist, or table to get started.'}
           </p>
           {!showArchived && (
             <div className="flex flex-wrap justify-center gap-2">
               <button
                 onClick={() => setEditorState({ isOpen: true, note: null, initialType: 'text' })}
-                className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition"
+                className="btn-primary text-xs px-4 py-2"
               >
-                + New Note
+                + Note
               </button>
               <button
                 onClick={() => setEditorState({ isOpen: true, note: null, initialType: 'checklist' })}
-                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md transition"
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md transition"
               >
-                + New Checklist
+                + Checklist
               </button>
               <button
                 onClick={() => setEditorState({ isOpen: true, note: null, initialType: 'table' })}
-                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition"
               >
-                + New Table
+                + Table
               </button>
             </div>
           )}
@@ -229,13 +231,13 @@ export default function Notes() {
       <div className="fixed bottom-20 right-5 z-40 flex flex-col items-end gap-2">
         {/* Expanded FAB Menu Options */}
         {isFabOpen && (
-          <div className="flex flex-col items-end gap-2.5 mb-1 animate-in fade-in slide-in-from-bottom-4 duration-150">
+          <div className="flex flex-col items-end gap-2 mb-1 animate-slideUp">
             <button
               onClick={() => {
                 setIsFabOpen(false)
                 setEditorState({ isOpen: true, note: null, initialType: 'text' })
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-bold text-xs rounded-full shadow-xl hover:bg-indigo-700 transition cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-2xl shadow-xl transition cursor-pointer"
             >
               <span>📝 Note</span>
             </button>
@@ -245,7 +247,7 @@ export default function Notes() {
                 setIsFabOpen(false)
                 setEditorState({ isOpen: true, note: null, initialType: 'checklist' })
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white font-bold text-xs rounded-full shadow-xl hover:bg-amber-600 transition cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-2xl shadow-xl transition cursor-pointer"
             >
               <span>📋 Checklist</span>
             </button>
@@ -255,7 +257,7 @@ export default function Notes() {
                 setIsFabOpen(false)
                 setEditorState({ isOpen: true, note: null, initialType: 'table' })
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-full shadow-xl hover:bg-emerald-700 transition cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-2xl shadow-xl transition cursor-pointer"
             >
               <span>📊 Table Grid</span>
             </button>
@@ -265,10 +267,10 @@ export default function Notes() {
         {/* Main Floating Circle Button */}
         <button
           onClick={() => setIsFabOpen(!isFabOpen)}
-          className={`w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl font-bold transition-transform duration-200 cursor-pointer ${
+          className={`w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl font-black transition-all duration-200 cursor-pointer ${
             isFabOpen
-              ? 'bg-gray-800 rotate-45 scale-105'
-              : 'bg-gradient-to-br from-amber-500 to-amber-600 hover:scale-105'
+              ? 'bg-slate-800 rotate-45 scale-105'
+              : 'bg-gradient-to-br from-indigo-500 to-purple-600 hover:scale-110 shadow-indigo-500/40'
           }`}
           title="Create Note, Checklist, or Table"
         >
@@ -290,25 +292,27 @@ export default function Notes() {
 
       {/* ── Delete Confirmation Modal ── */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-5 border border-gray-100 space-y-4 animate-in fade-in zoom-in-95 duration-100">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 border border-slate-100 space-y-5 animate-scaleIn">
             <div className="text-center space-y-2">
-              <span className="text-3xl block">🗑️</span>
-              <h3 className="font-bold text-gray-800 text-base">Delete this note?</h3>
-              <p className="text-xs text-gray-500">This action cannot be undone.</p>
+              <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3">
+                🗑️
+              </div>
+              <h3 className="font-bold text-slate-800 text-base">Delete this note?</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">This action cannot be undone and the note will be permanently removed.</p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setDeleteConfirmId(null)}
-                className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition"
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleDeleteNote(deleteConfirmId)}
-                className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md transition"
+                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md transition"
               >
-                Delete
+                Delete Note
               </button>
             </div>
           </div>

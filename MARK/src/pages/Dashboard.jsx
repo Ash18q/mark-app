@@ -53,20 +53,20 @@ const XIcon = () => (
 
 // ─── Platform color palette ───────────────────────────────────────────────────
 const PLATFORM_COLORS = {
-  youtube: 'bg-red-100 text-red-700 border-red-200',
-  yt: 'bg-red-100 text-red-700 border-red-200',
-  instagram: 'bg-pink-100 text-pink-700 border-pink-200',
-  insta: 'bg-pink-100 text-pink-700 border-pink-200',
-  threads: 'bg-gray-200 text-gray-800 border-gray-300',
-  facebook: 'bg-blue-100 text-blue-700 border-blue-200',
-  'twitter/x': 'bg-sky-100 text-sky-700 border-sky-200',
-  twitter: 'bg-sky-100 text-sky-700 border-sky-200',
-  x: 'bg-sky-100 text-sky-700 border-sky-200',
-  linkedin: 'bg-blue-100 text-blue-700 border-blue-200',
-  github: 'bg-gray-100 text-gray-700 border-gray-200',
-  reddit: 'bg-orange-100 text-orange-700 border-orange-200',
-  discord: 'bg-violet-100 text-violet-700 border-violet-200',
-  default: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+  youtube: 'bg-red-50 text-red-600 border-red-200',
+  yt: 'bg-red-50 text-red-600 border-red-200',
+  instagram: 'bg-pink-50 text-pink-600 border-pink-200',
+  insta: 'bg-pink-50 text-pink-600 border-pink-200',
+  threads: 'bg-slate-100 text-slate-700 border-slate-200',
+  facebook: 'bg-blue-50 text-blue-600 border-blue-200',
+  'twitter/x': 'bg-sky-50 text-sky-600 border-sky-200',
+  twitter: 'bg-sky-50 text-sky-600 border-sky-200',
+  x: 'bg-sky-50 text-sky-600 border-sky-200',
+  linkedin: 'bg-blue-50 text-blue-600 border-blue-200',
+  github: 'bg-slate-100 text-slate-700 border-slate-200',
+  reddit: 'bg-orange-50 text-orange-600 border-orange-200',
+  discord: 'bg-violet-50 text-violet-600 border-violet-200',
+  default: 'bg-indigo-50 text-indigo-600 border-indigo-200',
 }
 function platformColor(p = '') {
   return PLATFORM_COLORS[p.toLowerCase()] || PLATFORM_COLORS.default
@@ -421,19 +421,19 @@ function EditModal({ link, tags, onClose, onSave }) {
     }
   }
 
-  const inputCls = 'w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent transition text-sm'
+  const inputCls = 'input-field'
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
       onClick={handleBackdrop}
       role="dialog"
       aria-modal="true"
       aria-labelledby="edit-modal-title"
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-[fadeIn_0.15s_ease]">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-scaleIn border border-slate-100">
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-5 flex items-center justify-between rounded-t-3xl">
           <div>
             <h2 id="edit-modal-title" className="text-white font-bold text-base flex items-center gap-2">
               <PencilIcon /> Edit Link
@@ -442,7 +442,7 @@ function EditModal({ link, tags, onClose, onSave }) {
           </div>
           <button
             onClick={onClose}
-            className="text-indigo-200 hover:text-white transition p-1 rounded-lg hover:bg-white/10"
+            className="text-indigo-200 hover:text-white transition p-1.5 rounded-xl hover:bg-white/15"
             aria-label="Close modal"
           >
             <XIcon />
@@ -450,10 +450,10 @@ function EditModal({ link, tags, onClose, onSave }) {
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSave} className="p-5 flex flex-col gap-4">
+        <form onSubmit={handleSave} className="p-6 flex flex-col gap-4">
           {/* URL — editable */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="edit-url" className="text-sm font-semibold text-gray-700">🌐 URL</label>
+            <label htmlFor="edit-url" className="text-sm font-semibold text-slate-600">🌐 URL</label>
             <input
               id="edit-url"
               type="url"
@@ -467,7 +467,7 @@ function EditModal({ link, tags, onClose, onSave }) {
 
           {/* Tag */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="edit-tag" className="text-sm font-semibold text-gray-700">🏷️ Tag</label>
+            <label htmlFor="edit-tag" className="text-sm font-semibold text-slate-600">🏷️ Tag</label>
             <TagInput
               id="edit-tag"
               value={tag}
@@ -480,7 +480,7 @@ function EditModal({ link, tags, onClose, onSave }) {
 
           {/* Platform */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="edit-platform" className="text-sm font-semibold text-gray-700">📱 Platform</label>
+            <label htmlFor="edit-platform" className="text-sm font-semibold text-slate-600">📱 Platform</label>
             <PlatformInput
               id="edit-platform"
               value={platform}
@@ -491,7 +491,7 @@ function EditModal({ link, tags, onClose, onSave }) {
 
           {/* Error */}
           {error && (
-            <div role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-2">
+            <div role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-2">
               <span>⚠️</span> {error}
             </div>
           )}
@@ -501,17 +501,17 @@ function EditModal({ link, tags, onClose, onSave }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition"
+              className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+              className="btn-primary flex-1 py-2.5 text-sm"
             >
               {loading ? (
-                <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Saving…</>
+                <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving…</>
               ) : (
                 <><PencilIcon /> Update Link</>
               )}
@@ -581,9 +581,10 @@ function StatCards({ links }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm flex flex-col gap-4 text-sm text-gray-700">
-      <h3 className="font-bold text-gray-800 text-base border-b border-gray-100 pb-2 flex items-center gap-2">
-        📊 Library Insights
+    <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex flex-col gap-4 text-sm text-slate-700">
+      <h3 className="font-bold text-slate-800 text-base border-b border-slate-100 pb-2.5 flex items-center gap-2">
+        <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm shadow-sm">📊</span>
+        <span>Library Insights</span>
       </h3>
 
       {/* Total Links */}
@@ -697,7 +698,7 @@ function AddLinkTab({ initialUrl, links }) {
     }
   }
 
-  const inputCls = 'w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent transition text-sm'
+  const inputCls = 'input-field'
 
   // ── Quick-Save Popup Mode (shared URL detected) ──────────────────────────────
   if (isPopupMode) {
@@ -794,9 +795,9 @@ function AddLinkTab({ initialUrl, links }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Left Column: Form */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm h-fit">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm h-fit overflow-hidden">
         {/* Card Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-4">
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-5">
           <h2 className="text-white font-bold text-base flex items-center gap-2">
             <LinkIcon /> Save a New Link
           </h2>
@@ -804,10 +805,10 @@ function AddLinkTab({ initialUrl, links }) {
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
           {/* URL */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="link-url" className="text-sm font-semibold text-gray-700">🌐 URL</label>
+            <label htmlFor="link-url" className="text-sm font-semibold text-slate-600">🌐 URL</label>
             <input
               id="link-url"
               type="url"
@@ -822,7 +823,7 @@ function AddLinkTab({ initialUrl, links }) {
           {/* Tag + Platform */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="link-tag" className="text-sm font-semibold text-gray-700">🏷️ Tag</label>
+              <label htmlFor="link-tag" className="text-sm font-semibold text-slate-600">🏷️ Tag</label>
               <TagInput
                 id="link-tag"
                 value={tag}
@@ -832,7 +833,7 @@ function AddLinkTab({ initialUrl, links }) {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="add-platform" className="text-sm font-semibold text-gray-700">📱 Platform</label>
+              <label htmlFor="add-platform" className="text-sm font-semibold text-slate-600">📱 Platform</label>
               <PlatformInput
                 id="add-platform"
                 value={platform}
@@ -845,7 +846,7 @@ function AddLinkTab({ initialUrl, links }) {
 
           {/* Alerts */}
           {error && (
-            <div role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-2">
+            <div role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-2">
               <span className="mt-0.5">⚠️</span> {error}
             </div>
           )}
@@ -859,10 +860,10 @@ function AddLinkTab({ initialUrl, links }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 active:scale-[0.98] text-white font-bold py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed text-sm flex items-center justify-center gap-2"
+            className="btn-primary w-full py-3 text-sm font-bold"
           >
             {loading ? (
-              <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Saving…</>
+              <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving…</>
             ) : (
               <><span className="text-base">💾</span> Save Link</>
             )}
@@ -1504,18 +1505,20 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
   return (
     <div className="flex flex-col gap-4">
       {/* ── Collapsible Filter Bar ── */}
-      <div className="bg-white border border-gray-200 rounded-2xl relative z-30 shadow-sm transition-all">
+      <div className="bg-white border border-slate-100 rounded-2xl relative z-30 shadow-sm transition-all">
         {/* Compact Toggle Header */}
         <div
           onClick={() => setIsFilterOpen(!isFilterOpen)}
-          className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-50/80 transition select-none rounded-2xl"
+          className="px-4 py-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-50/70 transition select-none rounded-2xl"
         >
-          <div className="flex items-center gap-2">
-            <span className="text-sm">🔍</span>
-            <span className="text-xs font-bold text-gray-700">Filter & Sort</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs shadow-sm">
+              🔍
+            </div>
+            <span className="text-sm font-bold text-slate-700">Filter & Sort</span>
             {hasActiveFilters && (
-              <span className="bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-2xs">
-                Active Filter
+              <span className="bg-indigo-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">
+                Active
               </span>
             )}
           </div>
@@ -1530,10 +1533,10 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
                 Clear
               </button>
             )}
-            <span className="text-[11px] text-gray-400 font-semibold bg-gray-100 px-2.5 py-0.5 rounded-full">
-              {filtered.length} / {links.length} links
+            <span className="text-[11px] text-slate-500 font-semibold bg-slate-100 px-2.5 py-1 rounded-full">
+              {filtered.length} / {links.length}
             </span>
-            <span className="text-xs text-gray-400 font-bold ml-0.5">
+            <span className="text-xs text-slate-400 font-bold ml-0.5">
               {isFilterOpen ? '▲' : '▼'}
             </span>
           </div>
@@ -1713,10 +1716,10 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
             return (
               <div
                 key={link.id}
-                className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden flex flex-col group hover:shadow-lg transition-all"
+                className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col group hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
               >
                 {/* 1. Top: Thumbnail (160px) */}
-                <div className="relative w-full h-[160px] bg-gray-100 overflow-hidden">
+                <div className="relative w-full h-[160px] bg-slate-100 overflow-hidden">
                   {isLoading ? (
                     <div className="w-full h-full bg-gray-200 animate-pulse flex items-center justify-center">
                       <span className="text-2xl opacity-40">🖼️</span>
@@ -1792,28 +1795,27 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
                 <div className="p-3 bg-white flex flex-col gap-2.5 flex-1 justify-between min-w-0">
                   {/* Title (max 2 lines) */}
                   {isLoading ? (
-                    <div className="h-4 bg-gray-200 rounded animate-pulse w-4/5 my-0.5" />
+                    <div className="h-4 bg-slate-200 rounded animate-pulse w-4/5 my-0.5" />
                   ) : (
-                    <h4 className="text-sm font-semibold text-gray-800 line-clamp-2 leading-snug">
+                    <h4 className="text-sm font-semibold text-slate-800 line-clamp-2 leading-snug">
                       {cardTitle}
                     </h4>
                   )}
 
-                  {/* Tags (light bg container) */}
-                  <div className="flex flex-wrap items-center gap-1 min-w-0 bg-slate-50/80 p-1.5 rounded-xl border border-gray-100/80">
+                  {/* Tags */}
+                  <div className="flex flex-wrap items-center gap-1 min-w-0">
                     {(() => {
                       const itemTags = link.tag ? link.tag.split(',').map(t => t.trim()).filter(Boolean) : []
                       if (itemTags.length === 0) {
                         return (
-                          <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-500 border border-gray-200">
-                            🏷️ No tag
+                          <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                            No tag
                           </span>
                         )
                       }
                       return itemTags.map(t => (
-                        <span key={t} className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80 max-w-full truncate">
-                          <span className="text-[9px]">🏷️</span>
-                          <span className="truncate">{t}</span>
+                        <span key={t} className="tag-pill">
+                          🏷️ <span className="truncate">{t}</span>
                         </span>
                       ))
                     })()}
@@ -1910,19 +1912,19 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
                   </div>
                 </div>
 
-                {/* Bottom Footer Section: Light Red BG for Platform & Date (Top) / Time (Below) */}
-                <div className="bg-red-50/70 border-t border-red-100/80 p-2 px-2.5 flex items-center justify-between gap-1 mt-auto min-w-0">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-2xs leading-tight flex-shrink-0 ${platformColor(link.platform)}`}>
+                {/* Bottom Footer Section: Platform & Date */}
+                <div className="bg-slate-50 border-t border-slate-100 p-2 px-2.5 flex items-center justify-between gap-1 mt-auto min-w-0">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border leading-tight flex-shrink-0 ${platformColor(link.platform)}`}>
                     {link.platform || 'Other'}
                   </span>
 
-                  {/* Date (Top) and Time (Below) without icon */}
+                  {/* Date & Time */}
                   {(() => {
                     const { dateStr, timeStr } = formatDateParts(link.created_at)
                     return (
-                      <div className="flex flex-col items-end text-right font-mono leading-tight flex-shrink-0 ml-auto">
-                        <span className="text-[10px] text-gray-600 font-semibold">{dateStr}</span>
-                        <span className="text-[9px] text-gray-400 font-medium">{timeStr}</span>
+                      <div className="flex flex-col items-end text-right leading-tight flex-shrink-0 ml-auto">
+                        <span className="text-[10px] text-slate-600 font-semibold">{dateStr}</span>
+                        <span className="text-[9px] text-slate-400 font-medium">{timeStr}</span>
                       </div>
                     )
                   })()}
@@ -2008,7 +2010,7 @@ function ExportModal({ data, hasFilters, previews = {}, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100 p-5 flex flex-col gap-4">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 p-6 flex flex-col gap-4 animate-scaleIn">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-3">
           <div className="flex items-center gap-2">
@@ -2170,18 +2172,18 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/40 to-purple-50/30">
 
       {/* ── Header ── */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-200 shadow-sm">
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/60 shadow-sm">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow">
-              <span className="text-white font-extrabold text-sm">M</span>
+            <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-500/25">
+              <span className="text-white font-black text-sm tracking-tight">M</span>
             </div>
             <div className="leading-none">
-              <span className="font-extrabold text-indigo-800 text-lg tracking-tight">MARK</span>
-              <span className="block text-[10px] text-gray-400 font-medium -mt-0.5">Link & Note Manager</span>
+              <span className="font-black text-slate-800 text-lg tracking-tight">MARK</span>
+              <span className="block text-[10px] text-slate-400 font-medium -mt-0.5">Link & Note Manager</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -2189,18 +2191,18 @@ export default function Dashboard() {
               <button
                 id="export-btn"
                 onClick={() => setIsExportModalOpen(true)}
-                className="flex items-center gap-1.5 text-xs text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-1 rounded-lg transition font-bold cursor-pointer shadow-2xs"
+                className="flex items-center gap-1.5 text-xs text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-lg transition font-bold cursor-pointer"
                 title="Export links data"
               >
                 <span>📥</span>
                 <span>Export</span>
               </button>
             )}
-            <span className="hidden sm:block text-xs text-gray-400 truncate max-w-[150px]">{user?.email}</span>
+            <span className="hidden sm:block text-xs text-slate-400 truncate max-w-[150px]">{user?.email}</span>
             <button
               id="logout-btn"
               onClick={handleLogout}
-              className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition font-medium border border-gray-200 hover:border-red-200"
+              className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-xl transition font-medium border border-slate-200 hover:border-red-200"
             >
               <LogoutIcon />
               <span className="hidden sm:inline">Logout</span>
@@ -2233,28 +2235,32 @@ export default function Dashboard() {
         />
       )}
 
-      {/* ── Fixed Bottom Navigation Bar (3-Tab Equal Split) ── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-gray-200 shadow-lg">
-        <div className="max-w-3xl mx-auto grid grid-cols-3 h-14">
+      {/* ── Fixed Bottom Navigation Bar ── */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/70 shadow-lg">
+        <div className="max-w-3xl mx-auto grid grid-cols-3 h-16">
           {tabs.map(tab => (
             <button
               key={tab.id}
               id={`tab-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
-              className={`col-span-1 flex items-center justify-center gap-1.5 h-full text-xs sm:text-sm font-semibold transition-all select-none border-t-2 cursor-pointer
+              className={`col-span-1 flex flex-col items-center justify-center gap-0.5 h-full text-[10px] sm:text-xs font-semibold transition-all select-none cursor-pointer relative
                 ${activeTab === tab.id
-                  ? 'border-indigo-600 text-indigo-700 bg-indigo-50/80 font-bold'
-                  : 'border-transparent text-gray-500 hover:text-indigo-600 hover:bg-gray-50/50'}`}
+                  ? 'text-indigo-700'
+                  : 'text-slate-500 hover:text-indigo-600'}`}
             >
-              <span className="text-base">{tab.icon}</span>
-              <span className="truncate">{tab.label}</span>
+              {/* Active indicator */}
+              {activeTab === tab.id && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" />
+              )}
+              <span className={`text-xl leading-none transition-transform ${activeTab === tab.id ? 'scale-110' : 'scale-100'}`}>{tab.icon}</span>
+              <span className="truncate font-bold">{tab.label}</span>
               {tab.id === 'library' && links.length > 0 && (
-                <span className="ml-0.5 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-2xs">
+                <span className="absolute -top-0.5 right-5 bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center">
                   {links.length}
                 </span>
               )}
               {tab.id === 'notes' && notes && notes.length > 0 && (
-                <span className="ml-0.5 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-2xs">
+                <span className="absolute -top-0.5 right-5 bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center">
                   {notes.length}
                 </span>
               )}

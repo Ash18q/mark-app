@@ -2,14 +2,19 @@ import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-const LOGO_SVG = (
-  <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="36" height="36" rx="10" fill="#1e40af"/>
-    <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle"
-      fill="white" fontSize="18" fontWeight="bold" fontFamily="Inter,sans-serif">M</text>
-  </svg>
-)
+// ─── SVG Logo ─────────────────────────────────────────────────────────────────
+function MarkLogo({ size = 44 }) {
+  return (
+    <div
+      style={{ width: size, height: size }}
+      className="rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30"
+    >
+      <span style={{ fontSize: size * 0.45 }} className="text-white font-black tracking-tighter select-none">M</span>
+    </div>
+  )
+}
 
+// ─── Form Field ───────────────────────────────────────────────────────────────
 function FormField({ label, id, type = 'text', value, onChange, placeholder, autoComplete }) {
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = type === 'password'
@@ -17,7 +22,7 @@ function FormField({ label, id, type = 'text', value, onChange, placeholder, aut
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-slate-700">{label}</label>
+      <label htmlFor={id} className="text-sm font-semibold text-slate-600">{label}</label>
       <div className={isPassword ? 'relative' : ''}>
         <input
           id={id}
@@ -27,20 +32,20 @@ function FormField({ label, id, type = 'text', value, onChange, placeholder, aut
           placeholder={placeholder}
           autoComplete={autoComplete}
           required
-          className={`input-field w-full ${isPassword ? 'pr-10' : ''}`}
+          className={`input-field w-full ${isPassword ? 'pr-11' : ''}`}
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none hover:text-slate-600 transition"
+            className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none text-slate-400 hover:text-slate-600 transition"
           >
             {showPassword ? (
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
               </svg>
             ) : (
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
@@ -67,30 +72,23 @@ export function LoginPage() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
-    loading_start()
+    setLoading(true)
     try {
       await signIn(email, password)
       navigate('/dashboard')
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.')
     } finally {
-      loading_stop()
+      setLoading(false)
     }
   }
 
-  function loading_start() {
-    setLoading(true)
-  }
-  function loading_stop() {
-    setLoading(false)
-  }
-
   return (
-    <AuthLayout title="Welcome back" subtitle="Sign in to your MARK account">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <AuthLayout title="Welcome back" subtitle="Sign in to continue to MARK">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         {successMessage && (
-          <div role="status" className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 font-medium">
-            {successMessage}
+          <div role="status" className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 font-medium flex items-center gap-2">
+            <span>✓</span> {successMessage}
           </div>
         )}
 
@@ -114,18 +112,20 @@ export function LoginPage() {
         />
 
         {error && (
-          <div role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-            {error}
+          <div role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
+            <span>⚠️</span> {error}
           </div>
         )}
 
-        <button type="submit" disabled={loading} className="btn-primary w-full mt-2">
-          {loading ? 'Signing in…' : 'Sign In'}
+        <button type="submit" disabled={loading} className="btn-primary w-full mt-1 py-3 text-base font-bold">
+          {loading ? (
+            <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Signing in…</>
+          ) : 'Sign In →'}
         </button>
 
         <p className="text-center text-sm text-slate-500">
           Don&apos;t have an account?{' '}
-          <Link to="/signup" className="text-primary-600 font-semibold hover:underline">
+          <Link to="/signup" className="text-indigo-600 font-semibold hover:text-indigo-700 hover:underline transition">
             Sign up free
           </Link>
         </p>
@@ -172,8 +172,8 @@ export function SignupPage() {
   }
 
   return (
-    <AuthLayout title="Create your account" subtitle="Start saving links in seconds">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <AuthLayout title="Create your account" subtitle="Start organizing links & notes in seconds">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <FormField
           label="Email address"
           id="signup-email"
@@ -203,18 +203,20 @@ export function SignupPage() {
         />
 
         {error && (
-          <div role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-            {error}
+          <div role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
+            <span>⚠️</span> {error}
           </div>
         )}
 
-        <button type="submit" disabled={loading} className="btn-primary w-full mt-2">
-          {loading ? 'Creating account…' : 'Create Account'}
+        <button type="submit" disabled={loading} className="btn-primary w-full mt-1 py-3 text-base font-bold">
+          {loading ? (
+            <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Creating account…</>
+          ) : 'Create Account →'}
         </button>
 
         <p className="text-center text-sm text-slate-500">
           Already have an account?{' '}
-          <Link to="/login" className="text-primary-600 font-semibold hover:underline">
+          <Link to="/login" className="text-indigo-600 font-semibold hover:text-indigo-700 hover:underline transition">
             Sign in
           </Link>
         </p>
@@ -226,23 +228,33 @@ export function SignupPage() {
 // ─── Shared Auth Layout ───────────────────────────────────────────────────────
 function AuthLayout({ title, subtitle, children }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50 to-purple-50 flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      {/* Decorative blobs */}
+      <div className="absolute top-0 -left-32 w-96 h-96 bg-indigo-200/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 -right-32 w-96 h-96 bg-purple-200/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-indigo-100/40 to-transparent rounded-full blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-sm relative z-10 animate-fadeIn">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          {LOGO_SVG}
-          <span className="mt-2 text-2xl font-extrabold text-primary-800 tracking-tight">MARK</span>
-          <span className="text-xs text-slate-400 font-medium mt-0.5">Link Manager</span>
+          <MarkLogo size={52} />
+          <span className="mt-3 text-3xl font-black text-slate-800 tracking-tight">MARK</span>
+          <span className="text-xs text-slate-400 font-medium mt-0.5 tracking-wide">Link & Note Manager</span>
         </div>
 
-        {/* Card */}
-        <div className="card shadow-xl border-slate-100">
-          <div className="mb-6">
-            <h1 className="text-xl font-bold text-slate-800">{title}</h1>
-            <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
+        {/* Auth Card */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-slate-200/60 border border-white/80 p-8">
+          <div className="mb-7">
+            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">{title}</h1>
+            <p className="text-sm text-slate-500 mt-1 leading-relaxed">{subtitle}</p>
           </div>
           {children}
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-slate-400 mt-6">
+          By continuing, you agree to MARK's Terms of Service
+        </p>
       </div>
     </div>
   )

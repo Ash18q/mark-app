@@ -44,8 +44,8 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggle
     <div
       onClick={() => onEdit(note)}
       style={{ backgroundColor: theme.hex }}
-      className={`group relative rounded-2xl p-4 shadow-sm border ${theme.border} hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden ${theme.text} ${theme.bg} ${
-        note.is_pinned ? 'ring-2 ring-amber-400/60' : ''
+      className={`group relative rounded-2xl p-4 border ${theme.border} hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden ${theme.text} ${theme.bg} ${
+        note.is_pinned ? 'ring-2 ring-amber-400/70 shadow-amber-400/10' : 'shadow-md'
       } ${viewMode === 'list' ? 'min-h-[100px]' : 'min-h-[140px] max-h-[320px]'}`}
     >
       {/* ── Top Header: Title & Pin/Menu ── */}
@@ -74,20 +74,20 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggle
               {showMenu && (
                 <>
                   <div className="fixed inset-0 z-20" onClick={() => setShowMenu(false)} />
-                  <div className="absolute right-0 top-7 z-30 w-36 bg-white rounded-xl shadow-xl border border-gray-100 py-1 text-gray-800 text-xs font-semibold animate-in fade-in zoom-in-95 duration-100">
+                  <div className="absolute right-0 top-7 z-30 w-38 bg-white rounded-xl shadow-xl border border-slate-100 py-1 text-slate-800 text-xs font-semibold animate-scaleIn">
                     <button
                       onClick={() => { setShowMenu(false); onTogglePin(note.id); }}
-                      className="w-full text-left px-3 py-2 hover:bg-amber-50 flex items-center gap-2 text-gray-700"
+                      className="w-full text-left px-3 py-2 hover:bg-amber-50 flex items-center gap-2 text-slate-700"
                     >
                       <span>{note.is_pinned ? '📌 Unpin' : '📌 Pin'}</span>
                     </button>
                     <button
                       onClick={() => { setShowMenu(false); onToggleArchive(note.id); }}
-                      className="w-full text-left px-3 py-2 hover:bg-amber-50 flex items-center gap-2 text-gray-700"
+                      className="w-full text-left px-3 py-2 hover:bg-amber-50 flex items-center gap-2 text-slate-700"
                     >
                       <span>{note.is_archived ? '📥 Unarchive' : '📦 Archive'}</span>
                     </button>
-                    <div className="border-t border-gray-100 my-0.5" />
+                    <div className="border-t border-slate-100 my-0.5" />
                     <button
                       onClick={() => { setShowMenu(false); onDelete(note.id); }}
                       className="w-full text-left px-3 py-2 hover:bg-red-50 text-red-600 flex items-center gap-2"
@@ -164,15 +164,15 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggle
           {tagsList.map((tag) => (
             <span
               key={tag}
-              className="bg-black/25 text-white/90 font-semibold px-2 py-0.5 rounded-md text-[10px] truncate max-w-[100px]"
+              className="bg-black/20 text-white/90 font-semibold px-2 py-0.5 rounded-full text-[10px] truncate max-w-[100px] border border-white/10"
             >
-              {tag}
+              #{tag}
             </span>
           ))}
         </div>
 
         {/* Date */}
-        <span className="opacity-75 font-medium text-[10px] whitespace-nowrap ml-auto">
+        <span className="opacity-70 font-medium text-[10px] whitespace-nowrap ml-auto">
           {formatDate(note.updated_at || note.created_at)}
         </span>
       </div>

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -12,6 +12,7 @@
   body {
     @apply font-sans bg-slate-50 text-slate-800 antialiased;
     -webkit-tap-highlight-color: transparent;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
   html {
@@ -20,36 +21,94 @@
 }
 
 @layer components {
+  /* ── Premium Buttons ── */
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white font-semibold
-           px-4 py-2.5 rounded-xl transition-all duration-150 shadow-sm hover:shadow-md
-           disabled:opacity-50 disabled:cursor-not-allowed select-none;
+    @apply inline-flex items-center justify-center gap-2
+           bg-gradient-to-r from-indigo-600 to-purple-600
+           hover:from-indigo-500 hover:to-purple-500
+           active:scale-[0.97]
+           text-white font-semibold tracking-wide
+           px-5 py-2.5 rounded-xl
+           shadow-lg shadow-indigo-500/25
+           hover:shadow-xl hover:shadow-indigo-500/30
+           transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+           select-none;
   }
 
   .btn-secondary {
-    @apply bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-semibold
-           border border-slate-200 px-4 py-2.5 rounded-xl transition-all duration-150
-           shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2
+           bg-white hover:bg-slate-50 active:bg-slate-100
+           text-slate-700 font-semibold
+           border border-slate-200 hover:border-slate-300
+           px-5 py-2.5 rounded-xl
+           shadow-sm hover:shadow-md
+           transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-danger {
-    @apply bg-red-50 hover:bg-red-100 active:bg-red-200 text-red-600 font-semibold
-           border border-red-200 px-3 py-1.5 rounded-lg transition-all duration-150 text-sm;
+    @apply inline-flex items-center justify-center gap-1.5
+           bg-red-50 hover:bg-red-100 active:bg-red-200
+           text-red-600 font-semibold
+           border border-red-200
+           px-3 py-1.5 rounded-lg
+           transition-all duration-150 text-sm;
   }
 
   .input-field {
-    @apply w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800
-           placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500
-           focus:border-transparent transition-all duration-150 text-sm;
+    @apply w-full px-4 py-3 rounded-xl
+           border border-slate-200
+           bg-white text-slate-800
+           placeholder-slate-400
+           focus:outline-none focus:ring-2 focus:ring-indigo-500/40
+           focus:border-indigo-400
+           transition-all duration-150 text-sm
+           shadow-sm;
   }
 
   .card {
-    @apply bg-white rounded-2xl shadow-sm border border-slate-100 p-4;
+    @apply bg-white rounded-2xl
+           shadow-sm border border-slate-100
+           p-5;
+  }
+
+  .card-hover {
+    @apply bg-white rounded-2xl
+           shadow-sm border border-slate-100
+           p-5
+           hover:shadow-md hover:border-slate-200
+           transition-all duration-200;
   }
 
   .stat-badge {
-    @apply inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 text-primary-700
-           rounded-full text-xs font-semibold border border-primary-100;
+    @apply inline-flex items-center gap-1.5
+           px-3 py-1.5
+           bg-indigo-50 text-indigo-700
+           rounded-full text-xs font-semibold
+           border border-indigo-100;
+  }
+
+  /* ── Glass card ── */
+  .glass-card {
+    @apply rounded-2xl backdrop-blur-sm
+           bg-white/80 border border-white/60
+           shadow-lg;
+  }
+
+  /* ── Section title ── */
+  .section-title {
+    @apply text-xs font-bold text-slate-400 uppercase tracking-widest;
+  }
+
+  /* ── Tag pill ── */
+  .tag-pill {
+    @apply inline-flex items-center gap-1
+           px-2.5 py-0.5
+           bg-indigo-50 text-indigo-700
+           border border-indigo-200/80
+           rounded-full text-[10px] font-semibold
+           truncate max-w-full;
   }
 }
 
@@ -61,15 +120,51 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent;
+  }
 }
 
-/* ── TipTap Table & Rich Text Styling ── */
+/* ── Keyframe animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(79,70,229,0.4); }
+  70%  { box-shadow: 0 0 0 8px rgba(79,70,229,0); }
+  100% { box-shadow: 0 0 0 0 rgba(79,70,229,0); }
+}
+
+.animate-fadeIn { animation: fadeIn 0.2s ease forwards; }
+.animate-slideUp { animation: slideUp 0.25s ease forwards; }
+.animate-scaleIn { animation: scaleIn 0.15s ease forwards; }
+
+/* ── TipTap Rich Text Styling ── */
 .ProseMirror {
   outline: none !important;
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.35);
   content: attr(data-placeholder);
   float: left;
   height: 0;
@@ -77,14 +172,11 @@
 }
 
 /* ── TipTap Multi-color Highlight Support ── */
-/* Do NOT set background-color here — TipTap Highlight applies it via inline style.
-   Any CSS background here overrides the inline color. */
 .ProseMirror mark,
 .prose mark {
   color: inherit;
   border-radius: 0.25rem;
   padding: 0.1rem 0.25rem;
-  /* background-color is set by TipTap via inline style="background-color: #hex" */
 }
 
 .mark-tiptap-table,
@@ -100,24 +192,24 @@
 .mark-tiptap-table th,
 .ProseMirror table td,
 .ProseMirror table th {
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   box-sizing: border-box;
   min-width: 1em;
-  padding: 6px 8px;
+  padding: 6px 10px;
   position: relative;
   vertical-align: top;
 }
 
 .mark-tiptap-table th,
 .ProseMirror table th {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.12);
   font-weight: bold;
   text-align: left;
 }
 
 .mark-tiptap-table .selectedCell:after,
 .ProseMirror table .selectedCell:after {
-  background: rgba(200, 200, 255, 0.2);
+  background: rgba(200, 200, 255, 0.18);
   content: "";
   left: 0; right: 0; top: 0; bottom: 0;
   pointer-events: none;
@@ -129,68 +221,57 @@
   list-style-type: disc;
   padding-left: 1.25rem;
 }
-
 .ProseMirror ol {
   list-style-type: decimal;
   padding-left: 1.25rem;
 }
-
 .ProseMirror h1 {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 800;
-  margin-top: 0.5rem;
+  margin-top: 0.6rem;
   margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
 }
-
 .ProseMirror h2 {
   font-size: 1.15rem;
   font-weight: 700;
-  margin-top: 0.4rem;
+  margin-top: 0.5rem;
   margin-bottom: 0.4rem;
 }
 
 /* ── Format Table Preset Styles ── */
-/* Classic Blue */
 .table-classic-blue .ProseMirror table { border: 2px solid #3b82f6 !important; }
 .table-classic-blue .ProseMirror table th { background-color: #1e3a8a !important; color: #fff !important; border: 1px solid #3b82f6 !important; }
 .table-classic-blue .ProseMirror table tr:nth-child(even) td { background-color: rgba(30,58,138,0.15) !important; }
 
-/* Emerald Green */
 .table-emerald-green .ProseMirror table { border: 2px solid #22c55e !important; }
 .table-emerald-green .ProseMirror table th { background-color: #15803d !important; color: #fff !important; border: 1px solid #22c55e !important; }
 .table-emerald-green .ProseMirror table tr:nth-child(even) td { background-color: rgba(21,128,61,0.15) !important; }
 
-/* Warm Amber */
 .table-warm-amber .ProseMirror table { border: 2px solid #f59e0b !important; }
 .table-warm-amber .ProseMirror table th { background-color: #b45309 !important; color: #fff !important; border: 1px solid #f59e0b !important; }
 .table-warm-amber .ProseMirror table tr:nth-child(even) td { background-color: rgba(180,83,9,0.15) !important; }
 
-/* Crimson Red */
 .table-crimson-red .ProseMirror table { border: 2px solid #ef4444 !important; }
 .table-crimson-red .ProseMirror table th { background-color: #b91c1c !important; color: #fff !important; border: 1px solid #ef4444 !important; }
 .table-crimson-red .ProseMirror table tr:nth-child(even) td { background-color: rgba(185,28,28,0.15) !important; }
 
-/* Royal Purple */
 .table-royal-purple .ProseMirror table { border: 2px solid #a855f7 !important; }
 .table-royal-purple .ProseMirror table th { background-color: #6b21a8 !important; color: #fff !important; border: 1px solid #a855f7 !important; }
 .table-royal-purple .ProseMirror table tr:nth-child(even) td { background-color: rgba(107,33,168,0.15) !important; }
 
-/* Dark Charcoal */
 .table-dark-charcoal .ProseMirror table { border: 2px solid #71717a !important; }
 .table-dark-charcoal .ProseMirror table th { background-color: #18181b !important; color: #fff !important; border: 1px solid #71717a !important; }
 .table-dark-charcoal .ProseMirror table tr:nth-child(even) td { background-color: rgba(255,255,255,0.05) !important; }
 
-/* Ocean Teal */
 .table-ocean-teal .ProseMirror table { border: 2px solid #14b8a6 !important; }
 .table-ocean-teal .ProseMirror table th { background-color: #0f766e !important; color: #fff !important; border: 1px solid #14b8a6 !important; }
 .table-ocean-teal .ProseMirror table tr:nth-child(even) td { background-color: rgba(15,118,110,0.15) !important; }
 
-/* Rose Pink */
 .table-rose-pink .ProseMirror table { border: 2px solid #f43f5e !important; }
 .table-rose-pink .ProseMirror table th { background-color: #be185d !important; color: #fff !important; border: 1px solid #f43f5e !important; }
 .table-rose-pink .ProseMirror table tr:nth-child(even) td { background-color: rgba(190,24,93,0.15) !important; }
 
-/* Custom Table — reads CSS variables set via inline style on editor container */
 .table-custom .ProseMirror table { border: 2px solid var(--tbl-header, #3b82f6) !important; border-collapse: collapse !important; }
 .table-custom .ProseMirror table th { background-color: var(--tbl-header, #1e3a8a) !important; color: #fff !important; border: 1px solid var(--tbl-header, #3b82f6) !important; }
 .table-custom .ProseMirror table td { background-color: var(--tbl-row, transparent) !important; border: 1px solid var(--tbl-header, #3b82f6) !important; }
