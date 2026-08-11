@@ -2230,9 +2230,12 @@ function getPresetDates(preset) {
 }
 
 // ─── My Library Table (Tab 2) ─────────────────────────────────────────────────
-function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
+function LibraryTab({ links, onDelete, onUpdate, onFilteredChange, onExportClick }) {
   const { tags } = useAuth()
   const { isGhostMode } = useSecurity()
+
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   // Distinct lists (parsing comma-separated multi-tags)
   const availableTags = useMemo(() => {
@@ -2340,6 +2343,16 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
   const filtered = useMemo(() => {
     return links
       .filter(l => {
+        // Search query filtering
+        if (searchQuery.trim()) {
+          const q = searchQuery.trim().toLowerCase()
+          const titleMatch = (l.title || '').toLowerCase().includes(q)
+          const urlMatch = (l.url || '').toLowerCase().includes(q)
+          const tagMatch = (l.tag || '').toLowerCase().includes(q)
+          const platformMatch = (l.platform || '').toLowerCase().includes(q)
+          if (!titleMatch && !urlMatch && !tagMatch && !platformMatch) return false
+        }
+
         // Multi-tag filter matching
         if (appliedTags.length > 0) {
           const itemTags = l.tag ? l.tag.split(',').map(t => t.trim()) : []
@@ -2369,7 +2382,7 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
         const d = new Date(a.created_at) - new Date(b.created_at)
         return sortDir === 'asc' ? d : -d
       })
-  }, [links, appliedTags, appliedPlatforms, appliedFromDate, appliedFromTime, appliedToDate, appliedToTime, sortDir])
+  }, [links, searchQuery, appliedTags, appliedPlatforms, appliedFromDate, appliedFromTime, appliedToDate, appliedToTime, sortDir])
 
   // Previews state for fetched metadata: { [linkId]: { thumbnail, title } }
   const [previews, setPreviews] = useState({})
@@ -2475,52 +2488,130 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* ── Collapsible Filter Bar ── */}
-      <div className="bg-white border border-slate-100 rounded-2xl relative z-30 shadow-sm transition-all">
-        {/* Compact Toggle Header */}
-        <div
-          onClick={() => setIsFilterOpen(!isFilterOpen)}
-          className="px-4 py-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-50/70 transition select-none rounded-2xl"
-        >
+      {/* ── Paytm Style Header & Action Icons (Search, Filter, Export) ── */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between bg-white border border-slate-100/90 rounded-2xl px-4 py-3 shadow-sm">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs shadow-sm">
-              🔍
+            <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-sm font-bold">
+              📋
             </div>
-            <span className="text-sm font-bold text-slate-700">Filter & Sort</span>
-            {hasActiveFilters && (
-              <span className="bg-indigo-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">
-                Active
-              </span>
-            )}
+            <div>
+              <h2 className="text-slate-900 font-extrabold text-base tracking-tight leading-tight">My Library</h2>
+              <p className="text-slate-400 text-[10px] font-medium">{filtered.length} of {links.length} links</p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {hasActiveFilters && (
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); handleReset(); }}
-                className="text-[11px] text-red-500 hover:text-red-600 font-bold px-2 py-0.5 rounded-md hover:bg-red-50 transition cursor-pointer"
-              >
-                Clear
-              </button>
-            )}
-            <span className="text-[11px] text-slate-500 font-semibold bg-slate-100 px-2.5 py-1 rounded-full">
-              {filtered.length} / {links.length}
-            </span>
-            <span className="text-xs text-slate-400 font-bold ml-0.5">
-              {isFilterOpen ? '▲' : '▼'}
-            </span>
+          {/* Top Right Paytm 3 Action Icons: Search, Filter, Export */}
+          <div className="flex items-center gap-1.5">
+            {/* 1. Search Icon */}
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              className={`w-9 h-9 rounded-xl flex items-center justify-center transition cursor-pointer ${
+                isSearchOpen || searchQuery
+                  ? 'bg-purple-100 text-purple-700 font-bold'
+                  : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200/80'
+              }`}
+              title="Search links"
+            >
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+
+            {/* 2. Filter Icon (Paytm-style sliders icon) */}
+            <button
+              type="button"
+              onClick={() => setIsFilterOpen(true)}
+              className={`w-9 h-9 rounded-xl flex items-center justify-center transition relative cursor-pointer ${
+                hasActiveFilters
+                  ? 'bg-purple-600 text-white font-bold shadow-xs'
+                  : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200/80'
+              }`}
+              title="Filter by"
+            >
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              {hasActiveFilters && (
+                <span className="w-2 h-2 bg-amber-400 rounded-full absolute top-1.5 right-1.5 ring-2 ring-white" />
+              )}
+            </button>
+
+            {/* 3. Export / Download Icon */}
+            <button
+              type="button"
+              onClick={() => onExportClick && onExportClick()}
+              className="w-9 h-9 rounded-xl bg-slate-100/80 text-slate-600 hover:bg-slate-200/80 flex items-center justify-center transition cursor-pointer"
+              title="Export library data"
+            >
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </button>
           </div>
         </div>
 
-        {/* Collapsible Filter Form Panel */}
-        {isFilterOpen && (
-          <div className="p-3.5 pt-2 border-t border-gray-100 flex flex-col gap-3 bg-gray-50/40 rounded-b-2xl">
-            {/* Row 1: Multi-select Tags & Platforms & Sort Order */}
-            <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-end gap-2.5">
-              {/* Multi-Select Tag Filter */}
-              <div className="flex flex-col gap-1 flex-1 min-w-[130px]">
-                <label htmlFor="filter-tag-btn" className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+        {/* Inline Instant Search Input */}
+        {(isSearchOpen || searchQuery) && (
+          <div className="relative animate-fadeIn">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search links by title, url, or tag..."
+              className="w-full bg-white border border-purple-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-100 font-medium shadow-sm pr-9"
+              autoFocus
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 text-xs font-bold"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Paytm Style Bottom Sheet Filter Popup Modal ── */}
+      {isFilterOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-end justify-center animate-fadeIn">
+          {/* Backdrop click to close */}
+          <div
+            className="fixed inset-0"
+            onClick={() => setIsFilterOpen(false)}
+            aria-hidden="true"
+          />
+
+          <div className="relative w-full max-w-lg bg-white rounded-t-3xl shadow-2xl flex flex-col max-h-[85vh] z-10 animate-slideUp border-t border-slate-100">
+            {/* Modal Header: Title & Close Button */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h3 className="text-slate-900 font-black text-lg">Filter by</h3>
+                {hasActiveFilters && (
+                  <span className="bg-purple-100 text-purple-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                    Active
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsFilterOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm transition cursor-pointer"
+                aria-label="Close filters"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body: Scrollable Options */}
+            <div className="p-6 overflow-y-auto space-y-5 flex-1 text-slate-800">
+              {/* Section 1: Tags */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   🏷️ Tags ({pendingTags.length > 0 ? pendingTags.length : 'All'})
                 </label>
                 <MultiSelectDropdown
@@ -2532,9 +2623,9 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
                 />
               </div>
 
-              {/* Multi-Select Platform Filter */}
-              <div className="flex flex-col gap-1 flex-1 min-w-[130px]">
-                <label htmlFor="filter-platform-btn" className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+              {/* Section 2: Platforms */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   📱 Platforms ({pendingPlatforms.length > 0 ? pendingPlatforms.length : 'All'})
                 </label>
                 <MultiSelectDropdown
@@ -2546,75 +2637,73 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
                 />
               </div>
 
-              {/* Sort Order Button */}
-              <div className="flex flex-col gap-1 min-w-[100px] flex-1 sm:flex-initial">
-                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-                  ↕️ Order
-                </span>
+              {/* Section 3: Sort Order */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  ↕️ Sort Order
+                </label>
                 <button
-                  id="sort-date-btn"
                   type="button"
                   onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
-                  title="Toggle sort direction"
-                  className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 hover:bg-gray-100 transition cursor-pointer flex items-center justify-center gap-1 font-semibold shadow-sm h-[34px]"
+                  className="w-full text-xs border border-slate-200 rounded-xl px-3.5 py-2.5 bg-slate-50 text-slate-700 hover:bg-slate-100 transition cursor-pointer flex items-center justify-between font-bold"
                 >
-                  Date {sortDir === 'desc' ? '↓' : '↑'}
+                  <span>Date Created</span>
+                  <span>{sortDir === 'desc' ? 'Newest First (↓)' : 'Oldest First (↑)'}</span>
                 </button>
+              </div>
+
+              {/* Section 4: Date Range Picker & Presets */}
+              <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  📅 Date &amp; Time Range
+                </label>
+                <DateTimeRangePickerPopover
+                  fromDate={pendingFromDate}
+                  fromTime={pendingFromTime}
+                  toDate={pendingToDate}
+                  toTime={pendingToTime}
+                  onFromDateChange={setPendingFromDate}
+                  onFromTimeChange={setPendingFromTime}
+                  onToDateChange={setPendingToDate}
+                  onToTimeChange={setPendingToTime}
+                  onPresetSelect={(p) => {
+                    setPendingPreset(p)
+                    const dates = getPresetDates(p)
+                    setPendingFromDate(dates.fromDate)
+                    setPendingFromTime(dates.fromTime)
+                    setPendingToDate(dates.toDate)
+                    setPendingToTime(dates.toTime)
+                  }}
+                  onReset={() => {
+                    setPendingFromDate('')
+                    setPendingFromTime('00:00')
+                    setPendingToDate('')
+                    setPendingToTime('23:59')
+                  }}
+                />
               </div>
             </div>
 
-            {/* Row 2: Date & Time Range Picker Popover + Search & Reset Buttons */}
-            <div className="flex flex-wrap items-center gap-3 pt-2.5 border-t border-gray-100">
-              <span className="text-xs font-bold text-gray-600 whitespace-nowrap">
-                Start and ending time
-              </span>
-
-              <DateTimeRangePickerPopover
-                fromDate={pendingFromDate}
-                fromTime={pendingFromTime}
-                toDate={pendingToDate}
-                toTime={pendingToTime}
-                onFromDateChange={setPendingFromDate}
-                onFromTimeChange={setPendingFromTime}
-                onToDateChange={setPendingToDate}
-                onToTimeChange={setPendingToTime}
-                onPresetSelect={(p) => {
-                  setPendingPreset(p)
-                  const dates = getPresetDates(p)
-                  setPendingFromDate(dates.fromDate)
-                  setPendingFromTime(dates.fromTime)
-                  setPendingToDate(dates.toDate)
-                  setPendingToTime(dates.toTime)
-                }}
-                onReset={() => {
-                  setPendingFromDate('')
-                  setPendingFromTime('00:00')
-                  setPendingToDate('')
-                  setPendingToTime('23:59')
-                }}
-              />
-
-              {/* Search & Reset Buttons */}
-              <div className="flex items-center gap-2 ml-auto">
-                <button
-                  type="button"
-                  onClick={handleApply}
-                  className="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white font-bold px-5 py-1.5 rounded-lg shadow-sm text-xs transition flex items-center gap-1.5 cursor-pointer h-[32px]"
-                >
-                  Search
-                </button>
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-600 font-semibold px-4 py-1.5 rounded-lg text-xs transition cursor-pointer h-[32px]"
-                >
-                  Reset
-                </button>
-              </div>
+            {/* Paytm Bottom Footer Buttons: Clear All (Outline) & Apply (Solid Blue) */}
+            <div className="p-4 px-6 border-t border-slate-100 flex items-center gap-3 bg-white rounded-b-3xl">
+              <button
+                type="button"
+                onClick={() => { handleReset(); }}
+                className="flex-1 py-3 px-4 border-2 border-[#002e6e] text-[#002e6e] hover:bg-blue-50 font-extrabold rounded-2xl text-xs sm:text-sm transition cursor-pointer text-center"
+              >
+                Clear All
+              </button>
+              <button
+                type="button"
+                onClick={handleApply}
+                className="flex-1 py-3 px-4 bg-[#002e6e] hover:bg-[#001d4a] text-white font-extrabold rounded-2xl text-xs sm:text-sm shadow-md transition cursor-pointer text-center"
+              >
+                Apply
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* ── Card Grid (Fix 4: grid grid-cols-2 gap-3) ── */}
       {filtered.length === 0 ? (
@@ -3188,6 +3277,7 @@ export default function Dashboard() {
             onDelete={deleteLink}
             onUpdate={updateLink}
             onFilteredChange={(data, hasFilters, previews) => setLibraryState({ data, hasFilters, previews })}
+            onExportClick={() => setIsExportModalOpen(true)}
           />
         )}
         {activeTab === 'insights' && <InsightsTab links={links} notes={notes} />}
