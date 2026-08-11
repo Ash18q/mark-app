@@ -170,8 +170,10 @@ function platformColor(p = '') {
 
 // ─── Platform auto-detection helper ─────────────────────────────────────────
 function detectPlatform(url) {
+  if (!url) return 'Website'
   try {
     const clean = extractUrlFromString(url)
+    if (!clean) return 'Website'
     const host = new URL(clean).hostname.toLowerCase()
     if (host.includes('youtube.com') || host.includes('youtu.be')) return 'YouTube'
     if (host.includes('instagram.com')) return 'Instagram'
@@ -187,7 +189,7 @@ function detectPlatform(url) {
     if (host.includes('reddit.com')) return 'Reddit'
     if (host.includes('discord.com') || host.includes('discord.gg')) return 'Discord'
   } catch { /* invalid url */ }
-  return ''
+  return 'Website'
 }
 
 // ─── Smart URL Cleaner (Extracts pure http/https URL from shared text) ────────
@@ -573,7 +575,7 @@ function TagInput({ id = 'link-tag', value, onChange, suggestions, className = '
 function EditModal({ link, tags, onClose, onSave }) {
   const [url, setUrl] = useState(link.url || '')
   const [tag, setTag] = useState(link.tag || '')
-  const [platform, setPlatform] = useState(link.platform || '')
+  const [platform, setPlatform] = useState((link.platform && link.platform.trim() && link.platform.trim().toLowerCase() !== 'other') ? link.platform.trim() : 'Website')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -592,10 +594,11 @@ function EditModal({ link, tags, onClose, onSave }) {
     setError('')
     if (!url.trim()) { setError('URL is required.'); return }
     if (!tag.trim()) { setError('Tag is required.'); return }
-    if (!platform.trim()) { setError('Platform is required.'); return }
+    const finalPlatform = platform.trim() || 'Website'
+    if (!finalPlatform) { setError('Platform is required.'); return }
     setLoading(true)
     try {
-      await onSave(link.id, { url, tag, platform })
+      await onSave(link.id, { url, tag, platform: finalPlatform })
       onClose()
     } catch (err) {
       setError(err.message || 'Update failed. Please try again.')
@@ -1198,7 +1201,7 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
   const { addLink, tags } = useAuth()
   const [url, setUrl] = useState(() => extractUrlFromString(initialUrl))
   const [tag, setTag] = useState('')
-  const [platform, setPlatform] = useState(() => detectPlatform(extractUrlFromString(initialUrl)))
+  const [platform, setPlatform] = useState(() => detectPlatform(extractUrlFromString(initialUrl)) || 'Website')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -1209,7 +1212,7 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
 
   // Dynamic platform suggestions: defaults + any user-saved custom platforms
   const platformSuggestions = useMemo(() => {
-    const defaults = ['YouTube', 'Instagram', 'Pinterest', 'Threads', 'Rednote', 'Snapchat', 'Telegram', 'Facebook', 'Twitter/X', 'LinkedIn', 'GitHub', 'Reddit', 'Discord']
+    const defaults = ['Website', 'YouTube', 'Instagram', 'Pinterest', 'Threads', 'Rednote', 'Snapchat', 'Telegram', 'Facebook', 'Twitter/X', 'LinkedIn', 'GitHub', 'Reddit', 'Discord']
     const existing = [...new Set(safeLinks.map(l => l.platform).filter(Boolean))]
     return [...new Set([...defaults, ...existing])]
   }, [safeLinks])
@@ -1239,7 +1242,6 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
   }, [topPlatforms])
 
   // Sync url + auto-detect platform when initialUrl changes
-  // Also re-reads window.location.href at effect time as extra safety net
   useEffect(() => {
     const raw = initialUrl || (() => {
       try {
@@ -1251,7 +1253,7 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
     if (effectiveUrl) {
       setUrl(effectiveUrl)
       const detected = detectPlatform(effectiveUrl)
-      if (detected) setPlatform(detected)
+      setPlatform(detected || 'Website')
     }
   }, [initialUrl])
 
@@ -1269,14 +1271,13 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
     if (!url.trim()) { setError('URL is required.'); return }
     setLoading(true)
     try {
-      await addLink({ url: url.trim(), tag: tag.trim(), platform: platform.trim() })
+      const targetPlatform = (platform && platform.trim()) ? platform.trim() : (detectPlatform(url.trim()) || 'Website')
+      await addLink({ url: url.trim(), tag: tag.trim(), platform: targetPlatform })
       if (isPopupMode) {
-        // Try to close the window (works in Android share sheet / PWA)
         try { window.close() } catch { /* ignore */ }
-        // Fallback: go to library
         window.location.href = '/'
       } else {
-        setUrl(''); setTag(''); setPlatform('')
+        setUrl(''); setTag(''); setPlatform('Website')
         setSuccess(true)
         setTimeout(() => setSuccess(false), 2500)
       }
@@ -1328,7 +1329,7 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
                   const cleaned = extractUrlFromString(e.target.value)
                   setUrl(cleaned)
                   const d = detectPlatform(cleaned)
-                  if (d) setPlatform(d)
+                  setPlatform(d || 'Website')
                 }}
                 onBlur={(e) => {
                   const cleaned = extractUrlFromString(e.target.value)
@@ -1487,7 +1488,7 @@ function AddLinkTab({ initialUrl = '', links = [] }) {
                   const val = e.target.value
                   setUrl(val)
                   const d = detectPlatform(val)
-                  if (d) setPlatform(d)
+                  setPlatform(d || 'Website')
                 }}
                 placeholder="https://example.com/article"
                 className="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none font-medium"
@@ -2237,7 +2238,10 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
   const availableTags = useMemo(() => {
     return [...new Set(links.flatMap(l => l.tag ? l.tag.split(',').map(t => t.trim()) : []).filter(Boolean))]
   }, [links])
-  const availablePlatforms = useMemo(() => [...new Set(links.map(l => l.platform).filter(Boolean))], [links])
+  const availablePlatforms = useMemo(() => {
+    const raw = links.map(l => (l.platform && l.platform.trim() && l.platform.trim().toLowerCase() !== 'other') ? l.platform.trim() : 'Website')
+    return [...new Set(raw.filter(Boolean))]
+  }, [links])
 
   // Pending filter states
   const [pendingTags, setPendingTags] = useState([])
@@ -2342,7 +2346,10 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
           if (!appliedTags.some(t => itemTags.includes(t))) return false
         }
         // Multi-platform filter
-        if (appliedPlatforms.length > 0 && !appliedPlatforms.includes(l.platform)) return false
+        if (appliedPlatforms.length > 0) {
+          const itemPlatform = (l.platform && l.platform.trim() && l.platform.trim().toLowerCase() !== 'other') ? l.platform.trim() : 'Website'
+          if (!appliedPlatforms.includes(itemPlatform)) return false
+        }
 
         // Date + Time range filter
         if (appliedFromDate || appliedToDate) {
@@ -2878,9 +2885,14 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange }) {
 
                 {/* Bottom Footer Section: Platform & Date */}
                 <div className="bg-slate-50 border-t border-slate-100 p-2 px-2.5 flex items-center justify-between gap-1 mt-auto min-w-0">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border leading-tight flex-shrink-0 ${platformColor(link.platform)}`}>
-                    {link.platform || 'Other'}
-                  </span>
+                  {(() => {
+                    const displayPlatform = (link.platform && link.platform.trim() && link.platform.trim().toLowerCase() !== 'other') ? link.platform.trim() : 'Website'
+                    return (
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border leading-tight flex-shrink-0 ${platformColor(displayPlatform)}`}>
+                        {displayPlatform}
+                      </span>
+                    )
+                  })()}
 
                   {/* Date & Time */}
                   {(() => {
