@@ -2501,52 +2501,47 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange, onExportClick
             </div>
           </div>
 
-          {/* Top Right Paytm 3 Action Icons: Search, Filter, Export */}
-          <div className="flex items-center gap-2">
+          {/* Top Right Paytm 3 Action Icons: Search, Filter, Export (Unboxed clean icons) */}
+          <div className="flex items-center gap-3 sm:gap-3.5">
             {/* 1. Search Icon */}
             <button
               type="button"
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition cursor-pointer active:scale-95 ${
-                isSearchOpen || searchQuery
-                  ? 'bg-blue-600 text-white font-bold shadow-xs'
-                  : 'bg-slate-100/90 text-slate-700 hover:bg-slate-200/90 border border-slate-200/60'
-              }`}
+              className="p-0.5 text-slate-800 hover:text-blue-600 transition cursor-pointer active:scale-95 relative"
               title="Search links"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg className={`w-5.5 h-5.5 ${isSearchOpen || searchQuery ? 'text-blue-600' : 'text-slate-800'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.9} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
 
-            {/* 2. Filter Icon (Paytm-style sliders icon) */}
+            {/* 2. Filter Icon (Exact Paytm-style 3-sliders icon) */}
             <button
               type="button"
               onClick={() => setIsFilterOpen(true)}
-              className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition relative cursor-pointer active:scale-95 ${
-                hasActiveFilters
-                  ? 'bg-[#002e6e] text-white font-bold shadow-xs'
-                  : 'bg-slate-100/90 text-slate-700 hover:bg-slate-200/90 border border-slate-200/60'
-              }`}
+              className="p-0.5 text-slate-800 hover:text-blue-600 transition relative cursor-pointer active:scale-95"
               title="Filter by"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              <svg className={`w-5.5 h-5.5 ${hasActiveFilters ? 'text-blue-600' : 'text-slate-800'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 6h16M4 12h16M4 18h16" />
+                <circle cx="9" cy="6" r="2.2" fill="white" stroke="currentColor" strokeWidth={1.8} />
+                <circle cx="15" cy="12" r="2.2" fill="white" stroke="currentColor" strokeWidth={1.8} />
+                <circle cx="11" cy="18" r="2.2" fill="white" stroke="currentColor" strokeWidth={1.8} />
               </svg>
               {hasActiveFilters && (
-                <span className="w-2.5 h-2.5 bg-amber-400 rounded-full absolute top-0 right-0 ring-2 ring-white" />
+                <span className="w-2.5 h-2.5 bg-blue-600 rounded-full absolute -top-1 -right-1 ring-2 ring-white" />
               )}
             </button>
 
-            {/* 3. Export / Download Icon */}
+            {/* 3. Export / Download Icon (Exact Paytm tray download icon) */}
             <button
               type="button"
               onClick={() => onExportClick && onExportClick()}
-              className="w-8.5 h-8.5 rounded-full bg-slate-100/90 text-slate-700 hover:bg-slate-200/90 border border-slate-200/60 flex items-center justify-center transition cursor-pointer active:scale-95"
+              className="p-0.5 text-slate-800 hover:text-blue-600 transition cursor-pointer active:scale-95"
               title="Export library data"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              <svg className="w-5.5 h-5.5 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 3v12m0 0l-4-4m4 4l4-4" />
               </svg>
             </button>
           </div>
