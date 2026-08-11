@@ -2502,20 +2502,20 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange, onExportClick
           </div>
 
           {/* Top Right Paytm 3 Action Icons: Search, Filter, Export */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             {/* 1. Search Icon */}
             <button
               type="button"
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center transition cursor-pointer ${
+              className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition cursor-pointer active:scale-95 ${
                 isSearchOpen || searchQuery
-                  ? 'bg-purple-100 text-purple-700 font-bold'
-                  : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200/80'
+                  ? 'bg-blue-600 text-white font-bold shadow-xs'
+                  : 'bg-slate-100/90 text-slate-700 hover:bg-slate-200/90 border border-slate-200/60'
               }`}
               title="Search links"
             >
-              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
 
@@ -2523,18 +2523,18 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange, onExportClick
             <button
               type="button"
               onClick={() => setIsFilterOpen(true)}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center transition relative cursor-pointer ${
+              className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition relative cursor-pointer active:scale-95 ${
                 hasActiveFilters
-                  ? 'bg-purple-600 text-white font-bold shadow-xs'
-                  : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200/80'
+                  ? 'bg-[#002e6e] text-white font-bold shadow-xs'
+                  : 'bg-slate-100/90 text-slate-700 hover:bg-slate-200/90 border border-slate-200/60'
               }`}
               title="Filter by"
             >
-              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
               </svg>
               {hasActiveFilters && (
-                <span className="w-2 h-2 bg-amber-400 rounded-full absolute top-1.5 right-1.5 ring-2 ring-white" />
+                <span className="w-2.5 h-2.5 bg-amber-400 rounded-full absolute top-0 right-0 ring-2 ring-white" />
               )}
             </button>
 
@@ -2542,11 +2542,11 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange, onExportClick
             <button
               type="button"
               onClick={() => onExportClick && onExportClick()}
-              className="w-9 h-9 rounded-xl bg-slate-100/80 text-slate-600 hover:bg-slate-200/80 flex items-center justify-center transition cursor-pointer"
+              className="w-8.5 h-8.5 rounded-full bg-slate-100/90 text-slate-700 hover:bg-slate-200/90 border border-slate-200/60 flex items-center justify-center transition cursor-pointer active:scale-95"
               title="Export library data"
             >
-              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
             </button>
           </div>
@@ -2652,40 +2652,105 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange, onExportClick
                 </button>
               </div>
 
-              {/* Section 4: Date Range Picker & Presets */}
-              <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  📅 Date &amp; Time Range
-                </label>
-                <DateTimeRangePickerPopover
-                  fromDate={pendingFromDate}
-                  fromTime={pendingFromTime}
-                  toDate={pendingToDate}
-                  toTime={pendingToTime}
-                  onFromDateChange={setPendingFromDate}
-                  onFromTimeChange={setPendingFromTime}
-                  onToDateChange={setPendingToDate}
-                  onToTimeChange={setPendingToTime}
-                  onPresetSelect={(p) => {
-                    setPendingPreset(p)
-                    const dates = getPresetDates(p)
-                    setPendingFromDate(dates.fromDate)
-                    setPendingFromTime(dates.fromTime)
-                    setPendingToDate(dates.toDate)
-                    setPendingToTime(dates.toTime)
-                  }}
-                  onReset={() => {
-                    setPendingFromDate('')
-                    setPendingFromTime('00:00')
-                    setPendingToDate('')
-                    setPendingToTime('23:59')
-                  }}
-                />
+              {/* Section 4: Date Range & Quick Presets (Front and Center - Zero Clipping) */}
+              <div className="flex flex-col gap-2.5 pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    📅 Date &amp; Time Range
+                  </label>
+                  {(pendingFromDate || pendingToDate) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPendingPreset('all')
+                        setPendingFromDate('')
+                        setPendingFromTime('00:00')
+                        setPendingToDate('')
+                        setPendingToTime('23:59')
+                      }}
+                      className="text-[11px] text-blue-600 font-bold hover:underline cursor-pointer"
+                    >
+                      Clear Dates
+                    </button>
+                  )}
+                </div>
+
+                {/* Quick Date Presets Chips Grid */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[
+                    { id: 'all', label: 'All Time' },
+                    { id: 'today', label: 'Today' },
+                    { id: 'yesterday', label: 'Yesterday' },
+                    { id: '7days', label: 'Last 7 Days' },
+                    { id: 'thisMonth', label: 'This Month' },
+                    { id: 'custom', label: 'Custom' },
+                  ].map((preset) => {
+                    const isSelected = pendingPreset === preset.id
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          setPendingPreset(preset.id)
+                          if (preset.id === 'all') {
+                            setPendingFromDate('')
+                            setPendingFromTime('00:00')
+                            setPendingToDate('')
+                            setPendingToTime('23:59')
+                          } else if (preset.id !== 'custom') {
+                            const dates = getPresetDates(preset.id)
+                            setPendingFromDate(dates.fromDate)
+                            setPendingFromTime(dates.fromTime)
+                            setPendingToDate(dates.toDate)
+                            setPendingToTime(dates.toTime)
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#002e6e] text-white shadow-xs'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Direct Inline From/To Date Pickers (Shown if Custom or Date selected) */}
+                {(pendingPreset === 'custom' || pendingFromDate || pendingToDate) && (
+                  <div className="grid grid-cols-2 gap-2 mt-1 p-3 bg-slate-50 border border-slate-200/80 rounded-2xl animate-fadeIn">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">From Date</span>
+                      <input
+                        type="date"
+                        value={pendingFromDate}
+                        onChange={(e) => {
+                          setPendingPreset('custom')
+                          setPendingFromDate(e.target.value)
+                        }}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium cursor-pointer"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">To Date</span>
+                      <input
+                        type="date"
+                        value={pendingToDate}
+                        onChange={(e) => {
+                          setPendingPreset('custom')
+                          setPendingToDate(e.target.value)
+                        }}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Paytm Bottom Footer Buttons: Clear All (Outline) & Apply (Solid Blue) */}
-            <div className="p-4 px-6 border-t border-slate-100 flex items-center gap-3 bg-white rounded-b-3xl">
+            <div className="p-4 px-6 border-t border-slate-100 flex items-center gap-3 bg-white rounded-b-3xl shrink-0">
               <button
                 type="button"
                 onClick={() => { handleReset(); }}
