@@ -38,40 +38,11 @@ export default function NoteFilter({
         )}
       </div>
 
-      {/* ── Controls Row: Tag Chips + Sort + View Mode + Archive Toggle ── */}
+      {/* ── Controls Row: Sort + Active/Archive + View Mode Toggle ── */}
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-1 border-t border-slate-100">
         
-        {/* Tag Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 flex-1 min-w-[200px] no-scrollbar">
-          <button
-            type="button"
-            onClick={() => onTagSelect('')}
-            className={`px-3 py-1 rounded-full font-bold text-[11px] transition cursor-pointer shrink-0 ${
-              selectedTag === ''
-                ? 'bg-indigo-600 text-white shadow-2xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            All
-          </button>
-          {allTags.map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              onClick={() => onTagSelect(selectedTag === tag ? '' : tag)}
-              className={`px-3 py-1 rounded-full font-bold text-[11px] transition cursor-pointer shrink-0 ${
-                selectedTag === tag
-                  ? 'bg-indigo-600 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              #{tag}
-            </button>
-          ))}
-        </div>
-
-        {/* Right Controls Group */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Sort By Date/Title Dropdown button */}
+        <div className="flex items-center gap-2">
           
           {/* Sort By Date/Title Dropdown button */}
           <button

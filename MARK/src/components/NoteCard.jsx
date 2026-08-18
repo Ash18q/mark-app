@@ -148,19 +148,6 @@ export default function NoteCard({
           </div>
         )}
 
-        {/* Tags List */}
-        {tagsList.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            {tagsList.map((tag) => (
-              <span
-                key={tag}
-                className="bg-white/80 text-indigo-700 font-bold px-2 py-0.5 rounded-full text-[10px] truncate max-w-[120px] border border-indigo-100 shadow-2xs"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* ── Bottom Footer: Date Left + Action Icons Right ── */}
