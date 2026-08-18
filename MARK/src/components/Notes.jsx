@@ -98,15 +98,32 @@ export default function Notes({ isGhostMode = false }) {
   return (
     <div className="space-y-5 pb-20">
       
-      {/* ── Header Title & Search/Filter Controls ── */}
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-          <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center text-base shadow-sm">📝</span>
-          <span>Notes & Checklists</span>
-          <span className="text-xs bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-bold">
-            {filteredNotes.length}
-          </span>
-        </h1>
+      {/* ── Header Title Row ── */}
+      <div className="flex items-center justify-between bg-white border border-slate-100/90 rounded-2xl px-4 py-3.5 shadow-sm">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-indigo-700 text-white flex items-center justify-center font-bold text-base shadow-sm">
+            📝
+          </div>
+          <div>
+            <h2 className="text-slate-900 font-extrabold text-base tracking-tight leading-tight flex items-center gap-2">
+              <span>Notes & Checklists</span>
+              <span className="text-[10px] bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-2 py-0.5 rounded-full font-extrabold shadow-2xs">
+                {filteredNotes.length}
+              </span>
+            </h2>
+            <p className="text-slate-400 text-[10px] font-medium">{filteredNotes.length} notes available</p>
+          </div>
+        </div>
+
+        {/* Top Right Create Note Button */}
+        <button
+          type="button"
+          onClick={() => setEditorState({ isOpen: true, note: null, initialType: 'text' })}
+          className="px-3.5 py-2 bg-gradient-to-tr from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-extrabold text-xs rounded-xl shadow-md transition cursor-pointer flex items-center gap-1.5 active:scale-95"
+        >
+          <span>➕</span>
+          <span>New Note</span>
+        </button>
       </div>
 
       <NoteFilter

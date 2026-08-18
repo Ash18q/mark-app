@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { getTheme, DEFAULT_COLOR } from '../utils/noteColors'
+import React from 'react'
+import { getTheme } from '../utils/noteColors'
 
 function formatDate(dateStr) {
   if (!dateStr) return ''
@@ -20,7 +20,6 @@ function formatDate(dateStr) {
 function FormattedText({ text }) {
   if (!text) return <span className="italic opacity-50">Empty note...</span>
 
-  // If text contains HTML tags (like <b>, <i>, <u>, <span>), render dangerously or parse
   if (/<[a-z][\s\S]*>/i.test(text)) {
     return <div className="rich-note-content" dangerouslySetInnerHTML={{ __html: text }} />
   }
@@ -28,9 +27,15 @@ function FormattedText({ text }) {
   return <span>{text}</span>
 }
 
-export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggleArchive, viewMode = 'grid', isGhostMode = false }) {
-  const [showMenu, setShowMenu] = useState(false)
-
+export default function NoteCard({
+  note,
+  onEdit,
+  onDelete,
+  onTogglePin,
+  onToggleArchive,
+  viewMode = 'grid',
+  isGhostMode = false
+}) {
   const theme = getTheme(note.color)
 
   const isChecklist = note.type === 'checklist' || (Array.isArray(note.checklist_items) && note.checklist_items.length > 0)
@@ -42,71 +47,52 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggle
 
   const displayTitle = isGhostMode ? '🔒 Private Note' : (note.title || (isTable ? 'Table Grid' : isChecklist ? 'Checklist' : 'Untitled Note'))
 
+  const handleCopyContent = (e) => {
+    e.stopPropagation()
+    const plainText = (note.content || '').replace(/<[^>]+>/g, '')
+    const textToCopy = `${note.title || ''}\n\n${plainText}`
+    navigator.clipboard.writeText(textToCopy)
+  }
+
   return (
     <div
       onClick={() => onEdit(note)}
       style={{ backgroundColor: theme.hex }}
-      className={`group relative rounded-2xl p-4 border ${theme.border} hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden ${theme.text} ${theme.bg} ${
-        note.is_pinned ? 'ring-2 ring-amber-400/70 shadow-amber-400/10' : 'shadow-md'
-      } ${viewMode === 'list' ? 'min-h-[100px]' : 'min-h-[140px] max-h-[320px]'}`}
+      className={`group relative rounded-3xl p-4 sm:p-5 border ${theme.border} hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden ${theme.text} ${theme.bg} ${
+        note.is_pinned ? 'ring-2 ring-amber-400/80 shadow-amber-400/10' : 'shadow-md'
+      } ${viewMode === 'list' ? 'min-h-[110px]' : 'min-h-[160px] max-h-[340px]'}`}
     >
-      {/* ── Top Header: Title & Pin/Menu ── */}
+      {/* ── Top Header: Title & Bookmark / Pin Icon ── */}
       <div>
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className={`font-bold text-base ${theme.title} leading-snug line-clamp-2 break-words`}>
+          <h3 className={`font-black text-base sm:text-lg ${theme.title} leading-tight tracking-tight line-clamp-2 break-words ${isGhostMode ? 'blur-xs select-none' : ''}`}>
             {displayTitle}
           </h3>
           
-          <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-            {note.is_pinned && (
-              <span className="text-amber-400 text-sm font-bold" title="Pinned Note">
-                📌
-              </span>
-            )}
-            <div className="relative">
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                className="p-1 rounded-lg hover:bg-white/10 opacity-80 sm:opacity-0 group-hover:opacity-100 transition cursor-pointer text-xs"
-                title="Options"
-              >
-                ⋮
-              </button>
-
-              {/* Popup Action Menu */}
-              {showMenu && (
-                <>
-                  <div className="fixed inset-0 z-20" onClick={() => setShowMenu(false)} />
-                  <div className="absolute right-0 top-7 z-30 w-38 bg-white rounded-xl shadow-xl border border-slate-100 py-1 text-slate-800 text-xs font-semibold animate-scaleIn">
-                    <button
-                      onClick={() => { setShowMenu(false); onTogglePin(note.id); }}
-                      className="w-full text-left px-3 py-2 hover:bg-amber-50 flex items-center gap-2 text-slate-700"
-                    >
-                      <span>{note.is_pinned ? '📌 Unpin' : '📌 Pin'}</span>
-                    </button>
-                    <button
-                      onClick={() => { setShowMenu(false); onToggleArchive(note.id); }}
-                      className="w-full text-left px-3 py-2 hover:bg-amber-50 flex items-center gap-2 text-slate-700"
-                    >
-                      <span>{note.is_archived ? '📥 Unarchive' : '📦 Archive'}</span>
-                    </button>
-                    <div className="border-t border-slate-100 my-0.5" />
-                    <button
-                      onClick={() => { setShowMenu(false); onDelete(note.id); }}
-                      className="w-full text-left px-3 py-2 hover:bg-red-50 text-red-600 flex items-center gap-2"
-                    >
-                      <span>🗑️ Delete</span>
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
+          {/* Top Right Bookmark / Pin Button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onTogglePin(note.id)
+            }}
+            className={`p-1.5 rounded-xl transition cursor-pointer shrink-0 ${
+              note.is_pinned
+                ? 'bg-amber-100/80 text-amber-600 shadow-2xs font-bold'
+                : 'hover:bg-black/5 text-slate-400 border border-slate-200/60 bg-white/70'
+            }`}
+            title={note.is_pinned ? 'Unpin note' : 'Bookmark / Pin note'}
+          >
+            <svg className="w-4 h-4" fill={note.is_pinned ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+          </button>
         </div>
 
         {/* ── Content View ── */}
         {isGhostMode ? (
           <div className="text-xs italic opacity-75 mb-3 py-2 font-medium">
-            🔒 This note is locked in Ghost Mode
+            🔒 Locked in Ghost Mode
           </div>
         ) : isTable ? (
           /* Table Grid Preview */
@@ -161,26 +147,88 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggle
             <FormattedText text={note.content} />
           </div>
         )}
+
+        {/* Tags List */}
+        {tagsList.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {tagsList.map((tag) => (
+              <span
+                key={tag}
+                className="bg-white/80 text-indigo-700 font-bold px-2 py-0.5 rounded-full text-[10px] truncate max-w-[120px] border border-indigo-100 shadow-2xs"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* ── Bottom Footer: Tags & Date ── */}
-      <div className="pt-2 border-t border-white/10 flex items-end justify-between gap-2 mt-auto text-[11px]">
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1 max-w-[70%]">
-          {tagsList.map((tag) => (
-            <span
-              key={tag}
-              className="bg-black/20 text-white/90 font-semibold px-2 py-0.5 rounded-full text-[10px] truncate max-w-[100px] border border-white/10"
-            >
-              #{tag}
-            </span>
-          ))}
-        </div>
-
+      {/* ── Bottom Footer: Date Left + Action Icons Right ── */}
+      <div className="pt-2.5 border-t border-black/5 flex items-center justify-between text-[11px]">
         {/* Date */}
-        <span className="opacity-70 font-medium text-[10px] whitespace-nowrap ml-auto">
+        <span className="opacity-75 font-semibold text-[10px]">
           {formatDate(note.updated_at || note.created_at)}
         </span>
+
+        {/* Action Buttons Toolbar */}
+        <div className="flex items-center gap-1 opacity-90 group-hover:opacity-100 transition">
+          {/* Copy Button */}
+          <button
+            type="button"
+            onClick={handleCopyContent}
+            className="p-1 rounded-lg hover:bg-black/5 text-slate-500 transition cursor-pointer"
+            title="Copy Note Text"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </button>
+
+          {/* Archive Button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggleArchive(note.id)
+            }}
+            className="p-1 rounded-lg hover:bg-black/5 text-slate-500 transition cursor-pointer"
+            title={note.is_archived ? 'Unarchive Note' : 'Archive Note'}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V8zm3 4h6" />
+            </svg>
+          </button>
+
+          {/* Edit Button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onEdit(note)
+            }}
+            className="p-1 rounded-lg hover:bg-black/5 text-indigo-600 font-bold transition cursor-pointer"
+            title="Edit Note"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 210.3H3v-3.572L16.732 3.732z" />
+            </svg>
+          </button>
+
+          {/* Delete Button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete(note.id)
+            }}
+            className="p-1 rounded-lg hover:bg-red-50 text-red-500 transition cursor-pointer"
+            title="Delete Note"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   )
