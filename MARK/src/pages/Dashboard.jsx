@@ -3347,6 +3347,7 @@ export default function Dashboard() {
         )}
         {activeTab === 'insights' && <InsightsTab links={links} notes={notes} />}
         {activeTab === 'notes' && <Notes isGhostMode={isGhostMode} />}
+        {activeTab === 'notes2' && <Notes2 isGhostMode={isGhostMode} />}
         {activeTab === 'settings' && <Settings />}
       </main>
 
@@ -3360,9 +3361,9 @@ export default function Dashboard() {
         />
       )}
 
-      {/* ── Telegram-Style Floating Bottom Navigation Bar (5 Sections) ── */}
-      <div className="fixed bottom-3 left-0 right-0 z-40 px-3 pointer-events-none">
-        <nav className="max-w-md mx-auto bg-white border border-slate-100 rounded-3xl shadow-xl shadow-slate-200/60 px-2 py-2 pointer-events-auto flex items-center justify-around">
+      {/* ── Telegram-Style Floating Bottom Navigation Bar (6 Sections) ── */}
+      <div className="fixed bottom-3 left-0 right-0 z-40 px-2 pointer-events-none">
+        <nav className="max-w-lg mx-auto bg-white border border-slate-100 rounded-3xl shadow-xl shadow-slate-200/60 px-1.5 py-2 pointer-events-auto flex items-center justify-around">
           
           {/* 1. Add Link */}
           <button
@@ -3371,7 +3372,7 @@ export default function Dashboard() {
             onClick={() => setActiveTab('add')}
             className="flex flex-col items-center justify-center gap-1 flex-1 py-0.5 cursor-pointer group transition-all"
           >
-            <div className={`px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+            <div className={`px-3 sm:px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
               activeTab === 'add'
                 ? 'bg-blue-100/90 text-blue-600 font-bold shadow-2xs'
                 : 'text-slate-500 group-hover:text-slate-800'
@@ -3380,7 +3381,7 @@ export default function Dashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === 'add' ? 2.5 : 2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
             </div>
-            <span className={`text-[10px] sm:text-[11px] transition-colors leading-tight ${
+            <span className={`text-[9px] sm:text-[11px] transition-colors leading-tight ${
               activeTab === 'add' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium group-hover:text-slate-800'
             }`}>
               Add Link
@@ -3394,7 +3395,7 @@ export default function Dashboard() {
             onClick={() => setActiveTab('library')}
             className="flex flex-col items-center justify-center gap-1 flex-1 py-0.5 cursor-pointer group transition-all"
           >
-            <div className={`px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+            <div className={`px-3 sm:px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
               activeTab === 'library'
                 ? 'bg-blue-100/90 text-blue-600 font-bold shadow-2xs'
                 : 'text-slate-500 group-hover:text-slate-800'
@@ -3403,7 +3404,7 @@ export default function Dashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === 'library' ? 2.5 : 2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
             </div>
-            <span className={`text-[10px] sm:text-[11px] transition-colors leading-tight ${
+            <span className={`text-[9px] sm:text-[11px] transition-colors leading-tight ${
               activeTab === 'library' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium group-hover:text-slate-800'
             }`}>
               Library
@@ -3417,7 +3418,7 @@ export default function Dashboard() {
             onClick={() => setActiveTab('insights')}
             className="flex flex-col items-center justify-center gap-1 flex-1 py-0.5 cursor-pointer group transition-all"
           >
-            <div className={`px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+            <div className={`px-3 sm:px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
               activeTab === 'insights'
                 ? 'bg-blue-100/90 text-blue-600 font-bold shadow-2xs'
                 : 'text-slate-500 group-hover:text-slate-800'
@@ -3426,21 +3427,21 @@ export default function Dashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === 'insights' ? 2.5 : 2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
-            <span className={`text-[10px] sm:text-[11px] transition-colors leading-tight ${
+            <span className={`text-[9px] sm:text-[11px] transition-colors leading-tight ${
               activeTab === 'insights' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium group-hover:text-slate-800'
             }`}>
               Insights
             </span>
           </button>
 
-          {/* 4. Notes */}
+          {/* 4. Notes (Existing) */}
           <button
             id="tab-notes"
             type="button"
             onClick={() => setActiveTab('notes')}
             className="flex flex-col items-center justify-center gap-1 flex-1 py-0.5 cursor-pointer group transition-all"
           >
-            <div className={`px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+            <div className={`px-3 sm:px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
               activeTab === 'notes'
                 ? 'bg-blue-100/90 text-blue-600 font-bold shadow-2xs'
                 : 'text-slate-500 group-hover:text-slate-800'
@@ -3449,21 +3450,44 @@ export default function Dashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === 'notes' ? 2.5 : 2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </div>
-            <span className={`text-[10px] sm:text-[11px] transition-colors leading-tight ${
+            <span className={`text-[9px] sm:text-[11px] transition-colors leading-tight ${
               activeTab === 'notes' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium group-hover:text-slate-800'
             }`}>
               Notes
             </span>
           </button>
 
-          {/* 5. Settings */}
+          {/* 5. Notes 2 (New PRO Notes Module) */}
+          <button
+            id="tab-notes2"
+            type="button"
+            onClick={() => setActiveTab('notes2')}
+            className="flex flex-col items-center justify-center gap-1 flex-1 py-0.5 cursor-pointer group transition-all"
+          >
+            <div className={`px-3 sm:px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+              activeTab === 'notes2'
+                ? 'bg-indigo-100/90 text-indigo-600 font-bold shadow-2xs'
+                : 'text-slate-500 group-hover:text-slate-800'
+            }`}>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === 'notes2' ? 2.5 : 2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <span className={`text-[9px] sm:text-[11px] transition-colors leading-tight ${
+              activeTab === 'notes2' ? 'text-indigo-600 font-bold' : 'text-slate-500 font-medium group-hover:text-slate-800'
+            }`}>
+              Notes 2
+            </span>
+          </button>
+
+          {/* 6. Settings */}
           <button
             id="tab-settings"
             type="button"
             onClick={() => setActiveTab('settings')}
             className="flex flex-col items-center justify-center gap-1 flex-1 py-0.5 cursor-pointer group transition-all"
           >
-            <div className={`px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+            <div className={`px-3 sm:px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
               activeTab === 'settings'
                 ? 'bg-blue-100/90 text-blue-600 font-bold shadow-2xs'
                 : 'text-slate-500 group-hover:text-slate-800'
@@ -3482,7 +3506,7 @@ export default function Dashboard() {
                 </svg>
               )}
             </div>
-            <span className={`text-[10px] sm:text-[11px] transition-colors leading-tight ${
+            <span className={`text-[9px] sm:text-[11px] transition-colors leading-tight ${
               activeTab === 'settings' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium group-hover:text-slate-800'
             }`}>
               Settings
