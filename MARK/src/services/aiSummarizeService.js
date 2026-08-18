@@ -63,10 +63,11 @@ export async function processLinkSummarization({ url, tag = 'General', linkId = 
 
   const cleanUrl = url.trim()
 
-  // 1. Check Duplicate: Has this link already been summarized by user?
+  // 1. Check Duplicate: Has this link already been validly summarized by user?
   const existingNotes = await getAINotes(userId)
   const existingNote = existingNotes.find(
-    n => n.source_url === cleanUrl || (linkId && n.link_id === linkId)
+    n => (n.source_url === cleanUrl || (linkId && n.link_id === linkId)) &&
+         n.summary && !n.summary.startsWith('Shared Video Link') && !n.summary.startsWith('Article URL')
   )
 
   if (existingNote) {
