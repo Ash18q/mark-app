@@ -3,10 +3,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../supabaseClient'
 import Notes from '../components/Notes'
+import AINotes from './AINotes'
 import JotMain from './jot/JotMain'
 import Settings from './Settings'
 import { useSecurity } from '../context/SecurityContext'
 import { GhostModeChip, GhostBadgeIcon } from '../components/GhostMode'
+import { processLinkSummarization } from '../services/aiSummarizeService'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_PLATFORMS = [
@@ -2230,8 +2232,7 @@ function getPresetDates(preset) {
   }
 }
 
-// ─── My Library Table (Tab 2) ─────────────────────────────────────────────────
-function LibraryTab({ links, onDelete, onUpdate, onFilteredChange, onExportClick }) {
+function LibraryTab({ links, onDelete, onUpdate, onFilteredChange, onExportClick, onSummarizeClick, summarizingId }) {
   const { tags } = useAuth()
   const { isGhostMode } = useSecurity()
 
@@ -2977,6 +2978,21 @@ function LibraryTab({ links, onDelete, onUpdate, onFilteredChange, onExportClick
                       {/* 3-Dots Action Popover Menu (Copy, Share, Edit, Delete) */}
                       {activeMenuId === link.id && (
                         <div className="absolute right-0 bottom-full mb-1 z-50 w-36 bg-white border border-gray-200 rounded-xl shadow-xl py-1 text-xs divide-y divide-gray-100 animate-fadeIn">
+                          {/* 0. AI Summarize */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setActiveMenuId(null)
+                              if (onSummarizeClick) onSummarizeClick(link)
+                            }}
+                            disabled={summarizingId === link.id}
+                            className="w-full text-left px-3 py-2 text-indigo-700 bg-indigo-50/60 hover:bg-indigo-100 font-bold flex items-center gap-2 transition cursor-pointer disabled:opacity-50"
+                          >
+                            <span>✨</span>
+                            <span>{summarizingId === link.id ? 'Thinking...' : 'AI Summarize'}</span>
+                          </button>
+
                           {/* 1. Copy Link */}
                           <button
                             type="button"
@@ -3235,10 +3251,36 @@ function ExportModal({ data, hasFilters, previews = {}, onClose }) {
 
 // ─── Dashboard Page ───────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const { signOut, links, deleteLink, updateLink, notes } = useAuth()
+  const { user, signOut, links, deleteLink, updateLink, notes } = useAuth()
   const { isGhostMode } = useSecurity()
   const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('add')
+  const [summarizingId, setSummarizingId] = useState(null)
+
+  // Summarize link handler
+  const handleSummarizeLink = async (link) => {
+    if (!link || !link.url) return
+    setSummarizingId(link.id)
+    try {
+      const result = await processLinkSummarization({
+        url: link.url,
+        tag: link.tag,
+        linkId: link.id,
+        userId: user?.id
+      })
+
+      if (result.alreadyExists) {
+        alert(`ℹ️ Link already summarized!\nOpening existing AI summary note.`)
+      } else {
+        alert(`✨ AI Summary generated for "${result.note?.title || 'Link'}"!\nSaved to AI Notes.`)
+      }
+      setActiveTab('ainotes')
+    } catch (err) {
+      alert(`❌ Could not summarize link: ${err.message || err}`)
+    } finally {
+      setSummarizingId(null)
+    }
+  }
 
   // Filtered links tracking from LibraryTab for Export feature
   const [libraryState, setLibraryState] = useState({ data: [], hasFilters: false, previews: {} })
@@ -3296,31 +3338,28 @@ export default function Dashboard() {
     )
   }
 
-  const tabs = [
-    { id: 'add', label: 'Add Link', icon: '➕' },
-    { id: 'library', label: 'My Library', icon: '📋' },
-    { id: 'notes', label: 'Notes', icon: '📝' },
-  ]
-
   return (
-    <div className="min-h-screen bg-slate-50/60 font-sans">
-      {isGhostMode && <GhostModeChip />}
-
-      {/* ── Header (Screenshot 1 Exact Replica) ── */}
-      <header className="bg-white border-b border-slate-100 sticky top-0 z-40">
-        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
-          {/* Left Logo + Title */}
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
+      
+      {/* ── STICKY TOP HEADER ── */}
+      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-100 px-4 py-3 shadow-2xs">
+        <div className="max-w-3xl mx-auto flex items-center justify-between">
+          
+          {/* Left App Logo / Title */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-xl shadow-md shadow-blue-500/20">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-indigo-700 text-white flex items-center justify-center font-black text-lg shadow-md">
               M
             </div>
             <div>
-              <h1 className="font-bold text-slate-900 text-lg leading-tight tracking-tight">Mark</h1>
-              <p className="text-xs text-slate-400 font-normal">Link &amp; Note Manager</p>
+              <div className="flex items-center gap-2">
+                <h1 className="font-black text-base tracking-tight text-slate-900 leading-none">Mark</h1>
+                {isGhostMode && <GhostModeChip />}
+              </div>
+              <p className="text-[10px] text-slate-400 font-semibold tracking-wide uppercase mt-0.5">Link & Note Manager</p>
             </div>
           </div>
 
-          {/* Right Logout Button */}
+          {/* Right Header Button */}
           <button
             id="logout-btn"
             onClick={handleLogout}
@@ -3344,9 +3383,12 @@ export default function Dashboard() {
             onUpdate={updateLink}
             onFilteredChange={(data, hasFilters, previews) => setLibraryState({ data, hasFilters, previews })}
             onExportClick={() => setIsExportModalOpen(true)}
+            onSummarizeClick={handleSummarizeLink}
+            summarizingId={summarizingId}
           />
         )}
         {activeTab === 'insights' && <InsightsTab links={links} notes={notes} />}
+        {activeTab === 'ainotes' && <AINotes userId={user?.id} isGhostMode={isGhostMode} />}
         {activeTab === 'notes' && <Notes isGhostMode={isGhostMode} />}
         {activeTab === 'settings' && <Settings />}
       </main>
@@ -3361,9 +3403,9 @@ export default function Dashboard() {
         />
       )}
 
-      {/* ── Telegram-Style Floating Bottom Navigation Bar (5 Sections) ── */}
-      <div className="fixed bottom-3 left-0 right-0 z-40 px-3 pointer-events-none">
-        <nav className="max-w-md mx-auto bg-white border border-slate-100 rounded-3xl shadow-xl shadow-slate-200/60 px-2 py-2 pointer-events-auto flex items-center justify-around">
+      {/* ── Telegram-Style Floating Bottom Navigation Bar (6 Sections) ── */}
+      <div className="fixed bottom-3 left-0 right-0 z-40 px-2 pointer-events-none">
+        <nav className="max-w-lg mx-auto bg-white border border-slate-100 rounded-3xl shadow-xl shadow-slate-200/60 px-1 py-2 pointer-events-auto flex items-center justify-around">
           
           {/* 1. Add Link */}
           <button
@@ -3372,7 +3414,7 @@ export default function Dashboard() {
             onClick={() => setActiveTab('add')}
             className="flex flex-col items-center justify-center gap-1 flex-1 py-0.5 cursor-pointer group transition-all"
           >
-            <div className={`px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+            <div className={`px-3 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
               activeTab === 'add'
                 ? 'bg-blue-100/90 text-blue-600 font-bold shadow-2xs'
                 : 'text-slate-500 group-hover:text-slate-800'
@@ -3381,7 +3423,7 @@ export default function Dashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === 'add' ? 2.5 : 2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
             </div>
-            <span className={`text-[10px] sm:text-[11px] transition-colors leading-tight ${
+            <span className={`text-[9px] sm:text-[10px] transition-colors leading-tight ${
               activeTab === 'add' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium group-hover:text-slate-800'
             }`}>
               Add Link
@@ -3395,7 +3437,7 @@ export default function Dashboard() {
             onClick={() => setActiveTab('library')}
             className="flex flex-col items-center justify-center gap-1 flex-1 py-0.5 cursor-pointer group transition-all"
           >
-            <div className={`px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+            <div className={`px-3 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
               activeTab === 'library'
                 ? 'bg-blue-100/90 text-blue-600 font-bold shadow-2xs'
                 : 'text-slate-500 group-hover:text-slate-800'
@@ -3404,7 +3446,7 @@ export default function Dashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === 'library' ? 2.5 : 2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
             </div>
-            <span className={`text-[10px] sm:text-[11px] transition-colors leading-tight ${
+            <span className={`text-[9px] sm:text-[10px] transition-colors leading-tight ${
               activeTab === 'library' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium group-hover:text-slate-800'
             }`}>
               Library
@@ -3418,7 +3460,7 @@ export default function Dashboard() {
             onClick={() => setActiveTab('insights')}
             className="flex flex-col items-center justify-center gap-1 flex-1 py-0.5 cursor-pointer group transition-all"
           >
-            <div className={`px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+            <div className={`px-3 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
               activeTab === 'insights'
                 ? 'bg-blue-100/90 text-blue-600 font-bold shadow-2xs'
                 : 'text-slate-500 group-hover:text-slate-800'
@@ -3427,21 +3469,42 @@ export default function Dashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === 'insights' ? 2.5 : 2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
-            <span className={`text-[10px] sm:text-[11px] transition-colors leading-tight ${
+            <span className={`text-[9px] sm:text-[10px] transition-colors leading-tight ${
               activeTab === 'insights' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium group-hover:text-slate-800'
             }`}>
               Insights
             </span>
           </button>
 
-          {/* 4. Notes */}
+          {/* 4. AI Notes (NEW 🧠) */}
+          <button
+            id="tab-ainotes"
+            type="button"
+            onClick={() => setActiveTab('ainotes')}
+            className="flex flex-col items-center justify-center gap-1 flex-1 py-0.5 cursor-pointer group transition-all"
+          >
+            <div className={`px-3 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+              activeTab === 'ainotes'
+                ? 'bg-indigo-100/90 text-indigo-600 font-bold shadow-2xs'
+                : 'text-slate-500 group-hover:text-slate-800'
+            }`}>
+              <span className="text-base leading-none">🧠</span>
+            </div>
+            <span className={`text-[9px] sm:text-[10px] transition-colors leading-tight ${
+              activeTab === 'ainotes' ? 'text-indigo-600 font-bold' : 'text-slate-500 font-medium group-hover:text-slate-800'
+            }`}>
+              AI Notes
+            </span>
+          </button>
+
+          {/* 5. Notes */}
           <button
             id="tab-notes"
             type="button"
             onClick={() => setActiveTab('notes')}
             className="flex flex-col items-center justify-center gap-1 flex-1 py-0.5 cursor-pointer group transition-all"
           >
-            <div className={`px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+            <div className={`px-3 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
               activeTab === 'notes'
                 ? 'bg-blue-100/90 text-blue-600 font-bold shadow-2xs'
                 : 'text-slate-500 group-hover:text-slate-800'
@@ -3450,7 +3513,7 @@ export default function Dashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === 'notes' ? 2.5 : 2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </div>
-            <span className={`text-[10px] sm:text-[11px] transition-colors leading-tight ${
+            <span className={`text-[9px] sm:text-[10px] transition-colors leading-tight ${
               activeTab === 'notes' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium group-hover:text-slate-800'
             }`}>
               Notes
@@ -3464,7 +3527,7 @@ export default function Dashboard() {
             onClick={() => setActiveTab('settings')}
             className="flex flex-col items-center justify-center gap-1 flex-1 py-0.5 cursor-pointer group transition-all"
           >
-            <div className={`px-3 sm:px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+            <div className={`px-3 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
               activeTab === 'settings'
                 ? 'bg-blue-100/90 text-blue-600 font-bold shadow-2xs'
                 : 'text-slate-500 group-hover:text-slate-800'
@@ -3483,7 +3546,7 @@ export default function Dashboard() {
                 </svg>
               )}
             </div>
-            <span className={`text-[9px] sm:text-[11px] transition-colors leading-tight ${
+            <span className={`text-[9px] sm:text-[10px] transition-colors leading-tight ${
               activeTab === 'settings' ? 'text-blue-600 font-bold' : 'text-slate-500 font-medium group-hover:text-slate-800'
             }`}>
               Settings
