@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { JotProvider } from './context/JotContext'
 import { SecurityProvider } from './context/SecurityContext'
 import { LoginPage, SignupPage } from './pages/Auth'
 import Dashboard from './pages/Dashboard'
@@ -15,7 +16,8 @@ const RootRedirect = () => {
 export default function App() {
   return (
     <AuthProvider>
-      <SecurityProvider>
+      <JotProvider>
+        <SecurityProvider>
         <LockScreen />
         <BrowserRouter>
           <Routes>
@@ -41,6 +43,7 @@ export default function App() {
           </Routes>
         </BrowserRouter>
       </SecurityProvider>
-    </AuthProvider>
+    </JotProvider>
+  </AuthProvider>
   )
 }
