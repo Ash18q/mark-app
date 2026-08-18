@@ -33,10 +33,6 @@ export default function JotCard({
       ? note.tags.split(',').map(t => t.trim()).filter(Boolean)
       : []
 
-  // Checklists parsing
-  const checklistItems = Array.isArray(note.checklist_items) ? note.checklist_items : []
-  const completedCount = checklistItems.filter(i => i.completed).length
-
   // Date formatting
   const formattedDate = note.updated_at || note.created_at
     ? new Date(note.updated_at || note.created_at).toLocaleDateString(undefined, {
@@ -47,7 +43,9 @@ export default function JotCard({
 
   const handleCopyContent = (e) => {
     e.stopPropagation()
-    const textToCopy = `${note.title || ''}\n\n${note.content || ''}`
+    // Strip HTML tags for clean text copying
+    const plainText = (note.content || '').replace(/<[^>]+>/g, '')
+    const textToCopy = `${note.title || ''}\n\n${plainText}`
     navigator.clipboard.writeText(textToCopy)
   }
 
@@ -77,23 +75,19 @@ export default function JotCard({
           </button>
         </div>
 
-        {/* Note Preview Content */}
-        <div className={`text-xs leading-relaxed mb-3 line-clamp-4 whitespace-pre-line ${isDark ? 'text-slate-300' : 'text-slate-600'} ${isGhostMode ? 'blur-xs select-none' : ''}`}>
-          {isGhostMode ? '••••••••••••••••••••••••••••••••••••' : (note.content || 'No text content')}
-        </div>
-
-        {/* Checklist Progress Bar */}
-        {checklistItems.length > 0 && (
-          <div className="mb-3 flex items-center gap-2">
-            <div className={`flex-1 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-slate-200/80'}`}>
-              <div
-                className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-300 rounded-full"
-                style={{ width: `${(completedCount / checklistItems.length) * 100}%` }}
-              />
-            </div>
-            <span className={`text-[10px] font-extrabold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-              {completedCount}/{checklistItems.length}
-            </span>
+        {/* Note Preview Content (HTML TipTap Rendered or Plain text) */}
+        {isGhostMode ? (
+          <div className="text-xs text-slate-400 blur-xs select-none mb-3">
+            ••••••••••••••••••••••••••••••••••••
+          </div>
+        ) : note.content && note.content.startsWith('<') ? (
+          <div
+            className={`prose prose-xs max-w-none text-xs leading-relaxed mb-3 line-clamp-5 ${isDark ? 'prose-invert text-slate-300' : 'text-slate-600'}`}
+            dangerouslySetInnerHTML={{ __html: note.content }}
+          />
+        ) : (
+          <div className={`text-xs leading-relaxed mb-3 line-clamp-4 whitespace-pre-line ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+            {note.content || 'No text content'}
           </div>
         )}
 
