@@ -208,7 +208,7 @@ export default function JotMain({ isGhostMode = false }) {
           onEdit={(note) => setEditorState({ isOpen: true, note })}
           onDelete={deleteJotNote}
           onTogglePin={togglePinJotNote}
-          onToggleArchive={toggleArchiveNote}
+          onToggleArchive={toggleArchiveJotNote}
           isGhostMode={isGhostMode}
         />
       )}
