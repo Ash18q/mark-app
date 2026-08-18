@@ -156,18 +156,31 @@ export default function JotMain({ isGhostMode = false }) {
 
           {/* Right View Mode & Archive Toggles */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Archive Toggle */}
-            <button
-              type="button"
-              onClick={() => setShowArchived(!showArchived)}
-              className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border transition cursor-pointer ${
-                showArchived
-                  ? 'bg-purple-100 border-purple-200 text-purple-700'
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              📦 {showArchived ? 'Archived' : 'Active'}
-            </button>
+            {/* Explicit 2-Tab Segment: Active Notes vs Archived Notes */}
+            <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200/60 text-[11px] font-bold">
+              <button
+                type="button"
+                onClick={() => showArchived && setShowArchived(false)}
+                className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                  !showArchived
+                    ? 'bg-white text-indigo-600 shadow-2xs font-extrabold'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                📝 Active Notes
+              </button>
+              <button
+                type="button"
+                onClick={() => !showArchived && setShowArchived(true)}
+                className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                  showArchived
+                    ? 'bg-purple-600 text-white shadow-2xs font-extrabold'
+                    : 'text-slate-500 hover:text-purple-700'
+                }`}
+              >
+                📦 Archived Notes
+              </button>
+            </div>
 
             {/* View Mode Grid/List */}
             <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200/60">
