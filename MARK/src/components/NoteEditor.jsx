@@ -292,7 +292,7 @@ export default function NoteEditor({
               }`}
               title={freezeTitle ? 'Title is frozen at top' : 'Click to freeze title at top'}
             >
-              <span>{freezeTitle ? '📌' : '🔓'}</span>
+              <span>{freezeTitle ? '🔒' : '🔓'}</span>
               <span className="hidden md:inline">{freezeTitle ? 'Title Frozen' : 'Freeze Title'}</span>
             </button>
 

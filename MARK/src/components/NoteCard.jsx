@@ -193,7 +193,7 @@ export default function NoteCard({
               e.stopPropagation()
               onEdit(note)
             }}
-            className="p-1 rounded-lg hover:bg-black/5 text-indigo-600 font-bold transition cursor-pointer"
+            className="p-1 rounded-lg hover:bg-black/5 opacity-75 hover:opacity-100 transition cursor-pointer"
             title="Edit Note"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

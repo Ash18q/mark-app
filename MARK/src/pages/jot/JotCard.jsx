@@ -144,7 +144,7 @@ export default function JotCard({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onEdit(note); }}
-            className={`p-1 rounded-lg transition cursor-pointer ${isDark ? 'hover:bg-slate-800 text-indigo-400 font-bold' : 'hover:bg-black/5 text-indigo-600 font-bold'}`}
+            className={`p-1 rounded-lg transition cursor-pointer ${isDark ? 'hover:bg-slate-800 text-slate-300' : 'hover:bg-black/5 text-slate-500'}`}
             title="Edit Note"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
